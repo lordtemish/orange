@@ -7,7 +7,7 @@ import org.springframework.data.annotation.Id;
  */
 public class Map {
     @Id
-    private int id;
+    private String id;
     private String location;
     public Map(){
     }
@@ -15,7 +15,7 @@ public class Map {
         this.location=location;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 

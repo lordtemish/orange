@@ -8,14 +8,14 @@ import org.springframework.data.annotation.Id;
 public class Service {
     @Id
     private String id;
-    private String serv_type_id;
+    private String servtypeid;
     private String infoRus;
     private String infoKaz;
     public Service(){
 
     }
     public Service(String serv_type_id,String rus, String kaz){
-        this.serv_type_id=serv_type_id;
+        this.servtypeid=serv_type_id;
         this.infoRus=rus;
         this.infoKaz=kaz;
     }
@@ -32,7 +32,7 @@ public class Service {
     }
 
     public String getServ_type_id() {
-        return serv_type_id;
+        return servtypeid;
     }
     public void setInfoKaz(String infoKaz) {
         this.infoKaz = infoKaz;
@@ -43,6 +43,6 @@ public class Service {
     }
 
     public void setServ_type_id(String serv_type_id) {
-        this.serv_type_id = serv_type_id;
+        this.servtypeid = serv_type_id;
     }
 }
