@@ -28,6 +28,10 @@ public class MainController {
     EducationTypeRepo edTypeRepo;
     @Autowired
     ServiceRepo serviceRepo;
+    @Autowired
+    ClientRepo clientRepo;
+    @Autowired
+    PatientRepo patientRepo;
 
     @RequestMapping(value = {"/"},method = RequestMethod.GET)
     public String index(){
@@ -191,5 +195,27 @@ public class MainController {
         Service city=serviceRepo.findById(id);
         serviceRepo.delete(city);
         return "index";
+    }
+
+    @RequestMapping(value = {"/addClient"},method = RequestMethod.POST)
+    public String addClient(@RequestParam String phone){
+        Client client=new Client(phone);
+        clientRepo.save(client);
+        return "index";
+    }
+    @RequestMapping(value = {"/deleteClients"},method = RequestMethod.POST)
+    public String deleteClients(){
+        clientRepo.deleteAll();
+        return "index";
+    }
+    @RequestMapping(value={"/allClients"}, method = RequestMethod.POST)
+    public @ResponseBody ArrayList<Client> allClients(){
+        return clientRepo.findAll();
+    }
+
+
+    @RequestMapping(value={"/allPatients"}, method = RequestMethod.POST)
+    public @ResponseBody ArrayList<Patient> allPatients(){
+        return patientRepo.findAll();
     }
 }

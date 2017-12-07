@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class Patient {
     @Id
     private String id;
-    private String client_id;
+    private String clientid;
     private String gender;
     private int weight;
     private int height;
@@ -27,13 +27,13 @@ public class Patient {
     }
     public Patient(String client_id){
         favs=new ArrayList<>();
-        this.client_id=client_id;
+        this.clientid=client_id;
     }
     public Patient(String client_id, String gender, int weight, int height, String chronic, String alergic){
         favs=new ArrayList<>();
-        this.client_id=client_id;this.gender=gender;this.weight=weight;this.height=height;this.chronic=chronic;this.alergic=alergic;
+        this.clientid=client_id;this.gender=gender;this.weight=weight;this.height=height;this.chronic=chronic;this.alergic=alergic;
     }
-    public void setClient_id(String client_id){this.client_id=client_id;}
+    public void setClient_id(String client_id){this.clientid=client_id;}
     public void setGender(String gender){this.gender=gender;}
     public void setWeight(int weight){this.weight=weight;}
     public void setHeight(int height){this.height=height;}
@@ -47,7 +47,7 @@ public class Patient {
     public void addFav(String id){favs.add(id);}
 
     public String getId(){return id;}
-    public String getClient_id(){return client_id;}
+    public String getClientid(){return clientid;}
     public String getGender(){return gender;}
     public int getWeight(){return weight;}
     public int getHeight(){return height;}

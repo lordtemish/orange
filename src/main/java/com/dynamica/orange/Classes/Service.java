@@ -31,7 +31,7 @@ public class Service {
         return infoKaz;
     }
 
-    public String getServ_type_id() {
+    public String getServtypeid() {
         return servtypeid;
     }
     public void setInfoKaz(String infoKaz) {
@@ -42,7 +42,7 @@ public class Service {
         this.infoRus = infoRus;
     }
 
-    public void setServ_type_id(String serv_type_id) {
+    public void setServtypeid(String serv_type_id) {
         this.servtypeid = serv_type_id;
     }
 }
