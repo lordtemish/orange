@@ -43,69 +43,69 @@ public class MainController {
         return cityRepo.findAll();
     }
 
-    @RequestMapping(value = {"/cityadd"},method = RequestMethod.POST)
-    public String addCity(@RequestParam String rus, @RequestParam String kaz){
-        City city=new City(rus,kaz);
-        cityRepo.save(city);
-        return "index";
-    }
-    @RequestMapping(value = {"/deletecities"},method = RequestMethod.POST)
-    public String deleteCities(){
-        cityRepo.deleteAll();
-        return "index";
-    }
+        @RequestMapping(value = {"/cityadd"},method = RequestMethod.POST)
+        public String addCity(@RequestParam String rus, @RequestParam String kaz){
+            City city=new City(rus,kaz);
+            cityRepo.save(city);
+            return "index";
+        }
+        @RequestMapping(value = {"/deletecities"},method = RequestMethod.POST)
+        public String deleteCities(){
+            cityRepo.deleteAll();
+            return "index";
+        }
 
-    @RequestMapping(value = {"/deletecity/{id}"},method = RequestMethod.POST)
-    public String deleteCity(@PathVariable("id") String id){
-        City city=cityRepo.findById(id);
-        cityRepo.delete(city);
-        return "index";
-    }
+        @RequestMapping(value = {"/deletecity/{id}"},method = RequestMethod.POST)
+        public String deleteCity(@PathVariable("id") String id){
+            City city=cityRepo.findById(id);
+            cityRepo.delete(city);
+            return "index";
+        }
 
     @RequestMapping(value = {"/allott"},method = RequestMethod.POST)
     public @ResponseBody ArrayList<OwnTimeType> getOtts(){
         return ownTimeTypeRepo.findAll();
     }
-    @RequestMapping(value={"/ottAdd"}, method = RequestMethod.POST)
-    public String addOtt(@RequestParam String rus, @RequestParam String kaz ){
-        OwnTimeType ott=new OwnTimeType(rus,kaz);
-        ownTimeTypeRepo.save(ott);
-        return "index";
-    }
-    @RequestMapping(value = {"/deleteotts"},method = RequestMethod.POST)
-    public String deleteOtts(){
-        ownTimeTypeRepo.deleteAll();
-        return "index";
-    }
-    @RequestMapping(value = {"/deleteott/{id}"},method = RequestMethod.POST)
-    public String deleteOtt(@PathVariable("id") String id){
-        OwnTimeType city=ownTimeTypeRepo.findById(id);
-        ownTimeTypeRepo.delete(city);
-        return "index";
-    }
+        @RequestMapping(value={"/ottAdd"}, method = RequestMethod.POST)
+        public String addOtt(@RequestParam String rus, @RequestParam String kaz ){
+            OwnTimeType ott=new OwnTimeType(rus,kaz);
+            ownTimeTypeRepo.save(ott);
+            return "index";
+        }
+        @RequestMapping(value = {"/deleteotts"},method = RequestMethod.POST)
+        public String deleteOtts(){
+            ownTimeTypeRepo.deleteAll();
+            return "index";
+        }
+        @RequestMapping(value = {"/deleteott/{id}"},method = RequestMethod.POST)
+        public String deleteOtt(@PathVariable("id") String id){
+            OwnTimeType city=ownTimeTypeRepo.findById(id);
+            ownTimeTypeRepo.delete(city);
+            return "index";
+        }
 
 
     @RequestMapping(value = {"/allblood"},method = RequestMethod.POST)
     public @ResponseBody ArrayList<Blood> getBlood(){
         return bloodRepo.findAll();
     }
-    @RequestMapping(value={"/bloodAdd"}, method = RequestMethod.POST)
-    public String addBlood(@RequestParam String name){
-        Blood blood=new Blood(name);
-        bloodRepo.save(blood);
-        return "index";
-    }
-    @RequestMapping(value = {"/deletebloods"},method = RequestMethod.POST)
-    public String deleteBloods(){
-        bloodRepo.deleteAll();
-        return "index";
-    }
-    @RequestMapping(value = {"/deleteblood/{id}"},method = RequestMethod.POST)
-    public String deleteBlood(@PathVariable("id") String id){
-        Blood city=bloodRepo.findById(id);
-        bloodRepo.delete(city);
-        return "index";
-    }
+        @RequestMapping(value={"/bloodAdd"}, method = RequestMethod.POST)
+        public String addBlood(@RequestParam String name){
+            Blood blood=new Blood(name);
+            bloodRepo.save(blood);
+            return "index";
+        }
+        @RequestMapping(value = {"/deletebloods"},method = RequestMethod.POST)
+        public String deleteBloods(){
+            bloodRepo.deleteAll();
+            return "index";
+        }
+        @RequestMapping(value = {"/deleteblood/{id}"},method = RequestMethod.POST)
+        public String deleteBlood(@PathVariable("id") String id){
+            Blood city=bloodRepo.findById(id);
+            bloodRepo.delete(city);
+            return "index";
+        }
 
     @RequestMapping(value = {"/allsertype"}, method = RequestMethod.POST)
     public
@@ -114,24 +114,24 @@ public class MainController {
         return sertypeRepo.findAll();
     }
 
-    @RequestMapping(value = {"/sertypeAdd"}, method = RequestMethod.POST)
-    public String addSerType(@RequestParam String rus, @RequestParam String kaz) {
-        ServiceType serviceType = new ServiceType(rus, kaz);
-        sertypeRepo.save(serviceType);
-        return "index";
-    }
+        @RequestMapping(value = {"/sertypeAdd"}, method = RequestMethod.POST)
+        public String addSerType(@RequestParam String rus, @RequestParam String kaz) {
+            ServiceType serviceType = new ServiceType(rus, kaz);
+            sertypeRepo.save(serviceType);
+            return "index";
+        }
 
-    @RequestMapping(value = {"/deletesertypes"}, method = RequestMethod.POST)
-    public String deleteSerTypes() {
-        sertypeRepo.deleteAll();
-        return "index";
-    }
-    @RequestMapping(value = {"/deletesertype/{id}"},method = RequestMethod.POST)
-    public String deleteSerType(@PathVariable("id") String id){
-        ServiceType city=sertypeRepo.findById(id);
-        sertypeRepo.delete(city);
-        return "index";
-    }
+        @RequestMapping(value = {"/deletesertypes"}, method = RequestMethod.POST)
+        public String deleteSerTypes() {
+            sertypeRepo.deleteAll();
+            return "index";
+        }
+        @RequestMapping(value = {"/deletesertype/{id}"},method = RequestMethod.POST)
+        public String deleteSerType(@PathVariable("id") String id){
+            ServiceType city=sertypeRepo.findById(id);
+            sertypeRepo.delete(city);
+            return "index";
+        }
 
 
     @RequestMapping(value={"/allmaps"}, method = RequestMethod.POST)
@@ -139,17 +139,17 @@ public class MainController {
         return mapRepo.findAll();
     }
 
-    @RequestMapping(value={"/deletemaps"}, method = RequestMethod.POST)
-    public String deleteMaps(){
-        mapRepo.deleteAll();
-        return "index";
-    }
-    @RequestMapping(value = {"/deletemap/{id}"},method = RequestMethod.POST)
-    public String deleteMap(@PathVariable("id") String id){
-        Map city=mapRepo.findById(id);
-        mapRepo.delete(city);
-        return "index";
-    }
+        @RequestMapping(value={"/deletemaps"}, method = RequestMethod.POST)
+        public String deleteMaps(){
+            mapRepo.deleteAll();
+            return "index";
+        }
+        @RequestMapping(value = {"/deletemap/{id}"},method = RequestMethod.POST)
+        public String deleteMap(@PathVariable("id") String id){
+            Map city=mapRepo.findById(id);
+            mapRepo.delete(city);
+            return "index";
+        }
 
 
 
@@ -218,4 +218,6 @@ public class MainController {
     public @ResponseBody ArrayList<Patient> allPatients(){
         return patientRepo.findAll();
     }
+
+
 }

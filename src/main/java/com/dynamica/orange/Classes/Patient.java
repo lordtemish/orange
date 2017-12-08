@@ -4,9 +4,9 @@ import org.springframework.data.annotation.Id;
 
 import java.util.ArrayList;
 
-/**
- * Created by lordtemich on 10/27/17.
- */
+    /**
+     * Created by lordtemich on 10/27/17.
+     */
 public class Patient {
     @Id
     private String id;
@@ -21,19 +21,23 @@ public class Patient {
     private String homecity;
     private String workadr;
     private String workcity;
+    private String date;
     private ArrayList<String> favs;
+    private ArrayList<String> mydocs;
     public Patient(){
         favs=new ArrayList<>();
     }
     public Patient(String client_id){
         favs=new ArrayList<>();
         this.clientid=client_id;
+        mydocs=new ArrayList<>();
     }
     public Patient(String client_id, String gender, int weight, int height, String chronic, String alergic){
         favs=new ArrayList<>();
         this.clientid=client_id;this.gender=gender;this.weight=weight;this.height=height;this.chronic=chronic;this.alergic=alergic;
+        mydocs=new ArrayList<>();
     }
-    public void setClient_id(String client_id){this.clientid=client_id;}
+    public void setClientid(String client_id){this.clientid=client_id;}
     public void setGender(String gender){this.gender=gender;}
     public void setWeight(int weight){this.weight=weight;}
     public void setHeight(int height){this.height=height;}
@@ -45,8 +49,16 @@ public class Patient {
     public void setHomecity(String s){this.homecity=s;}
     public void setWorkcity(String s){this.workcity=s;}
     public void addFav(String id){favs.add(id);}
+    public void addDoc(String id){mydocs.add(id);}
+        public void setDate(String date) {
+            this.date = date;
+        }
 
-    public String getId(){return id;}
+        public String getDate() {
+            return date;
+        }
+
+        public String getId(){return id;}
     public String getClientid(){return clientid;}
     public String getGender(){return gender;}
     public int getWeight(){return weight;}
@@ -59,4 +71,22 @@ public class Patient {
     public String getWorkadr(){return workadr;}
     public String getWorkcity(){return workcity;}
     public ArrayList<String> getFavs(){return favs;}
-}
+        public ArrayList<String> getMydocs() {
+            return mydocs;
+        }
+
+        public boolean deleteFav(String id){
+            if(favs.contains(id)){
+                favs.remove(id);
+                return true;
+            }
+            else return false;
+        }
+        public boolean deleteMyDoc(String id){
+            if(mydocs.contains(id)){
+                mydocs.remove(id);
+                return true;
+            }
+            else return false;
+        }
+    }

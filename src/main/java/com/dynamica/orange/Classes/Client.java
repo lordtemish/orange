@@ -85,6 +85,15 @@ public class Client {
             return false;
         }
     }
+
+    public boolean isPubl() {
+        return publ;
+    }
+
+    public boolean isPush() {
+        return push;
+    }
+
     public String getId(){return id;}
     public String getPhone(){return phone;}
     public String getName(){return name;}
