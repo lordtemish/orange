@@ -32,6 +32,8 @@ public class MainController {
     ClientRepo clientRepo;
     @Autowired
     PatientRepo patientRepo;
+    @Autowired
+    DoctorRepo doctorRepo;
 
     @RequestMapping(value = {"/"},method = RequestMethod.GET)
     public String index(){
@@ -218,6 +220,9 @@ public class MainController {
     public @ResponseBody ArrayList<Patient> allPatients(){
         return patientRepo.findAll();
     }
-
+    @RequestMapping(value={"/allDoctors"}, method = RequestMethod.POST)
+    public @ResponseBody ArrayList<Doctor> allDoctors(){
+        return doctorRepo.findAll();
+    }
 
 }

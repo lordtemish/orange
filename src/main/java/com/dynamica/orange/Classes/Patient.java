@@ -19,8 +19,10 @@ public class Patient {
     private String alergic;
     private String homeadr;
     private String homecity;
+    private Map homelocation;
     private String workadr;
     private String workcity;
+    private Map worklocation;
     private String date;
     private ArrayList<String> favs;
     private ArrayList<String> mydocs;
@@ -48,7 +50,16 @@ public class Patient {
     public void setWorkadr(String homeadr){this.workadr=homeadr;}
     public void setHomecity(String s){this.homecity=s;}
     public void setWorkcity(String s){this.workcity=s;}
-    public void addFav(String id){favs.add(id);}
+
+        public void setHomelocation(Map homelocation) {
+            this.homelocation = homelocation;
+        }
+
+        public void setWorklocation(Map worklocation) {
+            this.worklocation = worklocation;
+        }
+
+        public void addFav(String id){favs.add(id);}
     public void addDoc(String id){mydocs.add(id);}
         public void setDate(String date) {
             this.date = date;
@@ -70,7 +81,16 @@ public class Patient {
     public String getHomecity(){return homecity;}
     public String getWorkadr(){return workadr;}
     public String getWorkcity(){return workcity;}
-    public ArrayList<String> getFavs(){return favs;}
+
+        public Map getWorklocation() {
+            return worklocation;
+        }
+
+        public Map getHomelocation() {
+            return homelocation;
+        }
+
+        public ArrayList<String> getFavs(){return favs;}
         public ArrayList<String> getMydocs() {
             return mydocs;
         }

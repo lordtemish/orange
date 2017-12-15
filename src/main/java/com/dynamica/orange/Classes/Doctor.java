@@ -1,5 +1,6 @@
 package com.dynamica.orange.Classes;
 
+import org.apache.log4j.Logger;
 import org.springframework.data.annotation.Id;
 
 import java.util.ArrayList;
@@ -8,9 +9,10 @@ import java.util.ArrayList;
  * Created by lordtemich on 10/27/17.
  */
 public class Doctor {
+    Logger log=Logger.getLogger(Doctor.class);
     @Id
     private String id;
-    private String client_id;
+    private String clientid;
     private String position;
     private String info;
     private String homeadr;
@@ -19,9 +21,10 @@ public class Doctor {
     private String workadr;
     private String workcity;
     private Map worklocation;
-    private String service_type_id;
+    private String servicetypeid;
     private ArrayList<Education> educations;
     private String serv_type;
+    private ArrayList<String> certificates;
     private ArrayList<Service> services;
     private ArrayList<Rate> rates;
     private ArrayList<OwnService> owns;
@@ -38,9 +41,10 @@ public class Doctor {
         profachievments=new ArrayList<>();
         extrainfo=new ArrayList<>();
         comments=new ArrayList<>();
+        certificates=new ArrayList<>();
     }
     public Doctor(String client_id, String position, String info){
-        this.client_id=client_id;
+        this.clientid=client_id;
         this.position=position;
         this.info=info;
         educations=new ArrayList<>();
@@ -51,6 +55,7 @@ public class Doctor {
         profachievments=new ArrayList<>();
         extrainfo=new ArrayList<>();
         comments=new ArrayList<>();
+        certificates=new ArrayList<>();
     }
 
     public String getId() {
@@ -65,8 +70,8 @@ public class Doctor {
         return info;
     }
 
-    public void setClient_id(String client_id) {
-        this.client_id = client_id;
+    public void setClientid(String client_id) {
+        this.clientid = client_id;
     }
 
     public Map getHomelocation() {
@@ -81,20 +86,20 @@ public class Doctor {
         this.homelocation = homelocation;
     }
 
-    public String getService_type_id() {
-        return service_type_id;
+    public String getServicetypeid() {
+        return servicetypeid;
     }
 
-    public void setService_type_id(String service_type_id) {
-        this.service_type_id = service_type_id;
+    public void setServicetypeid(String service_type_id) {
+        this.servicetypeid = service_type_id;
     }
 
     public void setWorklocation(Map worklocation) {
         this.worklocation = worklocation;
     }
 
-    public String getClient_id() {
-        return client_id;
+    public String getClientid() {
+        return clientid;
     }
 
     public ArrayList<Comment> getComments() {
@@ -111,11 +116,54 @@ public class Doctor {
         else
             return false;
     }
+
+    public ArrayList<String> getCertificates() {
+        return certificates;
+    }
+    public void addCertificate(String url){
+        certificates.add(url);
+    }
+    public boolean deleteCertificate(String url){
+        if(certificates.contains(url)){
+            certificates.remove(url);
+            return true;
+        }
+        else return false;
+    }
     public ArrayList<Education> getEducations() {
         return educations;
     }
     public void addEducation(Education s){
+        String id=s.getId();
+        try {
+            if (id.isEmpty()) {
+                id = System.identityHashCode(s) + "";
+            }
+        }
+        catch (NullPointerException e){
+            id = System.identityHashCode(s) + "";
+        }
+        s.setId(id);
         educations.add(s);
+    }
+    public Education getEducationById(String id){
+        for(Education i:educations){
+            log.info(i.getId()+" "+id);
+                if (i.getId().equals(id)) {
+                    return i;
+                }
+        }
+        return null;
+    }
+    public void setEducationById(String id, Education education){
+        int j=0;
+        for(Education i:educations){
+            if(i.getId().equals(id)){
+                educations.set(j, education) ;
+                break;
+            }
+            j++;
+        }
     }
     public boolean deleteEducation(Education s){
         if(educations.contains(s)){

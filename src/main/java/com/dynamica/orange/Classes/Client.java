@@ -24,17 +24,18 @@ public class Client {
     ArrayList<String> photourl;
     public Client(){
         phones=new ArrayList<>();mails=new ArrayList<>();
+        photourl=new ArrayList<>();
     }
     public Client(String phone){
         this.phone=phone;
-        phones=new ArrayList<>();mails=new ArrayList<>();
+        phones=new ArrayList<>();mails=new ArrayList<>();photourl=new ArrayList<>();
     }
     public Client(String phone, String name, String surname,String dadname,String email, String password, String lang){
         this.phone=phone;
         this.name=name;
         this.surname=surname;
         this.dadname=dadname;this.email=email;this.password=password;this.lang=lang;
-        phones=new ArrayList<>();mails=new ArrayList<>();
+        phones=new ArrayList<>();mails=new ArrayList<>();photourl=new ArrayList<>();
     }
 
     public void setGender(String gender) {this.gender = gender;}
@@ -93,7 +94,6 @@ public class Client {
     public boolean isPush() {
         return push;
     }
-
     public String getId(){return id;}
     public String getPhone(){return phone;}
     public String getName(){return name;}
@@ -104,4 +104,12 @@ public class Client {
     public String getGender() {return gender;}
     public ArrayList<String> getPhones(){return phones;}
     public ArrayList<String> getMails(){return mails;}
+
+    public ArrayList<String> getPhotourl() {
+        return photourl;
+    }
+
+    public String getLang() {
+        return lang;
+    }
 }

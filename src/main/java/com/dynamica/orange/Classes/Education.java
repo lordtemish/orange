@@ -31,10 +31,24 @@ public class Education {
     public ArrayList<String> getUrls() {
         return urls;
     }
+    public boolean deleteUrl(String url){
+        if(urls.contains(url)){
+            urls.remove(url);
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 
     public String getId() {
         return id;
     }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getEd_type_id() {
         return ed_type_id;
     }
