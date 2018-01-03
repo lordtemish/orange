@@ -5,6 +5,7 @@ import com.dynamica.orange.Classes.Doctor;
 import com.dynamica.orange.Classes.FileUploader;
 import com.dynamica.orange.Classes.Patient;
 import com.dynamica.orange.Form.ClientWithPatientForm;
+import com.dynamica.orange.Repo.ChatRepo;
 import com.dynamica.orange.Repo.ClientRepo;
 import com.dynamica.orange.Repo.DoctorRepo;
 import com.dynamica.orange.Repo.PatientRepo;
@@ -35,6 +36,8 @@ public class PatientController {
     PatientRepo patientRepo;
     @Autowired
     DoctorRepo doctorRepo;
+    @Autowired
+    ChatRepo chatRepo;
 
     FileUploader fileUploader=new FileUploader();
     public static String path="/photo/";
@@ -262,5 +265,7 @@ public class PatientController {
         }
         return list;
     }
+   /* @RequestMapping(value={"/addChat/{id}"},method = RequestMethod.POST)
+    public @ResponseBody boolean addChat()*/
     //ORDERS
 }

@@ -2,15 +2,11 @@ package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.*;
 import com.dynamica.orange.Form.ClientWithDoctorForm;
-import com.dynamica.orange.Repo.ClientRepo;
-import com.dynamica.orange.Repo.DoctorRepo;
-import com.dynamica.orange.Repo.DoctorTwoRepo;
-import com.dynamica.orange.Repo.ServiceTypeRepo;
+import com.dynamica.orange.Repo.*;
 
+import com.google.gson.*;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.json.JsonParser;
-import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +29,8 @@ public class DoctorController {
     DoctorRepo doctorRepo;
     @Autowired
     ServiceTypeRepo serviceTypeRepo;
+    @Autowired
+    ChatRepo chatRepo;
     FileUploader fileUploader=new FileUploader();
     @RequestMapping(value = "/addDoctor/{id}",method = RequestMethod.POST)
     public String addDoctor(@PathVariable("id") String id, @RequestParam String name,@RequestParam String surname, @RequestParam String dad, @RequestParam String position, @RequestParam String info, @RequestParam String service_type_id, @RequestParam String password){
@@ -407,8 +405,44 @@ public class DoctorController {
     public @ResponseBody boolean addSchedule(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String sch){
         try{
             Doctor doctor=doctorRepo.findById(id);
-            JsonParser parser= JsonParserFactory.getJsonParser();
-            Map map=parser.parseMap(sch);
+            Schedule schedule=new Schedule();
+            JsonElement jsonElement=new JsonParser().parse(sch);
+            JsonObject object=jsonElement.getAsJsonObject();
+            Set<Map.Entry<String, JsonElement>> set=object.entrySet();
+            for(Map.Entry<String, JsonElement> i:set){
+                switch (i.getKey()){
+                    case "sunday":
+                        schedule.setSunday(i.getValue().getAsString());
+                        break;
+                    case "monday":
+                        schedule.setMonday(i.getValue().getAsString());
+                        break;
+                    case "tuesday":
+                        schedule.setTuesday(i.getValue().getAsString());
+                        break;
+                    case "wednesday":
+                        schedule.setWednesday(i.getValue().getAsString());
+                        break;
+                    case "thursday":
+                        schedule.setThursday(i.getValue().getAsString());
+                        break;
+                    case "friday":
+                        schedule.setFriday(i.getValue().getAsString());
+                        break;
+                    case "saturday":
+                        schedule.setSaturday(i.getValue().getAsString());
+                        break;
+                }
+            }
+            switch (name){
+                case "work":
+                    doctor.setWorkSchedule(schedule);
+                    break;
+                case "home":
+                    doctor.setHomeSchedule(schedule);
+                    break;
+            }
+            doctorRepo.save(doctor);
             return true;
         }
         catch (Exception e){

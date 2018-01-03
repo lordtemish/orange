@@ -39,7 +39,8 @@ public class MainController {
     PatientRepo patientRepo;
     @Autowired
     DoctorRepo doctorRepo;
-
+    @Autowired
+    ChatRepo chatRepo;
     @RequestMapping(value = {"/"},method = RequestMethod.GET)
     public String index(){
         return "index";
