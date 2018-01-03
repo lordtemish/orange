@@ -1,10 +1,12 @@
 package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.Client;
+import com.dynamica.orange.Classes.Doctor;
 import com.dynamica.orange.Classes.FileUploader;
 import com.dynamica.orange.Classes.Patient;
 import com.dynamica.orange.Form.ClientWithPatientForm;
 import com.dynamica.orange.Repo.ClientRepo;
+import com.dynamica.orange.Repo.DoctorRepo;
 import com.dynamica.orange.Repo.PatientRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.ServletContext;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by lordtemich on 10/27/17.
@@ -29,6 +33,8 @@ public class PatientController {
     ClientRepo clientRepo;
     @Autowired
     PatientRepo patientRepo;
+    @Autowired
+    DoctorRepo doctorRepo;
 
     FileUploader fileUploader=new FileUploader();
     public static String path="/photo/";
@@ -63,7 +69,7 @@ public class PatientController {
         patientRepo.save(patient);
         return "index";
     }
-    @RequestMapping(value={"/getPatientInfo/{id}"}, method = RequestMethod.POST)
+    @RequestMapping(value={"/getPatientInfo/{id}"}, method = RequestMethod.POST) //addNewForms
     public @ResponseBody ClientWithPatientForm getPatientInfo(@PathVariable("id") String id){
         Patient patient=patientRepo.findById(id);
         Client client=clientRepo.findById(patient.getClientid());
@@ -186,4 +192,75 @@ public class PatientController {
         fileUploader.deletePhoto(url);
         return "index";
     }
+    @RequestMapping(value={"/addFavouriteDoctor/{id}"}, method = RequestMethod.POST)
+    public @ResponseBody boolean addFavDoc(@PathVariable("id") String id, @RequestParam String doctorid){
+        try{
+            Patient patient=patientRepo.findById(id);
+            patient.addFav(doctorid);
+            patientRepo.save(patient);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/deleteFavouriteDoctor/{id}", method=RequestMethod.POST)
+    public @ResponseBody boolean delFavDoc(@PathVariable("id") String id, @RequestParam String doctorid){
+        try{
+            Patient patient=patientRepo.findById(id);
+            boolean a = patient.deleteFav(doctorid);
+            patientRepo.save(patient);
+            return a;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value = {"/getFavouriteDoctors/{id}"}, method = RequestMethod.POST) //need to make new Form
+    public @ResponseBody List<Doctor> getFavDocs(@PathVariable("id") String id){
+        Patient patient=patientRepo.findById(id);
+        List<Doctor> list=new ArrayList<>();
+        for(String i:patient.getFavs()){
+            list.add(doctorRepo.findById(i));
+        }
+        return list;
+    }
+    @RequestMapping(value={"/addMyDoctor/{id}"}, method = RequestMethod.POST)
+    public @ResponseBody boolean addMyDoc(@PathVariable("id") String id, @RequestParam String doctorid){
+        try{
+            Patient patient=patientRepo.findById(id);
+            patient.addDoc(doctorid);
+            patientRepo.save(patient);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/deleteMyDoctor/{id}", method=RequestMethod.POST)
+    public @ResponseBody boolean delMyDoc(@PathVariable("id") String id, @RequestParam String doctorid){
+        try{
+            Patient patient=patientRepo.findById(id);
+            boolean a = patient.deleteMyDoc(doctorid);
+            patientRepo.save(patient);
+            return a;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value = {"/getMyDoctors/{id}"}, method = RequestMethod.POST) //need to make new Form
+    public @ResponseBody List<Doctor> getMyDocs(@PathVariable("id") String id){
+        Patient patient=patientRepo.findById(id);
+        List<Doctor> list=new ArrayList<>();
+        for(String i:patient.getMydocs()){
+            list.add(doctorRepo.findById(i));
+        }
+        return list;
+    }
+    //ORDERS
 }

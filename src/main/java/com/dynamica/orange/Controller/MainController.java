@@ -2,10 +2,15 @@ package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.*;
 import com.dynamica.orange.Repo.*;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -187,6 +192,10 @@ public class MainController {
     public @ResponseBody ArrayList<Service> allServices(){
         return serviceRepo.findAll();
     }
+    @RequestMapping(value={"/allServicesById/{id}"}, method=RequestMethod.POST)
+    public @ResponseBody ArrayList<Service> allServicesById(@PathVariable("id") String id){
+        return serviceRepo.findByServtypeid(id);
+    }
     @RequestMapping(value={"/deleteServices"}, method = RequestMethod.POST)
     public String deleteServices(){
         serviceRepo.deleteAll();
@@ -224,5 +233,28 @@ public class MainController {
     public @ResponseBody ArrayList<Doctor> allDoctors(){
         return doctorRepo.findAll();
     }
+    @RequestMapping(value={"/deleteAllDoctors"}, method= RequestMethod.POST)
+    public String deleteAllDoctors(){
+        doctorRepo.deleteAll();
+        return "index";
+    }
+    @RequestMapping(value = "/getFile",method = RequestMethod.GET)
+    public void getFile(@RequestParam String url, HttpServletResponse response) throws IOException{
 
+    }
+    @RequestMapping(value = "/authClient", method = RequestMethod.POST)
+    public @ResponseBody String authDoctor(@RequestParam String phone,@RequestParam String password){
+        Client client=clientRepo.findByPhone(phone);
+        if(client.getPassword().equals(password)){
+        try{
+            Doctor doctor=doctorRepo.findByClientid(client.getId());
+            return "doctor";
+        }
+        catch (NullPointerException e){
+            Patient patient=patientRepo.findByClientid(client.getId());
+            return "patient";
+        }
+        }
+        return null;
+    }
 }

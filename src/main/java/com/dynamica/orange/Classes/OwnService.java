@@ -20,6 +20,10 @@ public class OwnService {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public int getPrice() {
         return price;
     }

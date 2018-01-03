@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * Created by lordtemich on 10/27/17.
  */
 public class Doctor {
-    Logger log=Logger.getLogger(Doctor.class);
+    //Logger log=Logger.getLogger(Doctor.class);
     @Id
     private String id;
     private String clientid;
@@ -25,13 +25,15 @@ public class Doctor {
     private ArrayList<Education> educations;
     private String serv_type;
     private ArrayList<String> certificates;
-    private ArrayList<Service> services;
+    private ArrayList<String> services;
     private ArrayList<Rate> rates;
     private ArrayList<OwnService> owns;
     private ArrayList<Experience> experiences;
     private ArrayList<String> profachievments;
     private ArrayList<String> extrainfo;
     private ArrayList<Comment> comments;
+    private Schedule workSchedule;
+    private Schedule homeSchedule;
     public Doctor(){
         educations=new ArrayList<>();
         services=new ArrayList<>();
@@ -148,7 +150,7 @@ public class Doctor {
     }
     public Education getEducationById(String id){
         for(Education i:educations){
-            log.info(i.getId()+" "+id);
+           // log.info(i.getId()+" "+id);
                 if (i.getId().equals(id)) {
                     return i;
                 }
@@ -164,6 +166,22 @@ public class Doctor {
             }
             j++;
         }
+    }
+    public boolean deleteEducationUrlById(String id, String url){
+        int j=0;
+        for(Education i:educations){
+            if(i.getId().equals(id)){
+                if(i.getUrls().contains(url)){
+                    i.getUrls().remove(url);
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+            j++;
+        }
+        return false;
     }
     public boolean deleteEducation(Education s){
         if(educations.contains(s)){
@@ -184,7 +202,36 @@ public class Doctor {
     public ArrayList<Experience> getExperiences() {
         return experiences;
     }
+    public void deleteExperiencebyId(String id){
+        for(Experience i:experiences){
+            if(i.getId().equals(id)){
+                experiences.remove(i);
+                break;
+            }
+        }
+    }
+    public void updateExperiencebyId(String id, String namecom, String position, int years, String startyear){
+        for(Experience i:experiences){
+            if(i.getId().equals(id)){
+                i.setNamecom(namecom);
+                i.setPosition(position);
+                i.setStart_year(startyear);
+                i.setYears(years);
+                break;
+            }
+        }
+    }
     public void addExperience(Experience s){
+        String id=s.getId();
+        try {
+            if (id.isEmpty()) {
+                id = System.identityHashCode(s) + "";
+            }
+        }
+        catch (NullPointerException e){
+            id = System.identityHashCode(s) + "";
+        }
+        s.setId(id);
         experiences.add(s);
     }
 
@@ -192,6 +239,16 @@ public class Doctor {
         return owns;
     }
     public void addOwnService(OwnService s){
+        String id=s.getId();
+        try {
+            if (id.isEmpty()) {
+                id = System.identityHashCode(s) + "";
+            }
+        }
+        catch (NullPointerException e){
+            id = System.identityHashCode(s) + "";
+        }
+        s.setId(id);
         owns.add(s);
     }
     public boolean deleteOwnService(OwnService s){
@@ -217,7 +274,7 @@ public class Doctor {
         else
             return false;
     }
-    public ArrayList<Service> getServices() {
+    public ArrayList<String> getServices() {
         return services;
     }
     public boolean deleteService(Service s){
@@ -228,8 +285,11 @@ public class Doctor {
         else
             return false;
     }
-    public void addService(Service s){
-        services.add(s);
+    public void addService(String s){
+        if(!services.contains(s))services.add(s);
+    }
+    public void clearServices(){
+        services.clear();
     }
 
     public ArrayList<String> getExtrainfo() {
@@ -304,5 +364,21 @@ public class Doctor {
 
     public void setWorkcity(String workcity) {
         this.workcity = workcity;
+    }
+
+    public Schedule getHomeSchedule() {
+        return homeSchedule;
+    }
+
+    public Schedule getWorkSchedule() {
+        return workSchedule;
+    }
+
+    public void setHomeSchedule(Schedule homeSchedule) {
+        this.homeSchedule = homeSchedule;
+    }
+
+    public void setWorkSchedule(Schedule workSchedule) {
+        this.workSchedule = workSchedule;
     }
 }

@@ -4,13 +4,21 @@ import com.dynamica.orange.Classes.*;
 import com.dynamica.orange.Form.ClientWithDoctorForm;
 import com.dynamica.orange.Repo.ClientRepo;
 import com.dynamica.orange.Repo.DoctorRepo;
+import com.dynamica.orange.Repo.DoctorTwoRepo;
 import com.dynamica.orange.Repo.ServiceTypeRepo;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JsonParser;
+import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import javax.print.Doc;
+import java.util.*;
+import java.util.Map;
 
 /**
  * Created by lordtemich on 10/27/17.
@@ -40,6 +48,51 @@ public class DoctorController {
         clientRepo.save(client);
         return "index";
     }
+    @RequestMapping(value = {"/setLang/{id}"}, method = RequestMethod.POST)
+    public String setLang(@PathVariable("id") String id, @RequestParam String lang){
+        Doctor doctor=doctorRepo.findById(id);
+        Client client=clientRepo.findById(doctor.getClientid());
+        client.setLang(lang);
+        clientRepo.save(client);
+        return "index";
+    }
+
+    //addTimeSchedule
+    @RequestMapping(value = "/addOwnService/{id}",method = RequestMethod.POST) //ottid change
+    public @ResponseBody boolean addOwnService(@PathVariable("id") String id, @RequestParam String name, @RequestParam String ottid, @RequestParam String info, @RequestParam int price){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            doctor.addOwnService(new OwnService(name,ottid,info,price));
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/getOwnServices/{id}", method = RequestMethod.POST)
+    public @ResponseBody List<OwnService> getOwnServices(@PathVariable("id") String id){
+        Doctor doctor=doctorRepo.findById(id);
+        return doctor.getOwns();
+    }
+    @RequestMapping(value="/deleteOwnService/{id}", method = RequestMethod.POST)
+    public @ResponseBody boolean deleteOwnService(@PathVariable("id") String id, @RequestParam String ownserviceid){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            for(OwnService i:doctor.getOwns()){
+                if(i.getId().equals(ownserviceid)){
+                    doctor.getOwns().remove(i);
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
     @RequestMapping(value = "/setServiceTypeId/{id}",method = RequestMethod.POST)
     public @ResponseBody boolean setSerTypeId(@PathVariable("id")  String id, @RequestParam String service_type_id){
         try {
@@ -57,6 +110,63 @@ public class DoctorController {
             return false;
         }
     }
+    @RequestMapping(value="/setServices/{id}",method = RequestMethod.POST)
+    public @ResponseBody boolean setServices(@PathVariable("id") String id, @RequestParam String services){
+        try {
+            Doctor doctor = doctorRepo.findById(id);
+            doctor.clearServices();
+            String[] service=services.split(" ");
+            for(int i=0;i<service.length;i++){
+                doctor.addService(service[i]);
+            }
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/servicesId/{id}", method = RequestMethod.POST)
+    public @ResponseBody List<String> servicesId(@PathVariable("id") String id){
+        Doctor doctor=doctorRepo.findById(id);
+        return doctor.getServices();
+    }
+    @RequestMapping(value="/addCertificate/{id}",method = RequestMethod.POST)
+    public @ResponseBody boolean addCertificate(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes){
+        Doctor doctor=doctorRepo.findById(id);
+        try{
+            String url="doctorcertificate-"+doctor.getId();
+            int i=0;
+            while(true){
+                String s=fileUploader.upload(file, url+i);
+                if(s.equals("")){
+                    i++;
+                    continue;
+                }
+                else{
+                    url=s;
+                    break;
+                }
+            }
+            doctor.addCertificate(url);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (NullPointerException e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/deleteCertificate/{id}",method = RequestMethod.POST)
+    public @ResponseBody boolean deleteCertificate(@PathVariable("id") String id, @RequestParam String url){
+        Doctor doctor=doctorRepo.findById(id);
+        boolean a=false;
+        a=doctor.deleteCertificate(url);
+        fileUploader.deletePhoto(url);
+        doctorRepo.save(doctor);
+        return a;
+    }
     @RequestMapping(value = "/addEducation/{id}",method = RequestMethod.POST)
     public String addEducation(@PathVariable("id") String id, @RequestParam String ed_type_id,@RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop){
         Education education=new Education(ed_type_id,name,speciality,start,stop);
@@ -65,8 +175,25 @@ public class DoctorController {
         doctorRepo.save(doctor);
         return "index";
     }
-    @RequestMapping(value="/addEducationCertificate/{id}/{certid}", method = RequestMethod.POST)
-    public @ResponseBody boolean addEdCert(@PathVariable("id") String id, @PathVariable("certid") String certid, @RequestParam MultipartFile file,  RedirectAttributes redirectAttributes){
+    @RequestMapping(value="/deleteEducation/{id}/{edid}",method =RequestMethod.POST)
+    public @ResponseBody boolean deleteEducation(@PathVariable("id") String id, @PathVariable("edid") String edid){
+        try {
+            Doctor doctor = doctorRepo.findById(id);
+            Education education = doctor.getEducationById(edid);
+            for (String i : education.getUrls()) {
+                fileUploader.deletePhoto(i);
+            }
+            doctor.deleteEducation(education);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (NullPointerException e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/addEducationCertificate/{id}/{edid}", method = RequestMethod.POST)
+    public @ResponseBody boolean addEdCert(@PathVariable("id") String id, @PathVariable("edid") String certid, @RequestParam MultipartFile file,  RedirectAttributes redirectAttributes){
         Doctor doctor=doctorRepo.findById(id);
         try{
             Education ed=doctor.getEducationById(certid);
@@ -92,8 +219,204 @@ public class DoctorController {
             e.printStackTrace();
             return false;
         }
-
     }
+    @RequestMapping(value="/deleteEducationCertificate/{id}/{certid}", method = RequestMethod.POST)
+    public @ResponseBody boolean deleteEdCert(@PathVariable("id") String id, @PathVariable("certid") String certid, @RequestParam String url){
+        Doctor doctor=doctorRepo.findById(id);
+        try{
+            Education ed=doctor.getEducationById(certid);
+            if(ed.getUrls().contains(url)){
+                ed.getUrls().remove(url);
+            }
+            else{
+                return false;
+            }
+            doctorRepo.save(doctor);
+            fileUploader.deletePhoto(url);
+            return true;
+        }
+        catch (NullPointerException e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value={"/addProfessionalAch/{id}"},method = RequestMethod.POST)
+    public @ResponseBody boolean addProfAch(@PathVariable("id") String id, @RequestParam String info){
+        try {
+            Doctor doctor = doctorRepo.findById(id);
+            doctor.addProfAch(info);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (NullPointerException e){
+            return false;
+        }
+    }
+    @RequestMapping(value={"/deleteProfessionalAch/{id}"}, method = RequestMethod.POST)
+    public @ResponseBody boolean deleteProfAch(@PathVariable("id") String id, @RequestParam int index){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            doctor.getProfachievments().remove(index);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (NullPointerException e){
+            return false;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value={"/updateProfessionalAch/{id}"},method = RequestMethod.POST)
+    public @ResponseBody boolean updateProfAch(@PathVariable("id") String id, @RequestParam int index, @RequestParam String info){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            doctor.getProfachievments().set(index,info);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @RequestMapping(value={"/addExtraInfo/{id}"},method = RequestMethod.POST)
+    public @ResponseBody boolean addExtraInfo(@PathVariable("id") String id, @RequestParam String info){
+        try {
+            Doctor doctor = doctorRepo.findById(id);
+            doctor.addExtraInfo(info);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (NullPointerException e){
+            return false;
+        }
+    }
+    @RequestMapping(value={"/deleteExtraInfo/{id}"}, method = RequestMethod.POST)
+    public @ResponseBody boolean deleteExtraInfo(@PathVariable("id") String id, @RequestParam int index){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            doctor.getExtrainfo().remove(index);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (NullPointerException e){
+            return false;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value={"/updateExtraInfo/{id}"},method = RequestMethod.POST)
+    public @ResponseBody boolean updateExtraInfo(@PathVariable("id") String id, @RequestParam int index, @RequestParam String info){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            doctor.getExtrainfo().set(index,info);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+
+    @RequestMapping(value = {"/addPhoto/{id}"}, method = RequestMethod.POST)
+    public String addPhoto(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes){
+        if(file.isEmpty()){
+            redirectAttributes.addFlashAttribute("message", "file is empty");
+
+        }
+        else{
+            Doctor patient=doctorRepo.findById(id);
+            Client client=clientRepo.findById(patient.getClientid());
+            int i=0;
+            String url="mainphoto-"+patient.getId();
+            while(true){
+                String s=fileUploader.upload(file, url+i);
+                if("".equals(s)) {
+                    i++;
+                    continue;
+                }
+                else{
+                    url=s;
+                    break;
+                }
+            }
+            client.addPhoto(url);
+            clientRepo.save(client);
+        }
+        return "index";
+    }
+    @RequestMapping(value = {"/deletePhoto/{id}"}, method = RequestMethod.POST)
+    public String delPhoto(@PathVariable("id") String id, @RequestParam String url, RedirectAttributes redirectAttributes) {
+        Doctor patient=doctorRepo.findById(id);
+        Client client=clientRepo.findById(patient.getClientid());
+        client.deletePhoto(url);
+        clientRepo.save(client);
+        fileUploader.deletePhoto(url);
+        return "index";
+    }
+
+    @RequestMapping(value="/addExperience/{id}",method = RequestMethod.POST)
+    public @ResponseBody boolean addExperience(@PathVariable("id") String id, @RequestParam String name, @RequestParam int years, @RequestParam String position, @RequestParam String startyear){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            Experience experience=new Experience(name, position, years,startyear);
+            doctor.addExperience(experience);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/deleteExperience/{id}/{expid}",method = RequestMethod.POST)
+    public @ResponseBody boolean deleteExperience(@PathVariable("id") String id, @PathVariable("expid") String experienceid){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            doctor.deleteExperiencebyId(experienceid);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/updateExperience/{id}/{expid}",method = RequestMethod.POST)
+    public @ResponseBody boolean updateExperience(@PathVariable("id") String id, @PathVariable("expid") String experienceid, @RequestParam String name, @RequestParam int years, @RequestParam String position, @RequestParam String startyear){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            doctor.updateExperiencebyId(experienceid,name,position,years,startyear);
+            doctorRepo.save(doctor);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value = "/setSchedule/{id}/{name}", method = RequestMethod.POST)
+    public @ResponseBody boolean addSchedule(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String sch){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            JsonParser parser= JsonParserFactory.getJsonParser();
+            Map map=parser.parseMap(sch);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     @RequestMapping(value="/getDoctorInfo/{id}")
     public @ResponseBody
     ClientWithDoctorForm getDoctorInfo(@PathVariable("id") String id){

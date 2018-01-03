@@ -27,7 +27,7 @@ public class Patient {
     private ArrayList<String> favs;
     private ArrayList<String> mydocs;
     public Patient(){
-        favs=new ArrayList<>();
+        favs=new ArrayList<>();mydocs=new ArrayList<>();
     }
     public Patient(String client_id){
         favs=new ArrayList<>();
