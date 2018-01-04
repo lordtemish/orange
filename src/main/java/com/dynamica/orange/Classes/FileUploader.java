@@ -43,6 +43,48 @@ public class FileUploader {
             return "";
         }
     }
+    public String uploadMessageFile(MultipartFile file, String name){
+        try {
+            byte[] bytes = file.getBytes();
+            Path path= Paths.get("chat");
+            if(!new File("chat").exists()){
+                if(new File("chat").mkdir()){
+
+                }
+                else{
+
+                }
+            }
+            if(new File(name+"."+file.getContentType().split("/")[1]).exists()){
+                return "";
+            }
+            else {
+                Files.copy(file.getInputStream(), path.resolve(name + "." + file.getContentType().split("/")[1]));
+                return name + "." + file.getContentType().split("/")[1];
+            }
+        }
+        catch (IOException e){
+
+            return "";
+        }
+        catch (Exception e){
+
+            return "";
+        }
+    }
+
+
+    public boolean deleteMessageFile(String url){
+        try {
+            Files.delete(Paths.get("chat/" + url));
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean deletePhoto(String url){
         try {
             Files.delete(Paths.get("photo/" + url));

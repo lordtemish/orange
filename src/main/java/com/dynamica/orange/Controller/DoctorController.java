@@ -26,6 +26,8 @@ public class DoctorController {
     @Autowired
     ClientRepo clientRepo;
     @Autowired
+    PatientRepo patientRepo;
+    @Autowired
     DoctorRepo doctorRepo;
     @Autowired
     ServiceTypeRepo serviceTypeRepo;
@@ -450,7 +452,103 @@ public class DoctorController {
             return false;
         }
     }
+    @RequestMapping(value="/openChat/{id}", method = RequestMethod.POST)
+    public @ResponseBody String openChat(@PathVariable("id") String id, @RequestParam String patientid){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            Chat chat=chatRepo.findOneByDoctoridAndPatientid(doctor.getId(),patientid);
+            Patient doctor1=patientRepo.findById(patientid);
+            if(doctor1==null){
+                return null;
+            }
+            if(doctor==null){
+                return null;
+            }
+            if(chat==null){
+                Chat chat1=new Chat(doctor.getId(),patientid);
+                chatRepo.save(chat1);
+                chat=chatRepo.findOneByDoctoridAndPatientid(id,patientid);
+            }
+            return chat.getId();
+        }
+        catch (NullPointerException e){
+            log.info(null);
+            return null;
+        }
+        catch (Exception e){
+            return "";
+        }
+    }
 
+    @RequestMapping(value="/getAllChats/{id}",method = RequestMethod.POST)
+    public @ResponseBody List<Chat> getAllChats(@PathVariable("id") String id){
+        return chatRepo.findByDoctorid(id);
+    }
+    @RequestMapping(value="/sendTextMessage/{id}/{chatid}",method = RequestMethod.POST)
+    public @ResponseBody boolean sendTextMes(@PathVariable("id") String id,@PathVariable("chatid") String chatid, @RequestParam String text){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            Chat chat=chatRepo.findById(chatid);
+            Message message=new Message(doctor.getClientid(),"text",text);
+            chat.addMessage(message);
+            chat.setStatus("doctor");
+            chat.unreadPlus();
+            chatRepo.save(chat);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/sendFileMessage/{id}/{chatid}",method = RequestMethod.POST)
+    public @ResponseBody boolean sendFileMes(@PathVariable("id") String id,@PathVariable("chatid") String chatid, @RequestParam String type, @RequestParam MultipartFile file){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            Chat chat=chatRepo.findById(chatid);
+            Message message=new Message(doctor.getClientid(),type);
+            chat.addMessage(message);
+            message=chat.getMessages().get(chat.getMessages().size()-1);
+            chat.getMessages().remove(message);
+            String url="message-"+message.getId();
+            int i=0;
+            while(true){
+                String s=fileUploader.uploadMessageFile(file, url+i);
+                if(s.equals("")){
+                    i++;
+                    continue;
+                }
+                else{
+                    url=s;
+                    break;
+                }
+            }
+            message.setInfo(url);
+            chat.getMessages().add(message);
+            chatRepo.save(chat);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/getMessages/{id}/{chatid}", method = RequestMethod.POST)
+    public @ResponseBody List<Message> getMessages(@PathVariable("id") String id, @PathVariable("chatid") String chatid){
+        try{
+            Doctor doctor=doctorRepo.findById(id);
+            Chat chat=chatRepo.findById(chatid);
+            if(!chat.getStatus().equals("doctor")){
+                chat.setUnread(0);
+            }
+            chatRepo.save(chat);
+            return chat.getMessages();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
     @RequestMapping(value="/getDoctorInfo/{id}")
     public @ResponseBody
     ClientWithDoctorForm getDoctorInfo(@PathVariable("id") String id){

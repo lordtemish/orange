@@ -72,4 +72,8 @@ public class Chat {
         s.setId(id);
         messages.add(s);
     }
+
+    public Stack<Message> getMessages() {
+        return messages;
+    }
 }

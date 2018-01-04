@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by lordtemich on 10/27/17.
@@ -242,6 +243,15 @@ public class MainController {
     @RequestMapping(value = "/getFile",method = RequestMethod.GET)
     public void getFile(@RequestParam String url, HttpServletResponse response) throws IOException{
 
+    }
+
+    @RequestMapping(value="/getAllChats", method = RequestMethod.POST)
+    public @ResponseBody List<Chat> getAllChat(){
+        return chatRepo.findAll();
+    }
+    @RequestMapping(value="/deleteAllChats", method = RequestMethod.POST)
+    public void deleteAllChat(){
+        chatRepo.deleteAll();
     }
     @RequestMapping(value = "/authClient", method = RequestMethod.POST)
     public @ResponseBody String authDoctor(@RequestParam String phone,@RequestParam String password){

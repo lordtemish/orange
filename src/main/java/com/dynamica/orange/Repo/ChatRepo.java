@@ -10,7 +10,8 @@ import java.util.ArrayList;
  */
 public interface ChatRepo extends MongoRepository<Chat,String> {
     public Chat findById(String id);
-    public Chat findByDoctorid(String doctorid);
-    public Chat findByPatientid(String patientid);
+    public Chat findOneByDoctoridAndPatientid(String doctorid, String patientid);
+    public ArrayList<Chat> findByDoctorid(String doctorid);
+    public ArrayList<Chat> findByPatientid(String patientid);
     public ArrayList<Chat> findAll();
 }

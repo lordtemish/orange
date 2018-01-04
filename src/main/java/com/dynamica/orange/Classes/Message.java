@@ -2,6 +2,8 @@ package com.dynamica.orange.Classes;
 
 import org.springframework.data.annotation.Id;
 
+import java.util.Date;
+
 /**
  * Created by lordtemich on 1/3/18.
  */
@@ -13,11 +15,13 @@ public class Message {
     private String info;
     private long time;
     private boolean read=false;
-    public Message(){}
-    public Message(String clientid){this.clientid =clientid;}
-    public Message(String clientid, String type){this.clientid =clientid;this.type=type;}
-    public Message(String clientid, String type, String info){this.clientid =clientid;this.type=type;this.info=info;}
-    public Message(String clientid, String type, String info, long time){this.clientid =clientid;this.type=type;this.info=info;this.time=time;}
+    public Message(){
+        time=new Date().getTime();
+    }
+    public Message(String clientid){this.clientid =clientid;time=new Date().getTime();}
+    public Message(String clientid, String type){this.clientid =clientid;this.type=type;time=new Date().getTime();}
+    public Message(String clientid, String type, String info){this.clientid =clientid;this.type=type;this.info=info;time=new Date().getTime();}
+    public Message(String clientid, String type, String info, long time){this.clientid =clientid;this.type=type;this.info=info;this.time=time;time=new Date().getTime();}
 
     public void setClientid(String clientid) {
         this.clientid = clientid;

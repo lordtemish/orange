@@ -1,9 +1,6 @@
 package com.dynamica.orange.Controller;
 
-import com.dynamica.orange.Classes.Client;
-import com.dynamica.orange.Classes.Doctor;
-import com.dynamica.orange.Classes.FileUploader;
-import com.dynamica.orange.Classes.Patient;
+import com.dynamica.orange.Classes.*;
 import com.dynamica.orange.Form.ClientWithPatientForm;
 import com.dynamica.orange.Repo.ChatRepo;
 import com.dynamica.orange.Repo.ClientRepo;
@@ -265,7 +262,102 @@ public class PatientController {
         }
         return list;
     }
-   /* @RequestMapping(value={"/addChat/{id}"},method = RequestMethod.POST)
-    public @ResponseBody boolean addChat()*/
+
+    @RequestMapping(value="/openChat/{id}", method = RequestMethod.POST)
+    public @ResponseBody String openChat(@PathVariable("id") String id, @RequestParam String doctorid){
+        try{
+            Patient doctor=patientRepo.findById(id);
+            Chat chat=chatRepo.findOneByDoctoridAndPatientid(doctorid,id);
+            Doctor doctor1=doctorRepo.findById(doctorid);
+            if(doctor1==null){
+                return null;
+            }
+            if(doctor==null){
+                return null;
+            }
+            if(chat==null){
+                Chat chat1=new Chat(doctorid,id);
+                chatRepo.save(chat1);
+                chat=chatRepo.findOneByDoctoridAndPatientid(doctorid,id);
+            }
+            return chat.getId();
+        }
+        catch (NullPointerException e){
+            logger.info(null);
+            return null;
+        }
+        catch (Exception e){
+            return "";
+        }
+    }
+    @RequestMapping(value="/getAllChats/{id}",method = RequestMethod.POST)
+    public @ResponseBody List<Chat> getAllChats(@PathVariable("id") String id){
+        return chatRepo.findByPatientid(id);
+    }
+    @RequestMapping(value="/sendTextMessage/{id}/{chatid}",method = RequestMethod.POST)
+    public @ResponseBody boolean sendTextMes(@PathVariable("id") String id,@PathVariable("chatid") String chatid, @RequestParam String text){
+        try{
+            Patient doctor=patientRepo.findById(id);
+            Chat chat=chatRepo.findById(chatid);
+            Message message=new Message(doctor.getClientid(),"text",text);
+            chat.addMessage(message);
+            chat.setStatus("patient");
+            chat.unreadPlus();
+            chatRepo.save(chat);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="getMessages/{id}/{chatid}", method = RequestMethod.POST)
+    public @ResponseBody List<Message> getMessages(@PathVariable("id") String id, @PathVariable("chatid") String chatid){
+        try{
+            Patient doctor=patientRepo.findById(id);
+            Chat chat=chatRepo.findById(chatid);
+            if(!chat.getStatus().equals("patient")){
+                chat.setUnread(0);
+            }
+            chatRepo.save(chat);
+            return chat.getMessages();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @RequestMapping(value="/sendFileMessage/{id}/{chatid}",method = RequestMethod.POST)
+    public @ResponseBody boolean sendFileMes(@PathVariable("id") String id,@PathVariable("chatid") String chatid, @RequestParam String type, @RequestParam MultipartFile file){
+        try{
+            Patient doctor=patientRepo.findById(id);
+            Chat chat=chatRepo.findById(chatid);
+            Message message=new Message(doctor.getClientid(),type);
+            chat.addMessage(message);
+            message=chat.getMessages().get(chat.getMessages().size()-1);
+            chat.getMessages().remove(message);
+            String url="message-"+message.getId();
+            int i=0;
+            while(true){
+                String s=fileUploader.uploadMessageFile(file, url+i);
+                if(s.equals("")){
+                    i++;
+                    continue;
+                }
+                else{
+                    url=s;
+                    break;
+                }
+            }
+            message.setInfo(url);
+            chat.getMessages().add(message);
+            chatRepo.save(chat);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
     //ORDERS
 }
