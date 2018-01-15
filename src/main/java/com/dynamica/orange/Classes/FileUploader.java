@@ -72,7 +72,35 @@ public class FileUploader {
             return "";
         }
     }
+    public String uploadOrderFile(MultipartFile file, String name){
+        try {
+            byte[] bytes = file.getBytes();
+            Path path= Paths.get("order");
+            if(!new File("order").exists()){
+                if(new File("order").mkdir()){
 
+                }
+                else{
+
+                }
+            }
+            if(new File(name+"."+file.getContentType().split("/")[1]).exists()){
+                return "";
+            }
+            else {
+                Files.copy(file.getInputStream(), path.resolve(name + "." + file.getContentType().split("/")[1]));
+                return name + "." + file.getContentType().split("/")[1];
+            }
+        }
+        catch (IOException e){
+
+            return "";
+        }
+        catch (Exception e){
+
+            return "";
+        }
+    }
 
     public boolean deleteMessageFile(String url){
         try {
