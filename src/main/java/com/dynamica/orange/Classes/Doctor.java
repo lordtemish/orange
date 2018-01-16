@@ -1,6 +1,7 @@
 package com.dynamica.orange.Classes;
 
 import org.apache.log4j.Logger;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.annotation.Id;
 
 import java.util.ArrayList;
@@ -108,6 +109,16 @@ public class Doctor {
         return comments;
     }
     public void addComment(Comment s){
+        String id=s.getId();
+        try {
+            if (id.isEmpty()) {
+                id = System.identityHashCode(s) + "";
+            }
+        }
+        catch (NullPointerException e){
+            id = System.identityHashCode(s) + "";
+        }
+        s.setId(id);
         comments.add(s);
     }
     public boolean deleteComment(Comment s){
@@ -263,8 +274,26 @@ public class Doctor {
     public ArrayList<Rate> getRates() {
         return rates;
     }
-    public void addRate(Rate r){
-        rates.add(r);
+    public void setRate(Rate s){
+        String id=s.getId();
+        try {
+            if (id.isEmpty()) {
+                id = System.identityHashCode(s) + "";
+            }
+        }
+        catch (NullPointerException e){
+            id = System.identityHashCode(s) + "";
+        }
+        s.setId(id);
+        boolean fl=true;
+        for(Rate rate:rates){
+            if(s.getPatient_id().equals(rate.getPatient_id())){
+                fl=false;
+                rate.setNum(s.getNum());
+            }
+        }
+        if(fl)
+        rates.add(s);
     }
     public boolean deleteRate(Rate s){
         if(rates.contains(s)){

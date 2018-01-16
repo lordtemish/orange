@@ -22,7 +22,6 @@ public class Order {
     List<String> services;
     private boolean atwork;
     private double periodinhours;
-
     private String textMessage;
     private String photoMessage;
     private String audioMessage;
@@ -33,7 +32,6 @@ public class Order {
     private String textAnswer;
     private String photoAnswer;
     private String audioAnswer;
-
     public Order(){
         createdTime=new Date().getTime();services=new ArrayList<>();
     }

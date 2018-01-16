@@ -53,6 +53,24 @@ public class DoctorController {
         }
         return "index";
     }
+    @RequestMapping(value = {"/setAddress/{name}/{id}"}, method = RequestMethod.POST)
+    public String addAddress(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
+        if(request.getSession().getAttribute("auth")!=null) {
+            Doctor doctor=doctorRepo.findById(id);
+            switch (name) {
+                case "work":
+                    doctor.setWorkadr(address);
+                    doctor.setWorkcity(cityId);
+                    break;
+                case "home":
+                    doctor.setHomeadr(address);
+                    doctor.setHomecity(cityId);
+                    break;
+            }
+            doctorRepo.save(doctor);
+        }
+        return "index";
+    }
     @RequestMapping(value = {"/setLang/{id}"}, method = RequestMethod.POST)
     public String setLang(@PathVariable("id") String id, @RequestParam String lang, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
@@ -148,6 +166,7 @@ public class DoctorController {
             return false;
         }
     }
+
     @RequestMapping(value="/servicesId/{id}", method = RequestMethod.POST)
     public @ResponseBody List<String> servicesId(@PathVariable("id") String id, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {

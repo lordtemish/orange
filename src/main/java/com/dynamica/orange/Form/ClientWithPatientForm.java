@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Created by lordtemich on 12/8/17.
  */
 public class ClientWithPatientForm {
-
     Patient patient;
     Client client;
     public ClientWithPatientForm(Client client, Patient patient){

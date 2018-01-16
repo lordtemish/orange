@@ -8,10 +8,10 @@ import org.springframework.data.annotation.Id;
 public class Rate {
     @Id
     private String id;
-    private String client_id;
+    private String patient_id;
     private int num;
-    public Rate(String client_id, int num){
-        this.client_id=client_id;
+    public Rate(String patient_id, int num){
+        this.patient_id=patient_id;
         this.num=num;
     }
 
@@ -19,16 +19,20 @@ public class Rate {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public int getNum() {
         return num;
     }
 
-    public String getClient_id() {
-        return client_id;
+    public String getPatient_id() {
+        return patient_id;
     }
 
-    public void setClient_id(String client_id) {
-        this.client_id = client_id;
+    public void setPatient_id(String patient_id) {
+        this.patient_id = patient_id;
     }
 
     public void setNum(int num) {

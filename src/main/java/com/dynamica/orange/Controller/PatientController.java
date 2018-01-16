@@ -1,7 +1,7 @@
 package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.*;
-import com.dynamica.orange.Form.ClientWithPatientForm;
+import com.dynamica.orange.Form.*;
 import com.dynamica.orange.Repo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,17 @@ import java.util.List;
 public class PatientController {
     private Logger logger = LoggerFactory.getLogger(PatientController.class);
     @Autowired
+    EducationTypeRepo educationTypeRepo;
+    @Autowired
+    ServiceTypeRepo serviceTypeRepo;
+    @Autowired
+    ServiceRepo serviceRepo;
+    @Autowired
     ServletContext context;
+    @Autowired
+    CityRepo cityRepo;
+    @Autowired
+    BloodRepo bloodRepo;
     @Autowired
     ClientRepo clientRepo;
     @Autowired
@@ -87,6 +97,172 @@ public class PatientController {
         }
         else{
             return null;
+        }
+    }
+    @RequestMapping(value="/getPatientProfile/{id}", method = RequestMethod.POST)
+    public @ResponseBody
+    PatientProfileForm getPatientProfile(@PathVariable("id") String id, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                Patient patient=patientRepo.findById(id);
+                Client client=clientRepo.findById(patient.getClientid());
+                City workCity=cityRepo.findById(patient.getWorkcity());
+                City homeCity=cityRepo.findById(patient.getHomecity());
+                String homeC="";
+                String workC="";
+                switch (client.getLang()){
+                    case "R":
+                        homeC=homeCity.getNameRus();
+                        workC=workCity.getNameRus();
+                        break;
+                    default:
+                        homeC=homeCity.getNameKaz();
+                        workC=workCity.getNameKaz();
+                        break;
+                }
+                String blood=bloodRepo.findById(patient.getBlood()).getName();
+                return new PatientProfileForm(patient,client,workC,homeC, blood);
+            }
+            else{
+                return null;
+            }
+        }
+        catch (Exception e){
+            return null;
+        }
+    }
+    @RequestMapping(value = "/getDoctorProfile/{id}",method = RequestMethod.POST)
+    public @ResponseBody DoctorProfileForm getDPF(@PathVariable("id") String id, @RequestParam String doctorid, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                Doctor doctor=doctorRepo.findById(doctorid);
+                Client client=clientRepo.findById(doctor.getClientid());
+                ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                List<Service> services=new ArrayList<>();
+                for(String i:doctor.getServices()){
+                    services.add(serviceRepo.findById(i));
+                }
+                return new DoctorProfileForm(doctor,client,serviceType,services, cityRepo.findById(doctor.getWorkcity()),cityRepo.findById(doctor.getHomecity()));
+            }
+            return null;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @RequestMapping(value="/getComments/{id}",method = RequestMethod.POST)
+    public @ResponseBody List<CommentForm> getComments(@PathVariable("id") String id, @RequestParam String doctorid, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                List<CommentForm> forms=new ArrayList<>();
+                Doctor doctor=doctorRepo.findById(doctorid);
+                for(Comment i:doctor.getComments()){
+                    Patient patient=patientRepo.findById(i.getPatient_id());
+                    CommentForm form=new CommentForm(patient,clientRepo.findById(patient.getClientid()),i);
+                    forms.add(form);
+                }
+                return forms;
+            }
+            else{
+                return null;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @RequestMapping(value="/searchDoctorsByService/{id}", method = RequestMethod.POST)
+    public @ResponseBody ArrayList<DoctorListForm> searchDoctorsByService(@PathVariable("id") String id, @RequestParam String serviceid, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                Service service=serviceRepo.findById(serviceid);
+                ArrayList<Doctor> doctors=doctorRepo.findByServicetypeid(service.getServtypeid());
+                logger.info(doctors.size()+" "+service.getServtypeid());
+                ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
+                for(Doctor i:doctors){
+                    if(i.getServices().contains(serviceid)){
+                        ArrayList<Service> services=new ArrayList<>();
+                        for(String j:i.getServices()){
+                            services.add(serviceRepo.findById(j));
+                        }
+                        doctorListForms.add(new DoctorListForm(i,clientRepo.findById(i.getClientid()),serviceTypeRepo.findById(i.getServicetypeid()),services));
+                    }
+                    else
+                        doctors.remove(i);
+                }
+                return doctorListForms;
+            }
+            else{
+                return null;
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @RequestMapping(value = "/addComment/{id}/{doctorid}",method = RequestMethod.POST)
+    public @ResponseBody boolean addComment(@PathVariable("id") String id, @PathVariable("doctorid") String doctorid, @RequestParam String message, boolean impression, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                Doctor doctor=doctorRepo.findById(doctorid);
+                Comment comment=new Comment(id,message);
+                comment.setImpression(impression);
+                doctor.addComment(comment);
+                doctorRepo.save(doctor);
+                return true;
+            }
+            else return false;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/getFavouriteDoctorsList/{id}", method = RequestMethod.POST)
+    public @ResponseBody List<DoctorListForm> getFavouriteDL(@PathVariable("id") String id, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                List<DoctorListForm> doctorListForms=new ArrayList<>();
+                Patient patient=patientRepo.findById(id);
+                for(String i:patient.getFavs()){
+                    Doctor doctor=doctorRepo.findById(i);
+                    Client client=clientRepo.findById(doctor.getClientid());
+                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                    ArrayList<Service> services=new ArrayList<>();
+                    for(String jj:doctor.getServices()){
+                        services.add(serviceRepo.findById(jj));
+                    }
+                    DoctorListForm listForm=new DoctorListForm(doctor,client,serviceType,services);
+                    doctorListForms.add(listForm);
+                }
+                return doctorListForms;
+            }
+            else return null;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @RequestMapping(value="/addRate/{id}/{doctorid}", method = RequestMethod.POST)
+    public @ResponseBody boolean addRate(@PathVariable("id") String id,@PathVariable("doctorid") String doctorid, @RequestParam int num, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                Rate rate=new Rate(id, num);
+                Doctor doctor=doctorRepo.findById(doctorid);
+                doctor.setRate(rate);
+                doctorRepo.save(doctor);
+                return true;
+            }
+            else
+                return false;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
         }
     }
     @RequestMapping(value = {"/addMail/{id}"},method = RequestMethod.POST)
@@ -546,6 +722,30 @@ public class PatientController {
             return false;
         }
     }
+    @RequestMapping(value="/finishOrder/{id}/{orderid}",method = RequestMethod.POST)
+    public @ResponseBody boolean finishOrder(@PathVariable("id") String id, @PathVariable("orderid") String orderid,@RequestParam String comment,@RequestParam boolean impression,@RequestParam  int num, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                Order order=orderRepo.findById(orderid);
+                Doctor doctor=doctorRepo.findById(order.getDoctorid());
+                order.setStatus("patientfinished");
+                Comment comment1=new Comment(order.getPatientid(),comment);
+                comment1.setImpression(impression);
+                if(comment.length()>0) // comment won't save if text's length is 0
+                doctor.addComment(comment1);
+                if(num>=0) //Rate won't set if num is -1 or less
+                doctor.setRate(new Rate(order.getPatientid(),num));
+                doctorRepo.save(doctor);
+                orderRepo.save(order);
+                return true;
+            }
+            return false;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
     @RequestMapping(value="/getMyOrders/{id}",method = RequestMethod.POST)
     public @ResponseBody ArrayList<Order> getMyOrders(@PathVariable("id") String id,HttpServletRequest request){
         try{
@@ -559,5 +759,35 @@ public class PatientController {
             return null;
         }
     }
+    @RequestMapping(value = "/getListOrders/{id}",method = RequestMethod.POST)
+    public @ResponseBody ArrayList<OrderListForm> getListOrders(@PathVariable("id") String id, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                ArrayList<Order> orders=orderRepo.findByPatientid(id);
+                ArrayList<OrderListForm> orderListForms=new ArrayList<>();
+                for(Order i:orders){
+                    Doctor doctor=doctorRepo.findById(i.getDoctorid());
+                    Client client=clientRepo.findById(doctor.getClientid());
+                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                    ArrayList<Service> services=new ArrayList<>();
+                    for(String j:doctor.getServices()){
+                        services.add(serviceRepo.findById(j));
+                    }
+                    ArrayList<EducationForm> educationForms=new ArrayList<>();
+                    for(Education j:doctor.getEducations()){
+                        educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id())));
+                    }
+                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,educationForms));
+                }
+                return orderListForms;
+            }
+            return null;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
     //ORDERS
+
 }

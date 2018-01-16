@@ -16,24 +16,44 @@ public class Comment {
     private String text;
     private String date;
     private String time;
-    private SimpleDateFormat sdf=new SimpleDateFormat("dd.mm.yyyy");
-    private SimpleDateFormat sdh=new SimpleDateFormat("HH:mm");
+  /*  private SimpleDateFormat sdf=new SimpleDateFormat("dd.mm.yyyy");
+    private SimpleDateFormat sdh=new SimpleDateFormat("HH:mm");*/
+    private long createdTime;
+    private boolean impression;
     public Comment(){
         Calendar calendar=Calendar.getInstance();
         Date date=calendar.getTime();
-        this.date=sdf.format(date);
-        this.time=sdh.format(date);
+       /* this.date=sdf.format(date);
+        this.time=sdh.format(date);*/
+        createdTime=date.getTime();
     }
     public Comment(String patient_id,String text){
         Calendar calendar=Calendar.getInstance();
         this.patient_id=patient_id;
         this.text=text;
         Date date=calendar.getTime();
-        this.date=sdf.format(date);
-        this.time=sdh.format(date);
+        /*this.date=sdf.format(date);
+        this.time=sdh.format(date);*/
+        createdTime=date.getTime();
     }
     public String getId() {
         return id;
+    }
+
+    public void setImpression(boolean impression) {
+        this.impression = impression;
+    }
+
+    public boolean isImpression() {
+        return impression;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public long getCreatedTime() {
+        return createdTime;
     }
 
     public String getDate() {
