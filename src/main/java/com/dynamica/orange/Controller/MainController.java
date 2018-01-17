@@ -386,5 +386,11 @@ public class MainController {
             }
         return null;
     }
-
+    @RequestMapping(value="/isAuth",method = RequestMethod.POST)
+    public @ResponseBody boolean isAuth(HttpServletRequest request){
+        if(request.getSession().getAttribute("auth")!=null){
+            return true;
+        }
+        else return false;
+    }
 }

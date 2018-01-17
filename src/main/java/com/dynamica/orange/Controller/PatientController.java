@@ -759,6 +759,24 @@ public class PatientController {
             return null;
         }
     }
+    @RequestMapping(value="/getOrderInfo/{id}/{orderid}", method = RequestMethod.POST)
+    public @ResponseBody OrderInfoForm getOrderInfo(@PathVariable("id") String id, @PathVariable("orderid") String orderid, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                Order order=orderRepo.findById(orderid);
+                Doctor doctor=doctorRepo.findById(order.getDoctorid());
+                Client clientd=clientRepo.findById(doctor.getClientid());
+                Patient patient=patientRepo.findById(order.getPatientid());
+                Client clientp  =clientRepo.findById(patient.getClientid());
+                return new OrderInfoForm(order,doctor,clientd,patient,clientp);
+            }
+            else return  null;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
     @RequestMapping(value = "/getListOrders/{id}",method = RequestMethod.POST)
     public @ResponseBody ArrayList<OrderListForm> getListOrders(@PathVariable("id") String id, HttpServletRequest request){
         try{
