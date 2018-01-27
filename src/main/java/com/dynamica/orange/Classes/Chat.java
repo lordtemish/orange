@@ -76,4 +76,5 @@ public class Chat {
     public Stack<Message> getMessages() {
         return messages;
     }
+    public Message getLastMessage(){return messages.get(messages.size()-1);}
 }

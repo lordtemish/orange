@@ -25,7 +25,7 @@ public class Order {
     private String textMessage;
     private String photoMessage;
     private String audioMessage;
-    private String address;
+    private Address address;
     private String diagnosAnswer;
     private String healingAnswer;
     private String audiohealing;
@@ -87,7 +87,7 @@ public class Order {
         return createdTime;
     }
 
-    public String getAddress() {
+    public Address getAddress() {
         return address;
     }
 
@@ -98,7 +98,6 @@ public class Order {
     public String getAudioAnswer() {
         return audioAnswer;
     }
-
     public String getAudioMessage() {
         return audioMessage;
     }
@@ -145,7 +144,7 @@ public class Order {
         this.periodTime = periodTime;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(Address address) {
         this.address = address;
     }
     public void setAudioAnswer(String audioAnswer) {

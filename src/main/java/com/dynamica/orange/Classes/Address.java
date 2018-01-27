@@ -1,0 +1,52 @@
+package com.dynamica.orange.Classes;
+
+import org.springframework.data.annotation.Id;
+
+/**
+ * Created by lordtemich on 1/20/18.
+ */
+public class Address {
+    @Id
+    String id;
+    public String cityid;
+    public String address;
+    public Map location;
+    public Address(){}
+    public Address(String cityid, String address){
+        this.address=address;
+        this.cityid=cityid;
+    }
+
+    public Map getLocation() {
+        return location;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getCityid() {
+        return cityid;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setCityid(String cityid) {
+        this.cityid = cityid;
+    }
+
+    public void setLocation(Map location) {
+        this.location = location;
+    }
+}
+

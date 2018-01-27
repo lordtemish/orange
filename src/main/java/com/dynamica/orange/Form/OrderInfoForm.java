@@ -28,10 +28,8 @@ public class OrderInfoForm {
     public List<Object> getDoctor() {
         return doctor;
     }
-
     public List<Object> getPatient() {
         return patient;
     }
-
 
 }

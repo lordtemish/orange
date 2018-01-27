@@ -14,14 +14,10 @@ public class Doctor {
     @Id
     private String id;
     private String clientid;
-    private String position;
-    private String info;
-    private String homeadr;
-    private String homecity;
-    private Map homelocation;
-    private String workadr;
-    private String workcity;
-    private Map worklocation;
+        private String position;
+        private String info;
+    private Address homeAddress;
+    private Address workAddress;
     private String servicetypeid;
     private ArrayList<Education> educations;
     private String serv_type;
@@ -77,17 +73,7 @@ public class Doctor {
         this.clientid = client_id;
     }
 
-    public Map getHomelocation() {
-        return homelocation;
-    }
 
-    public Map getWorklocation() {
-        return worklocation;
-    }
-
-    public void setHomelocation(Map homelocation) {
-        this.homelocation = homelocation;
-    }
 
     public String getServicetypeid() {
         return servicetypeid;
@@ -97,9 +83,6 @@ public class Doctor {
         this.servicetypeid = service_type_id;
     }
 
-    public void setWorklocation(Map worklocation) {
-        this.worklocation = worklocation;
-    }
 
     public String getClientid() {
         return clientid;
@@ -351,13 +334,6 @@ public class Doctor {
             return false;
     }
 
-    public String getHomeadr() {
-        return homeadr;
-    }
-
-    public String getHomecity() {
-        return homecity;
-    }
 
     public String getPosition() {
         return position;
@@ -367,33 +343,48 @@ public class Doctor {
         return serv_type;
     }
 
-    public String getWorkadr() {
-        return workadr;
+
+    public Address getHomeAddress() {
+        return homeAddress;
     }
 
-    public String getWorkcity() {
-        return workcity;
+    public Address getWorkAddress() {
+        return workAddress;
     }
 
-    public void setHomeadr(String homeadr) {
-        this.homeadr = homeadr;
+    public void setHomeAddress(Address s) {
+        String id=s.getId();
+        try {
+            if (id.isEmpty()) {
+                id = System.identityHashCode(s) + "";
+            }
+        }
+        catch (NullPointerException e){
+            id = System.identityHashCode(s) + "";
+        }
+        s.setId(id);
+        this.homeAddress = s;
     }
 
-    public void setHomecity(String homecity) {
-        this.homecity = homecity;
+    public void setWorkAddress(Address s) {
+        String id=s.getId();
+        try {
+            if (id.isEmpty()) {
+                id = System.identityHashCode(s) + "";
+            }
+        }
+        catch (NullPointerException e){
+            id = System.identityHashCode(s) + "";
+        }
+        s.setId(id);
+        this.workAddress = s;
     }
 
     public void setServ_type(String serv_type) {
         this.serv_type = serv_type;
     }
 
-    public void setWorkadr(String workadr) {
-        this.workadr = workadr;
-    }
 
-    public void setWorkcity(String workcity) {
-        this.workcity = workcity;
-    }
 
     public Schedule getHomeSchedule() {
         return homeSchedule;

@@ -50,31 +50,36 @@ public class PatientController {
     public static String path="/photo/";
 
     @RequestMapping(value = {"/addNew/{id}"}, method = RequestMethod.POST)
-    public String addNew(@PathVariable("id") String id,@RequestParam String name, @RequestParam String surname, @RequestParam String email, @RequestParam String password, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Patient patient = new Patient(id);
-            Client client = clientRepo.findById(id);
-            client.setName(name);
-            client.setSurname(surname);
-            client.setEmail(email);
-            client.setPassword(password);
-            clientRepo.save(client);
-            patientRepo.save(patient);
-        }
-        return "index";
+    public @ResponseBody boolean addNew(@PathVariable("id") String id,@RequestParam String name, @RequestParam String surname, @RequestParam String email, @RequestParam String password, HttpServletRequest request){
+           try {
+               Patient patient = new Patient(id);
+               Client client = clientRepo.findById(id);
+               client.setName(name);
+               client.setSurname(surname);
+               client.setEmail(email);
+               client.setPassword(password);
+               clientRepo.save(client);
+               patientRepo.save(patient);
+               return true;
+           }
+           catch (Exception e){
+               e.printStackTrace();
+               return false;
+           }
     }
     @RequestMapping(value = {"/setLang/{id}"}, method = RequestMethod.POST)
-    public String setLang(@PathVariable("id") String id, @RequestParam String lang, HttpServletRequest request){
+    public @ResponseBody boolean setLang(@PathVariable("id") String id, @RequestParam String lang, HttpServletRequest request) {
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
-            client.setLang(lang);
+            client.setLang(lang.toUpperCase());
             clientRepo.save(client);
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/addinfo/{id}"},method = RequestMethod.POST)
-    public String addInfo(@PathVariable("id") String id, @RequestParam String gender, @RequestParam String dateofbirth, @RequestParam int weight, @RequestParam int height, @RequestParam String bloodid, @RequestParam String chronic, @RequestParam String alergic, HttpServletRequest request){
+        public @ResponseBody boolean addInfo(@PathVariable("id") String id, @RequestParam String gender, @RequestParam String dateofbirth, @RequestParam int weight, @RequestParam int height, @RequestParam String bloodid, @RequestParam String chronic, @RequestParam String alergic, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
         Patient patient=patientRepo.findById(id);
         patient.setGender(gender.toUpperCase());
@@ -84,8 +89,9 @@ public class PatientController {
         patient.setBlood(bloodid);
         patient.setChronic(chronic);
         patient.setAlergic(alergic);
-        patientRepo.save(patient);}
-        return "index";
+        patientRepo.save(patient);
+        return true;}
+        return false;
     }
     @RequestMapping(value={"/getPatientInfo/{id}"}, method = RequestMethod.POST) //addNewForms
     public @ResponseBody ClientWithPatientForm getPatientInfo(@PathVariable("id") String id,HttpServletRequest request){
@@ -106,8 +112,8 @@ public class PatientController {
             if(request.getSession().getAttribute("auth")!=null){
                 Patient patient=patientRepo.findById(id);
                 Client client=clientRepo.findById(patient.getClientid());
-                City workCity=cityRepo.findById(patient.getWorkcity());
-                City homeCity=cityRepo.findById(patient.getHomecity());
+                City workCity=cityRepo.findById(patient.getWorkAddress().getId());
+                City homeCity=cityRepo.findById(patient.getHomeAddress().getId());
                 String homeC="";
                 String workC="";
                 switch (client.getLang()){
@@ -142,7 +148,7 @@ public class PatientController {
                 for(String i:doctor.getServices()){
                     services.add(serviceRepo.findById(i));
                 }
-                return new DoctorProfileForm(doctor,client,serviceType,services, cityRepo.findById(doctor.getWorkcity()),cityRepo.findById(doctor.getHomecity()));
+                return new DoctorProfileForm(doctor,client,serviceType,services, cityRepo.findById(doctor.getWorkAddress().getCityid()),cityRepo.findById(doctor.getHomeAddress().getCityid()));
             }
             return null;
         }
@@ -247,6 +253,26 @@ public class PatientController {
             return null;
         }
     }
+    @RequestMapping(value = {"/getMyDoctorsList/{id}"}, method = RequestMethod.POST) //need to make new Form
+    public @ResponseBody List<DoctorListForm> getMyDocsList(@PathVariable("id") String id, HttpServletRequest request){
+        if(request.getSession().getAttribute("auth")!=null) {
+            Patient patient = patientRepo.findById(id);
+            List<DoctorListForm> list = new ArrayList<>();
+            for (String i : patient.getMydocs()) {
+                Doctor doctor=doctorRepo.findById(i);
+                Client client=clientRepo.findById(doctor.getClientid());
+                ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                ArrayList<Service> services=new ArrayList<>();
+                for(String jj:doctor.getServices()){
+                    services.add(serviceRepo.findById(jj));
+                }
+                list.add(new DoctorListForm(doctor,client,serviceType,services));
+            }
+            return list;
+        }
+        else return null;
+    }
+
     @RequestMapping(value="/addRate/{id}/{doctorid}", method = RequestMethod.POST)
     public @ResponseBody boolean addRate(@PathVariable("id") String id,@PathVariable("doctorid") String doctorid, @RequestParam int num, HttpServletRequest request){
         try{
@@ -266,103 +292,104 @@ public class PatientController {
         }
     }
     @RequestMapping(value = {"/addMail/{id}"},method = RequestMethod.POST)
-    public String addMail(@PathVariable("id") String id,@RequestParam String mail, HttpServletRequest request){
+    public @ResponseBody boolean addMail(@PathVariable("id") String id,@RequestParam String mail, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
             client.addEmail(mail);
             clientRepo.save(client);
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/deleteMail/{id}"},method = RequestMethod.POST)
-    public String deleteMail(@PathVariable("id") String id,@RequestParam String mail,HttpServletRequest request){
+    public @ResponseBody boolean deleteMail(@PathVariable("id") String id,@RequestParam String mail,HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
             client.deleteMail(mail);
             clientRepo.save(client);
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/addPhone/{id}"},method = RequestMethod.POST)
-    public String addPhone(@PathVariable("id") String id,@RequestParam String phone,HttpServletRequest request){
+    public @ResponseBody boolean addPhone(@PathVariable("id") String id,@RequestParam String phone,HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
             client.addPhone(phone);
-            clientRepo.save(client);
+            clientRepo.save(client);return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/deletePhone/{id}"},method = RequestMethod.POST)
-    public String deletePhone(@PathVariable("id") String id,@RequestParam String phone, HttpServletRequest request){
+    public @ResponseBody boolean deletePhone(@PathVariable("id") String id,@RequestParam String phone, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
             client.deletePhone(phone);
-            clientRepo.save(client);
+            clientRepo.save(client);return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/setPush/{id}"},method = RequestMethod.POST)
-    public String setPush(@PathVariable("id") String id,@RequestParam boolean push, HttpServletRequest request){
+    public @ResponseBody boolean setPush(@PathVariable("id") String id,@RequestParam boolean push, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
             client.setPush(push);
-            clientRepo.save(client);
+            clientRepo.save(client);return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/setPubl/{id}"},method = RequestMethod.POST)
-    public String setPubl(@PathVariable("id") String id,@RequestParam boolean publ, HttpServletRequest request){
+    public @ResponseBody boolean setPubl(@PathVariable("id") String id,@RequestParam boolean publ, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
             client.setPubl(publ);
             clientRepo.save(client);
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/addAddress/{name}/{id}"}, method = RequestMethod.POST)
-    public String addAddress(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
+    public @ResponseBody boolean addAddress(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             switch (name) {
                 case "work":
-                    patient.setWorkadr(address);
-                    patient.setWorkcity(cityId);
+                    patient.setWorkAddress(new Address(cityId,address));
                     break;
                 case "home":
-                    patient.setHomeadr(address);
-                    patient.setHomecity(cityId);
+                    patient.setHomeAddress(new Address(cityId,address));
                     break;
             }
             patientRepo.save(patient);
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/deleteAddress/{name}/{id}"}, method = RequestMethod.POST)
-    public String deleteAdress(@PathVariable("id") String id, @PathVariable("name") String name, HttpServletRequest request){
+    public @ResponseBody boolean deleteAdress(@PathVariable("id") String id, @PathVariable("name") String name, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             switch (name) {
                 case "work":
-                    patient.setWorkcity(null);
-                    patient.setWorkadr(null);
+                    patient.deleteWorkAddress();
                     break;
                 case "home":
-                    patient.setHomecity(null);
-                    patient.setHomeadr(null);
+                    patient.deleteWorkAddress();
                     break;
             }
             patientRepo.save(patient);
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/addPhoto/{id}"}, method = RequestMethod.POST)
-    public String addPhoto(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
+    public @ResponseBody boolean addPhoto(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             if (file.isEmpty()) {
                 redirectAttributes.addFlashAttribute("message", "file is empty");
@@ -384,19 +411,21 @@ public class PatientController {
                 client.addPhoto(url);
                 clientRepo.save(client);
             }
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/deletePhoto/{id}"}, method = RequestMethod.POST)
-    public String delPhoto(@PathVariable("id") String id, @RequestParam String url, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    public @ResponseBody boolean delPhoto(@PathVariable("id") String id, @RequestParam String url, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         if(request.getSession().getAttribute("auth")!=null) {
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
             client.deletePhoto(url);
             clientRepo.save(client);
             fileUploader.deletePhoto(url);
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value={"/addFavouriteDoctor/{id}"}, method = RequestMethod.POST)
     public @ResponseBody boolean addFavDoc(@PathVariable("id") String id, @RequestParam String doctorid, HttpServletRequest request){
@@ -522,6 +551,24 @@ public class PatientController {
         if(request.getSession().getAttribute("auth")!=null) {return chatRepo.findByPatientid(id);}
         else return null;
     }
+    @RequestMapping(value="/getAllChatsList/{id}", method = RequestMethod.POST)
+    public @ResponseBody List<ChatListForm> getAllChatsList(@PathVariable("id") String id, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null) {
+                List<Chat> chats = chatRepo.findByPatientid(id);
+                List<ChatListForm> forms = new ArrayList<>();
+                for (Chat i : chats) {
+                    forms.add(new ChatListForm(i, i.getLastMessage(), clientRepo.findById(i.getLastMessage().getClientid())));
+                }
+                return forms;
+            }
+            else return null;
+        }
+        catch(Exception e){
+
+            return null;
+        }
+    }
     @RequestMapping(value="/sendTextMessage/{id}/{chatid}",method = RequestMethod.POST)
     public @ResponseBody boolean sendTextMes(@PathVariable("id") String id,@PathVariable("chatid") String chatid, @RequestParam String text, HttpServletRequest request){
         try{
@@ -542,7 +589,7 @@ public class PatientController {
             return false;
         }
     }
-    @RequestMapping(value="getMessages/{id}/{chatid}", method = RequestMethod.POST)
+    @RequestMapping(value="/getMessages/{id}/{chatid}", method = RequestMethod.POST)
     public @ResponseBody List<Message> getMessages(@PathVariable("id") String id, @PathVariable("chatid") String chatid, HttpServletRequest request){
         try{
             if(request.getSession().getAttribute("auth")!=null) {
@@ -611,16 +658,18 @@ public class PatientController {
             return null;
         }
     }
-    @RequestMapping(value="/addOrderInfoWorkplace/{id}/{orderid}", method=RequestMethod.POST)
+    @RequestMapping(value="/setOrderInfoWorkplace/{id}/{orderid}", method=RequestMethod.POST)
     public @ResponseBody boolean addOrderInfo(@PathVariable("id") String id, @PathVariable("orderid") String orderid, @RequestParam String services, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam String text, HttpServletRequest request){
         try{
             if(request.getSession().getAttribute("auth")!=null) {
                 Patient patient = patientRepo.findById(id);
                 Order order = orderRepo.findById(orderid);
+                Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.addServices(services);
                 order.setChoseTime(chosetime);
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
+                order.setAtwork(true);
                 orderRepo.save(order);
                 return true;
             }
@@ -631,7 +680,7 @@ public class PatientController {
             return false;
         }
     }
-    @RequestMapping(value="/addOrderInfoHome/{id}/{orderid}", method=RequestMethod.POST)
+    @RequestMapping(value="/setOrderInfoHome/{id}/{orderid}", method=RequestMethod.POST)
     public @ResponseBody boolean addOrderInfoHome(@PathVariable("id") String id, @PathVariable("orderid") String orderid, @RequestParam String services, @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
         try{
             if(request.getSession().getAttribute("auth")!=null) {
@@ -641,6 +690,8 @@ public class PatientController {
                 order.setChoseTime(chosetime);
                 order.setTextMessage(text);
                 order.setPeriodinhours(period);
+                order.setAddress(patient.getHomeAddress());
+                order.setAtwork(false);
                 orderRepo.save(order);
                 return true;
             }
@@ -689,12 +740,12 @@ public class PatientController {
         }
     }
     @RequestMapping(value = "/addOrderAddress/{id}/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody boolean addOrderAddress(@PathVariable("id") String id, @PathVariable("orderid") String orderid, /*@RequestParam String cityid,*/ @RequestParam String address, HttpServletRequest request){
+    public @ResponseBody boolean addOrderAddress(@PathVariable("id") String id, @PathVariable("orderid") String orderid, @RequestParam String cityid, @RequestParam String address, HttpServletRequest request){
         try{ // Set Normal cities and addresses
             if(request.getSession().getAttribute("auth")!=null) {
                 Patient patient = patientRepo.findById(id);
                 Order order = orderRepo.findById(orderid);
-                order.setAddress(address);
+                order.setAddress(new Address(cityid,address));
                 orderRepo.save(order);
                 return true;
             }
@@ -711,7 +762,7 @@ public class PatientController {
             if(request.getSession().getAttribute("auth")!=null) {
                 Patient patient = patientRepo.findById(id);
                 Order order = orderRepo.findById(orderid);
-                order.setStatus("cancelled");
+                order.setStatus("patientcancelled");
                 orderRepo.save(order);
                 return true;
             }

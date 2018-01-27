@@ -1,7 +1,10 @@
 package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.*;
+import com.dynamica.orange.Form.ChatListForm;
 import com.dynamica.orange.Form.ClientWithDoctorForm;
+import com.dynamica.orange.Form.EducationForm;
+import com.dynamica.orange.Form.OrderListForm;
 import com.dynamica.orange.Repo.*;
 
 import com.google.gson.*;
@@ -33,13 +36,17 @@ public class DoctorController {
     @Autowired
     ServiceTypeRepo serviceTypeRepo;
     @Autowired
+    ServiceRepo serviceRepo;
+    @Autowired
     ChatRepo chatRepo;
     @Autowired
     OrderRepo orderRepo;
+    @Autowired
+    EducationTypeRepo educationTypeRepo;
     FileUploader fileUploader=new FileUploader();
     @RequestMapping(value = "/addDoctor/{id}",method = RequestMethod.POST)
-    public String addDoctor(@PathVariable("id") String id, @RequestParam String name,@RequestParam String surname, @RequestParam String dad, @RequestParam String position, @RequestParam String info, @RequestParam String service_type_id, @RequestParam String password, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
+    public  @ResponseBody boolean addDoctor(@PathVariable("id") String id, @RequestParam String name,@RequestParam String surname, @RequestParam String dad, @RequestParam String position, @RequestParam String info, @RequestParam String service_type_id, @RequestParam String password, HttpServletRequest request){
+        try {
             Doctor doctor = new Doctor(id, position, info);
             Client client = clientRepo.findById(id);
             client.setName(name);
@@ -50,36 +57,37 @@ public class DoctorController {
             doctor.setServicetypeid(service_type_id);
             doctorRepo.save(doctor);
             clientRepo.save(client);
+            return true;
         }
-        return "index";
+        catch (Exception e){
+            e.printStackTrace();
+        return false;}
     }
     @RequestMapping(value = {"/setAddress/{name}/{id}"}, method = RequestMethod.POST)
-    public String addAddress(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
+    public  @ResponseBody boolean addAddress(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Doctor doctor=doctorRepo.findById(id);
             switch (name) {
                 case "work":
-                    doctor.setWorkadr(address);
-                    doctor.setWorkcity(cityId);
+                    doctor.setWorkAddress(new Address(cityId,address));
                     break;
                 case "home":
-                    doctor.setHomeadr(address);
-                    doctor.setHomecity(cityId);
+                    doctor.setHomeAddress(new Address(cityId,address));
                     break;
             }
             doctorRepo.save(doctor);
-        }
-        return "index";
+            return true;}
+        return false;
     }
     @RequestMapping(value = {"/setLang/{id}"}, method = RequestMethod.POST)
-    public String setLang(@PathVariable("id") String id, @RequestParam String lang, HttpServletRequest request){
+    public  @ResponseBody boolean setLang(@PathVariable("id") String id, @RequestParam String lang, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Doctor doctor = doctorRepo.findById(id);
             Client client = clientRepo.findById(doctor.getClientid());
-            client.setLang(lang);
+            client.setLang(lang.toUpperCase());
             clientRepo.save(client);
-        }
-        return "index";
+            return true;}
+        return false;
     }
 
     //addTimeSchedule
@@ -175,6 +183,23 @@ public class DoctorController {
         }
         else return null;
     }
+    @RequestMapping(value="/getServices/{id}", method = RequestMethod.POST)
+    public @ResponseBody List<Service> getServices(@PathVariable("id") String id, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                Doctor doctor=doctorRepo.findById(id);
+                List<Service> services=new ArrayList<>();
+                for(String i:doctor.getServices()){
+                    services.add(serviceRepo.findById(i));
+                }
+                return services;
+            }
+            else return null;
+        }
+        catch (Exception e){
+            e.printStackTrace(); return null;
+        }
+    }
     @RequestMapping(value="/addCertificate/{id}",method = RequestMethod.POST)
     public @ResponseBody boolean addCertificate(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
@@ -215,14 +240,15 @@ public class DoctorController {
         else return false;
     }
     @RequestMapping(value = "/addEducation/{id}",method = RequestMethod.POST)
-    public String addEducation(@PathVariable("id") String id, @RequestParam String ed_type_id,@RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop, HttpServletRequest request){
+    public @ResponseBody boolean addEducation(@PathVariable("id") String id, @RequestParam String ed_type_id,@RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Education education = new Education(ed_type_id, name, speciality, start, stop);
             Doctor doctor = doctorRepo.findById(id);
             doctor.addEducation(education);
             doctorRepo.save(doctor);
+            return true;
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value="/deleteEducation/{id}/{edid}",method =RequestMethod.POST)
     public @ResponseBody boolean deleteEducation(@PathVariable("id") String id, @PathVariable("edid") String edid, HttpServletRequest request){
@@ -293,6 +319,24 @@ public class DoctorController {
             }
         }
         else return false;
+    }
+    @RequestMapping(value="/getEducationList/{id}",method = RequestMethod.POST)
+    @ResponseBody List<EducationForm> getEducations(@PathVariable("id") String id, HttpServletRequest request){
+        try {
+            if(request.getSession().getAttribute("auth")!=null){
+                List<EducationForm> educationForms=new ArrayList<>();
+                Doctor doctor=doctorRepo.findById(id);
+                for(Education i:doctor.getEducations()){
+                    educationForms.add(new EducationForm(i,educationTypeRepo.findById(i.getEd_type_id())));
+                }
+                return educationForms;
+            }
+            else return null;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
     }
     @RequestMapping(value={"/addProfessionalAch/{id}"},method = RequestMethod.POST)
     public @ResponseBody boolean addProfAch(@PathVariable("id") String id, @RequestParam String info, HttpServletRequest request){
@@ -572,7 +616,28 @@ public class DoctorController {
 
     @RequestMapping(value="/getAllChats/{id}",method = RequestMethod.POST)
     public @ResponseBody List<Chat> getAllChats(@PathVariable("id") String id, HttpServletRequest request){
-        return chatRepo.findByDoctorid(id);
+        if(request.getSession().getAttribute("auth")!=null) {
+            return chatRepo.findByDoctorid(id);
+        }
+        else return null;
+    }
+    @RequestMapping(value="/getAllChatsList/{id}", method = RequestMethod.POST)
+    public @ResponseBody List<ChatListForm> getAllChatsList(@PathVariable("id") String id, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null) {
+                List<Chat> chats = chatRepo.findByDoctorid(id);
+                List<ChatListForm> forms = new ArrayList<>();
+                for (Chat i : chats) {
+                    forms.add(new ChatListForm(i, i.getLastMessage(), clientRepo.findById(i.getLastMessage().getClientid())));
+                }
+                return forms;
+            }
+            else return null;
+        }
+        catch(Exception e){
+
+            return null;
+        }
     }
     @RequestMapping(value="/sendTextMessage/{id}/{chatid}",method = RequestMethod.POST)
     public @ResponseBody boolean sendTextMes(@PathVariable("id") String id,@PathVariable("chatid") String chatid, @RequestParam String text, HttpServletRequest request){
@@ -641,6 +706,35 @@ public class DoctorController {
                 return chat.getMessages();
             }
             else return null;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @RequestMapping(value = "/getListOrders/{id}",method = RequestMethod.POST)
+    public @ResponseBody ArrayList<OrderListForm> getListOrders(@PathVariable("id") String id, HttpServletRequest request){
+        try{
+            if(request.getSession().getAttribute("auth")!=null){
+                ArrayList<Order> orders=orderRepo.findByDoctorid(id);
+                ArrayList<OrderListForm> orderListForms=new ArrayList<>();
+                for(Order i:orders){
+                    Doctor doctor=doctorRepo.findById(i.getDoctorid());
+                    Client client=clientRepo.findById(doctor.getClientid());
+                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                    ArrayList<Service> services=new ArrayList<>();
+                    for(String j:doctor.getServices()){
+                        services.add(serviceRepo.findById(j));
+                    }
+                    ArrayList<EducationForm> educationForms=new ArrayList<>();
+                    for(Education j:doctor.getEducations()){
+                        educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id())));
+                    }
+                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,educationForms));
+                }
+                return orderListForms;
+            }
+            return null;
         }
         catch (Exception e){
             e.printStackTrace();
@@ -772,10 +866,8 @@ public class DoctorController {
         log.info("all is good");
         return true;
     }
-    //Orders
     @RequestMapping(value="/getDoctorInfo/{id}")
-    public @ResponseBody
-    ClientWithDoctorForm getDoctorInfo(@PathVariable("id") String id, HttpServletRequest request){
+    public @ResponseBody ClientWithDoctorForm getDoctorInfo(@PathVariable("id") String id, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             Doctor doctor = doctorRepo.findById(id);
             Client client = clientRepo.findById(doctor.getClientid());

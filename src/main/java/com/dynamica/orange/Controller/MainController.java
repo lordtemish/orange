@@ -12,13 +12,11 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import sun.applet.Main;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,8 +53,26 @@ public class MainController {
     ChatRepo chatRepo;
     @Autowired
     OrderRepo orderRepo;
-    @RequestMapping(value = {"/"},method = RequestMethod.GET)
+
+
+    @RequestMapping(value="/",method = RequestMethod.GET)
+    public @ResponseBody String defaults(){
+        return "index";
+    }
+    @RequestMapping(value = {"/deleteAll"},method = RequestMethod.POST)
     public String index(HttpServletRequest request){
+        cityRepo.deleteAll();
+        ownTimeTypeRepo.deleteAll();
+        bloodRepo.deleteAll();
+        sertypeRepo.deleteAll();
+        serviceRepo.deleteAll();
+        mapRepo.deleteAll();
+        edTypeRepo.deleteAll();
+        clientRepo.deleteAll();
+        patientRepo.deleteAll();
+        doctorRepo.deleteAll();
+        chatRepo.deleteAll();
+        orderRepo.deleteAll();
         return "index";
     }
 
@@ -69,29 +85,31 @@ public class MainController {
     }
 
         @RequestMapping(value = {"/cityadd"},method = RequestMethod.POST)
-        public String addCity(@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
+        public @ResponseBody boolean addCity(@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null) {
                 City city = new City(rus, kaz);
                 cityRepo.save(city);
-                return "index";
+                return true;
             }
             else {
-                return null;
+                return false;
             }
         }
         @RequestMapping(value = {"/deletecities"},method = RequestMethod.POST)
-        public String deleteCities(HttpServletRequest request){
+        public @ResponseBody boolean deleteCities(HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null){
-            cityRepo.deleteAll();}
-            return "index";
+            cityRepo.deleteAll();
+            return true;}
+            return false;
         }
 
         @RequestMapping(value = {"/deletecity/{id}"},method = RequestMethod.POST)
-        public String deleteCity(@PathVariable("id") String id, HttpServletRequest request){
+        public @ResponseBody boolean deleteCity(@PathVariable("id") String id, HttpServletRequest request) throws NullPointerException{
             if(request.getSession().getAttribute("auth")!=null){
             City city=cityRepo.findById(id);
-            cityRepo.delete(city);}
-            return "index";
+            cityRepo.delete(city);
+            return true;}
+            return false;
         }
 
     @RequestMapping(value = {"/allott"},method = RequestMethod.POST)
@@ -103,24 +121,27 @@ public class MainController {
         }
     }
         @RequestMapping(value={"/ottAdd"}, method = RequestMethod.POST)
-        public String addOtt(@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
+        public @ResponseBody boolean addOtt(@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null){
             OwnTimeType ott=new OwnTimeType(rus,kaz);
-            ownTimeTypeRepo.save(ott);}
-            return "index";
+            ownTimeTypeRepo.save(ott);
+            return true;}
+            return false;
         }
         @RequestMapping(value = {"/deleteotts"},method = RequestMethod.POST)
-        public String deleteOtts(HttpServletRequest request){
+        public @ResponseBody boolean deleteOtts(HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null){
-            ownTimeTypeRepo.deleteAll();}
-            return "index";
+            ownTimeTypeRepo.deleteAll();
+            return true;}
+            return false;
         }
         @RequestMapping(value = {"/deleteott/{id}"},method = RequestMethod.POST)
-        public String deleteOtt(@PathVariable("id") String id, HttpServletRequest request){
+        public @ResponseBody boolean deleteOtt(@PathVariable("id") String id, HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null){
             OwnTimeType city=ownTimeTypeRepo.findById(id);
-            ownTimeTypeRepo.delete(city);}
-            return "index";
+            ownTimeTypeRepo.delete(city);
+            return true;}
+            return false;
         }
 
 
@@ -132,25 +153,26 @@ public class MainController {
             return null;
     }
         @RequestMapping(value={"/bloodAdd"}, method = RequestMethod.POST)
-        public String addBlood(@RequestParam String name, HttpServletRequest request){
+        public @ResponseBody boolean addBlood(@RequestParam String name, HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null) {
                 Blood blood = new Blood(name);
                 bloodRepo.save(blood);
-            }
-            return "index";
+                return true;}
+            return false;
         }
         @RequestMapping(value = {"/deletebloods"},method = RequestMethod.POST)
-        public String deleteBloods(HttpServletRequest request){
-            if(request.getSession().getAttribute("auth")!=null)
+        public @ResponseBody boolean deleteBloods(HttpServletRequest request){
+            if(request.getSession().getAttribute("auth")!=null){
             bloodRepo.deleteAll();
-            return "index";
+                return true;}
+            return false;
         }
         @RequestMapping(value = {"/deleteblood/{id}"},method = RequestMethod.POST)
-        public String deleteBlood(@PathVariable("id") String id, HttpServletRequest request){
+        public @ResponseBody boolean deleteBlood(@PathVariable("id") String id, HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null){
             Blood city=bloodRepo.findById(id);
-            bloodRepo.delete(city);}
-            return "index";
+            bloodRepo.delete(city);return true;}
+            return false;
         }
 
     @RequestMapping(value = {"/allsertype"}, method = RequestMethod.POST)
@@ -164,26 +186,26 @@ public class MainController {
     }
 
         @RequestMapping(value = {"/sertypeAdd"}, method = RequestMethod.POST)
-        public String addSerType(@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request) {
+        public @ResponseBody boolean addSerType(@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request) {
             if(request.getSession().getAttribute("auth")!=null) {
                 ServiceType serviceType = new ServiceType(rus, kaz);
                 sertypeRepo.save(serviceType);
-            }
-            return "index";
+                return true;}
+            return false;
         }
 
         @RequestMapping(value = {"/deletesertypes"}, method = RequestMethod.POST)
-        public String deleteSerTypes(HttpServletRequest request) {
-            if(request.getSession().getAttribute("auth")!=null)
-            sertypeRepo.deleteAll();
-            return "index";
+        public @ResponseBody boolean deleteSerTypes(HttpServletRequest request) {
+            if(request.getSession().getAttribute("auth")!=null){
+            sertypeRepo.deleteAll();return true;}
+            return false;
         }
         @RequestMapping(value = {"/deletesertype/{id}"},method = RequestMethod.POST)
-        public String deleteSerType(@PathVariable("id") String id, HttpServletRequest request){
+        public @ResponseBody boolean deleteSerType(@PathVariable("id") String id, HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null){
             ServiceType city=sertypeRepo.findById(id);
-            sertypeRepo.delete(city);}
-            return "index";
+            sertypeRepo.delete(city);return true;}
+            return false;
         }
 
 
@@ -194,26 +216,26 @@ public class MainController {
     }
 
         @RequestMapping(value={"/deletemaps"}, method = RequestMethod.POST)
-        public String deleteMaps(HttpServletRequest request){
-            if(request.getSession().getAttribute("auth")!=null)
-            mapRepo.deleteAll();
-            return "index";
+        public @ResponseBody boolean deleteMaps(HttpServletRequest request){
+            if(request.getSession().getAttribute("auth")!=null){
+            mapRepo.deleteAll();return true;}
+            return false;
         }
         @RequestMapping(value = {"/deletemap/{id}"},method = RequestMethod.POST)
-        public String deleteMap(@PathVariable("id") String id, HttpServletRequest request){
+        public @ResponseBody boolean deleteMap(@PathVariable("id") String id, HttpServletRequest request){
             if(request.getSession().getAttribute("auth")!=null){
             Map city=mapRepo.findById(id);
-            mapRepo.delete(city);}
-            return "index";
+            mapRepo.delete(city);return true;}
+            return false;
         }
 
 
 
     @RequestMapping(value = {"/addEdType"},method = RequestMethod.POST)
-    public String addEdType(@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null)
-        edTypeRepo.save(new EducationType(rus,kaz));
-        return "index";
+    public @ResponseBody boolean addEdType(@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
+        if(request.getSession().getAttribute("auth")!=null){
+        edTypeRepo.save(new EducationType(rus,kaz));return true;}
+        return false;
     }
     @RequestMapping(value = {"/allEdTypes"}, method = RequestMethod.POST)
     public @ResponseBody ArrayList<EducationType> allEdTypes(HttpServletRequest request){
@@ -223,26 +245,26 @@ public class MainController {
             return null;
     }
     @RequestMapping(value={"/deleteEdTypes"}, method = RequestMethod.POST)
-    public String deleteEdTypes(HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null)
-            edTypeRepo.deleteAll();
-        return "index";
+    public @ResponseBody boolean deleteEdTypes(HttpServletRequest request){
+        if(request.getSession().getAttribute("auth")!=null){
+            edTypeRepo.deleteAll();return true;}
+        return false;
     }
     @RequestMapping(value = {"/deleteEdType/{id}"},method = RequestMethod.POST)
-    public String deleteEdType(@PathVariable("id") String id, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null)
+    public @ResponseBody boolean deleteEdType(@PathVariable("id") String id, HttpServletRequest request){
+        if(request.getSession().    getAttribute("auth")!=null)
         {EducationType city=edTypeRepo.findById(id);
-        edTypeRepo.delete(city);}
-        return "index";
+        edTypeRepo.delete(city);return true;}
+        return false;
     }
 
 
 
     @RequestMapping(value = {"/addService/{id}"},method = RequestMethod.POST)
-    public String addService(@PathVariable("id") String id,@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null)
-        serviceRepo.save(new Service(id, rus, kaz));
-        return "index";
+    public @ResponseBody boolean addService(@PathVariable("id") String id,@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
+        if(request.getSession().getAttribute("auth")!=null){
+        serviceRepo.save(new Service(id, rus, kaz));return true;}
+        return false;
     }
     @RequestMapping(value = {"/allServices"}, method = RequestMethod.POST)
     public @ResponseBody ArrayList<Service> allServices(HttpServletRequest request){
@@ -257,26 +279,28 @@ public class MainController {
         else return null;
     }
     @RequestMapping(value={"/deleteServices"}, method = RequestMethod.POST)
-    public String deleteServices(HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null)
-        serviceRepo.deleteAll();
-        return "index";
+    public @ResponseBody boolean deleteServices(HttpServletRequest request) {
+        if(request.getSession().getAttribute("auth")!=null){
+        serviceRepo.deleteAll();return true;}
+            return false;
     }
     @RequestMapping(value = {"/deleteService/{id}"},method = RequestMethod.POST)
-    public String deleteService(@PathVariable("id") String id, HttpServletRequest request){
+    public @ResponseBody boolean deleteService(@PathVariable("id") String id, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null){
         Service city=serviceRepo.findById(id);
-        serviceRepo.delete(city);}
-        return "index";
+        serviceRepo.delete(city);return true;}
+        return false;
     }
     @RequestMapping(value={"/changePassword/{id}"},method = RequestMethod.POST)
-    public @ResponseBody boolean changePas(@PathVariable("id") String id, @RequestParam String nPassword, @RequestParam String oPassword){
+    public @ResponseBody boolean changePas(@PathVariable("id") String id, @RequestParam String nPassword, @RequestParam String oPassword, HttpServletRequest request){
         try{
-            Client client=clientRepo.findById(id);
-            if(client.getPassword().equals(oPassword)){
-                client.setPassword(nPassword);
-                clientRepo.save(client);
-                return true;
+            if(request.getSession().getAttribute("auth")!=null) {
+                Client client = clientRepo.findById(id);
+                if (client.getPassword().equals(oPassword)) {
+                    client.setPassword(nPassword);
+                    clientRepo.save(client);
+                    return true;
+                }
             }
             return false;
         }
@@ -286,22 +310,25 @@ public class MainController {
         }
     }
     @RequestMapping(value = {"/addClient"},method = RequestMethod.POST)
-    public String addClient(@RequestParam String phone, HttpServletRequest request){
+    public @ResponseBody boolean addClient(@RequestParam String phone, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null)
         {Client client=new Client(phone);
-        clientRepo.save(client);}
-        return "index";
+        clientRepo.save(client);return true;}
+        return false;
     }
     @RequestMapping(value = {"/deleteClients"},method = RequestMethod.POST)
-    public String deleteClients(HttpServletRequest request){
+    public @ResponseBody boolean deleteClients(HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             clientRepo.deleteAll();
-        }
-        return "index";
+            patientRepo.deleteAll();
+            doctorRepo.deleteAll();
+            return true;}
+        return false;
     }
     @RequestMapping(value={"/allClients"}, method = RequestMethod.POST)
     public @ResponseBody ArrayList<Client> allClients(HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null){return clientRepo.findAll();}
+        if(request.getSession().getAttribute("auth")!=null){
+            return clientRepo.findAll();}
         else return null;
     }
 
@@ -317,10 +344,18 @@ public class MainController {
         else return null;
     }
     @RequestMapping(value={"/deleteAllDoctors"}, method= RequestMethod.POST)
-    public String deleteAllDoctors(HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null)
-        doctorRepo.deleteAll();
-        return "index";
+    public @ResponseBody boolean deleteAllDoctors(HttpServletRequest request){
+        if(request.getSession().getAttribute("auth")!=null){
+        doctorRepo.deleteAll();return true;}
+        return false;
+    }
+    @RequestMapping(value={"/deleteAllPatients"}, method= RequestMethod.POST)
+    public @ResponseBody boolean deleteAllPatients(HttpServletRequest request){
+        if(request.getSession().getAttribute("auth")!=null){
+
+            patientRepo.deleteAll();return true;
+        }
+        return false;
     }
     @RequestMapping(value = "/getFile/",method = RequestMethod.POST)
     public StreamingResponseBody getFile(@RequestParam String url, HttpServletResponse response, HttpServletRequest request) throws IOException{

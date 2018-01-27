@@ -17,27 +17,26 @@ public class Patient {
     private String blood;
     private String chronic;
     private String alergic;
-    private String homeadr;
-    private String homecity;
-    private Map homelocation;
-    private String workadr;
-    private String workcity;
-    private Map worklocation;
+    private Address homeAddress;
+    private Address workAddress;
+    private ArrayList<Address> addresses;
     private String date;
     private ArrayList<String> favs;
     private ArrayList<String> mydocs;
     public Patient(){
-        favs=new ArrayList<>();mydocs=new ArrayList<>();
+        favs=new ArrayList<>();mydocs=new ArrayList<>();addresses=new ArrayList<>();
     }
     public Patient(String client_id){
         favs=new ArrayList<>();
         this.clientid=client_id;
         mydocs=new ArrayList<>();
+        addresses=new ArrayList<>();
     }
     public Patient(String client_id, String gender, int weight, int height, String chronic, String alergic){
         favs=new ArrayList<>();
         this.clientid=client_id;this.gender=gender;this.weight=weight;this.height=height;this.chronic=chronic;this.alergic=alergic;
         mydocs=new ArrayList<>();
+        addresses=new ArrayList<>();
     }
     public void setClientid(String client_id){this.clientid=client_id;}
     public void setGender(String gender){this.gender=gender;}
@@ -46,17 +45,74 @@ public class Patient {
     public void setBlood(String id){this.blood=id;}
     public void setChronic(String s){this.chronic=s;}
     public void setAlergic(String s){this.alergic=s;}
-    public void setHomeadr(String homeadr){this.homeadr=homeadr;}
-    public void setWorkadr(String homeadr){this.workadr=homeadr;}
-    public void setHomecity(String s){this.homecity=s;}
-    public void setWorkcity(String s){this.workcity=s;}
 
-        public void setHomelocation(Map homelocation) {
-            this.homelocation = homelocation;
+        public ArrayList<Address> getAddresses() {
+            return addresses;
+        }
+        public void addAddress(Address s){
+            String id=s.getId();
+            try {
+                if (id.isEmpty()) {
+                    id = System.identityHashCode(s) + "";
+                }
+            }
+            catch (NullPointerException e){
+                id = System.identityHashCode(s) + "";
+            }
+            s.setId(id);
+            addresses.add(s);
+        }
+        public void clearAddresses(){
+            addresses.clear();
+        }
+        public boolean deleteAddressById(String id){
+            for(Address i : addresses){
+                if(i.getId().equals(id)){
+                    addresses.remove(i);
+                    return true;
+                }
+            }
+            return false;
+        }
+        public void setHomeAddress(Address s) {
+            String id=s.getId();
+            try {
+                if (id.isEmpty()) {
+                    id = System.identityHashCode(s) + "";
+                }
+            }
+            catch (NullPointerException e){
+                id = System.identityHashCode(s) + "";
+            }
+            s.setId(id);
+            this.homeAddress = s;
         }
 
-        public void setWorklocation(Map worklocation) {
-            this.worklocation = worklocation;
+        public void setWorkAddress(Address s) {
+            String id=s.getId();
+            try {
+                if (id.isEmpty()) {
+                    id = System.identityHashCode(s) + "";
+                }
+            }
+            catch (NullPointerException e){
+                id = System.identityHashCode(s) + "";
+            }
+            s.setId(id);
+            this.workAddress = s;
+        }
+        public void deleteWorkAddress(){
+            this.workAddress=null;
+        }
+        public void deleteHomeAddress(){
+            this.homeAddress=null;
+        }
+        public Address getHomeAddress() {
+            return homeAddress;
+        }
+
+        public Address getWorkAddress() {
+            return workAddress;
         }
 
         public void addFav(String id){favs.add(id);}
@@ -77,18 +133,7 @@ public class Patient {
     public String getBlood(){return blood;}
     public String getChronic(){return  chronic;}
     public String getAlergic(){return alergic;}
-    public String getHomeadr(){return homeadr;}
-    public String getHomecity(){return homecity;}
-    public String getWorkadr(){return workadr;}
-    public String getWorkcity(){return workcity;}
 
-        public Map getWorklocation() {
-            return worklocation;
-        }
-
-        public Map getHomelocation() {
-            return homelocation;
-        }
 
         public ArrayList<String> getFavs(){return favs;}
         public ArrayList<String> getMydocs() {
