@@ -311,11 +311,11 @@ public class MainController {
     }
     @RequestMapping(value = {"/addClient"},method = RequestMethod.POST)
     public @ResponseBody boolean addClient(@RequestParam String phone, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null)
-        {Client client=new Client(phone);
-        clientRepo.save(client);return true;}
-        return false;
-    }
+        Client client=new Client(phone);
+        clientRepo.save(client);
+        request.getSession().setAttribute("auth",client.getId());
+        return true;
+}
     @RequestMapping(value = {"/deleteClients"},method = RequestMethod.POST)
     public @ResponseBody boolean deleteClients(HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
