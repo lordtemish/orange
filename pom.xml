@@ -57,8 +57,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-amqp</artifactId>
 		</dependency>
-
-
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -79,6 +82,7 @@
 			<properties>
 				<artifact-packaging>jar</artifact-packaging>
 			</properties>
+
 		</profile>
 		<profile>
 			<id>remote</id>
@@ -97,12 +101,12 @@
 					<plugin>
 						<groupId>org.springframework.boot</groupId>
 						<artifactId>spring-boot-maven-plugin</artifactId>
-						<version>1.4.3.RELEASE</version>
 						<configuration>
 							<!-- this will get rid of version info from war file name -->
 							<finalName>orange</finalName>
 						</configuration>
 					</plugin>
+
 				</plugins>
 			</build>
 		</profile>

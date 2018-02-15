@@ -11,5 +11,6 @@ import java.util.ArrayList;
 public interface ClientRepo extends MongoRepository<Client,String>{
     public Client findById(String id);
     public Client findByPhone(String phone);
+    public Client findByEmail(String email);
     public ArrayList<Client> findAll();
 }

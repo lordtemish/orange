@@ -50,13 +50,12 @@ public class PatientController {
     public static String path="/photo/";
 
     @RequestMapping(value = {"/addNew/{id}"}, method = RequestMethod.POST)
-    public @ResponseBody boolean addNew(@PathVariable("id") String id,@RequestParam String name, @RequestParam String surname, @RequestParam String email, @RequestParam String password, HttpServletRequest request){
+    public @ResponseBody boolean addNew(@PathVariable("id") String id,@RequestParam String name, @RequestParam String surname,  @RequestParam String password, HttpServletRequest request){
            try {
                Patient patient = new Patient(id);
                Client client = clientRepo.findById(id);
                client.setName(name);
                client.setSurname(surname);
-               client.setEmail(email);
                client.setPassword(password);
                clientRepo.save(client);
                patientRepo.save(patient);
@@ -91,7 +90,32 @@ public class PatientController {
         patient.setAlergic(alergic);
         patientRepo.save(patient);
         return true;}
+
         return false;
+    }
+    @RequestMapping(value = {"/addFullInfoClient/{id}"},method = RequestMethod.POST)
+    public @ResponseBody boolean addFullInfo(@PathVariable("id") String id,@RequestParam String name, @RequestParam String surname, @RequestParam String password, @RequestParam String gender, @RequestParam String dateofbirth, @RequestParam int weight, @RequestParam int height, @RequestParam String bloodid, @RequestParam String chronic, @RequestParam String alergic, HttpServletRequest request) {
+       try {
+           Patient patient = new Patient(id);
+           Client client = clientRepo.findById(id);
+           patient.setGender(gender.toUpperCase());
+           patient.setDate(dateofbirth);
+           patient.setWeight(weight);
+           patient.setHeight(height);
+           patient.setBlood(bloodid);
+           patient.setChronic(chronic);
+           patient.setAlergic(alergic);
+           client.setName(name);
+           client.setSurname(surname);
+           client.setPassword(password);
+           clientRepo.save(client);
+           patientRepo.save(patient);
+           return true;
+       }
+       catch (Exception e) {
+           e.printStackTrace();
+           return false;
+        }
     }
     @RequestMapping(value={"/getPatientInfo/{id}"}, method = RequestMethod.POST) //addNewForms
     public @ResponseBody ClientWithPatientForm getPatientInfo(@PathVariable("id") String id,HttpServletRequest request){

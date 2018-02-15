@@ -13,6 +13,8 @@ public class Client {
     private String phone;
     private String name;
     private String surname;
+    private boolean activated=false;
+    private String accesscode;
     private String dadname;
     private String gender;
     private String email;
@@ -26,11 +28,28 @@ public class Client {
         phones=new ArrayList<>();mails=new ArrayList<>();
         photourl=new ArrayList<>();
     }
-    public Client(String phone){
-        this.phone=phone;
+    public Client(String mail){
+        this.email=mail;
         phones=new ArrayList<>();mails=new ArrayList<>();photourl=new ArrayList<>();
     }
-    public Client(String phone, String name, String surname,String dadname,String email, String password, String lang){
+
+    public void setActivated(boolean activated) {
+        this.activated = activated;
+    }
+
+    public boolean isActivated() {
+        return activated;
+    }
+
+    public String getAccesscode() {
+        return accesscode;
+    }
+
+    public void setAccesscode(String accesscode) {
+        this.accesscode = accesscode;
+    }
+
+    public Client(String phone, String name, String surname, String dadname, String email, String password, String lang){
         this.phone=phone;
         this.name=name;
         this.surname=surname;

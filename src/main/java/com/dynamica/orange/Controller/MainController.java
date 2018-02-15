@@ -10,7 +10,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import sun.applet.Main;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -20,6 +19,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by lordtemich on 10/27/17.
@@ -28,6 +28,7 @@ import java.util.List;
 @RequestMapping(value= {"/"})
 public class MainController {
     private Logger logger = LoggerFactory.getLogger(MainController.class);
+    private Mailing mailing=new Mailing();
 
     @Autowired
     CityRepo cityRepo;
@@ -310,12 +311,74 @@ public class MainController {
         }
     }
     @RequestMapping(value = {"/addClient"},method = RequestMethod.POST)
-    public @ResponseBody boolean addClient(@RequestParam String phone, HttpServletRequest request){
-        Client client=new Client(phone);
-        clientRepo.save(client);
-        request.getSession().setAttribute("auth",client.getId());
-        return true;
-}
+    public @ResponseBody boolean addClient(@RequestParam String email, HttpServletRequest request) {
+        Client client1=clientRepo.findByEmail(email);
+        if(client1==null) {
+            Client client = new Client(email);
+
+            Random ra = new Random();
+            int num = ra.nextInt(1000);
+            client.setAccesscode(num + "");
+            try {
+                mailing.Send("orangesuppkz@gmail.com", "orange12345", email, "Orange authentication", "Your Access Code: " + num);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            clientRepo.save(client);
+            request.getSession().setAttribute("auth", client.getId());
+
+            return true;
+        }
+        else return false;
+    }
+    @RequestMapping(value="/resend",method = RequestMethod.POST)
+    public @ResponseBody boolean resend(@RequestParam String email, HttpServletRequest request){
+        try{
+            Client client=new Client(email);
+            if (client != null) {
+
+                Random ra = new Random();
+                int num = ra.nextInt(1000);
+                client.setAccesscode(num + "");
+                mailing.Send("orangesuppkz@gmail.com", "orange12345", email, "Orange authentication", "Your Access Code: " + num);
+                clientRepo.save(client);
+                request.getSession().setAttribute("auth", client.getId());
+
+                return true;
+            }
+            return false;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value = "/checkCode", method = RequestMethod.POST)
+    public @ResponseBody String checkCode(@RequestParam String email, @RequestParam String code){
+        try{
+            Client client=clientRepo.findByEmail(email);
+            logger.info(client.getAccesscode());
+            if(client.getAccesscode().equals(code)){
+                client.setActivated(true);
+            }
+            else{
+                client.setActivated(false);
+            }
+            clientRepo.save(client);
+            if(client.isActivated()){
+                return client.getId();
+            }
+            else{
+                return "Not activated";
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     @RequestMapping(value = {"/deleteClients"},method = RequestMethod.POST)
     public @ResponseBody boolean deleteClients(HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
@@ -407,9 +470,9 @@ public class MainController {
         orderRepo.deleteAll();
     }
     @RequestMapping(value = "/authClient", method = RequestMethod.POST)
-    public @ResponseBody String authDoctor(@RequestParam String phone,@RequestParam String password, HttpServletRequest request){
-            Client client = clientRepo.findByPhone(phone);
-            if (client.getPassword().equals(password)) {
+    public @ResponseBody String authDoctor(@RequestParam String email,@RequestParam String password, HttpServletRequest request){
+            Client client = clientRepo.findByEmail(email);
+            if (client.getPassword().equals(password) && client.isActivated()) {
                 request.getSession().setAttribute("auth", client.getId());
                 try {
                     Doctor doctor = doctorRepo.findByClientid(client.getId());
@@ -428,4 +491,5 @@ public class MainController {
         }
         else return false;
     }
+
 }

@@ -200,6 +200,63 @@ public class DoctorController {
             e.printStackTrace(); return null;
         }
     }
+    @RequestMapping(value="/addMail/{id}",method = RequestMethod.POST)
+    public @ResponseBody boolean addMail(@PathVariable("id") String id, @RequestParam String mail){
+        try{
+            Patient patient=patientRepo.findById(id);
+            Client client=clientRepo.findById(patient.getClientid());
+            client.addEmail(mail);
+            clientRepo.save(client);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/deleteMail/{id}",method = RequestMethod.POST)
+    public @ResponseBody boolean deleteMail(@PathVariable("id") String id, @RequestParam String mail){
+        try{
+            Patient patient=patientRepo.findById(id);
+            Client client=clientRepo.findById(patient.getClientid());
+            boolean aa=client.deleteMail(mail);
+            clientRepo.save(client);
+            return aa;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @RequestMapping(value="/addPhone/{id}",method = RequestMethod.POST)
+    public @ResponseBody boolean addPhone(@PathVariable("id") String id,@RequestParam String phone){
+        try{
+            Patient patient=patientRepo.findById(id);
+            Client client=clientRepo.findById(patient.getClientid());
+            client.addPhone(phone);
+            clientRepo.save(client);
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @RequestMapping(value="/deletePhone/{id}",method = RequestMethod.POST)
+    public @ResponseBody boolean deletePhone(@PathVariable("id") String id, @RequestParam String phone){
+        try{
+            Patient patient=patientRepo.findById(id);
+            Client client=clientRepo.findById(patient.getClientid());
+            boolean aa=client.deletePhone(phone);
+            clientRepo.save(client);
+            return aa;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
     @RequestMapping(value="/addCertificate/{id}",method = RequestMethod.POST)
     public @ResponseBody boolean addCertificate(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
