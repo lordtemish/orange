@@ -476,7 +476,9 @@ public class MainController {
                 request.getSession().setAttribute("auth", client.getId());
                 try {
                     Doctor doctor = doctorRepo.findByClientid(client.getId());
+                    if(doctor!=null)
                     return "doctor";
+                    else return "patient";
                 } catch (NullPointerException e) {
                     Patient patient = patientRepo.findByClientid(client.getId());
                     return "patient";
