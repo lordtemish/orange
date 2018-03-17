@@ -17,9 +17,9 @@ public class FileUploader {
     public String upload(MultipartFile file, String name){
         try {
             byte[] bytes = file.getBytes();
-            Path path= Paths.get("photo");
-            if(!new File("photo").exists()){
-                if(new File("photo").mkdir()){
+            Path path= Paths.get("/data/photo");
+            if(!new File("/data/photo").exists()){
+                if(new File("/data/photo").mkdir()){
 
                 }
                 else{

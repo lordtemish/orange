@@ -45,14 +45,13 @@ public class DoctorController {
     EducationTypeRepo educationTypeRepo;
     FileUploader fileUploader=new FileUploader();
     @RequestMapping(value = "/addDoctor/{id}",method = RequestMethod.POST)
-    public  @ResponseBody boolean addDoctor(@PathVariable("id") String id, @RequestParam String name,@RequestParam String surname, @RequestParam String dad, @RequestParam String position, @RequestParam String info, @RequestParam String service_type_id, @RequestParam String password, HttpServletRequest request){
+    public  @ResponseBody boolean addDoctor(@PathVariable("id") String id, @RequestParam String name,@RequestParam String surname, @RequestParam String dad, @RequestParam String position, @RequestParam String info, @RequestParam String service_type_id, HttpServletRequest request){
         try {
             Doctor doctor = new Doctor(id, position, info);
             Client client = clientRepo.findById(id);
             client.setName(name);
             client.setSurname(surname);
             client.setDadname(dad);
-            client.setPassword(password);
             doctor.setInfo(info);
             doctor.setServicetypeid(service_type_id);
             doctorRepo.save(doctor);
@@ -506,6 +505,7 @@ public class DoctorController {
                 redirectAttributes.addFlashAttribute("message", "file is empty");
 
             } else {
+                log.info(file.getSize());
                 Doctor patient = doctorRepo.findById(id);
                 Client client = clientRepo.findById(patient.getClientid());
                 int i = 0;

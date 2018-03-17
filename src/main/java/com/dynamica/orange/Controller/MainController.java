@@ -311,11 +311,11 @@ public class MainController {
         }
     }
     @RequestMapping(value = {"/addClient"},method = RequestMethod.POST)
-    public @ResponseBody boolean addClient(@RequestParam String email, HttpServletRequest request) {
+    public @ResponseBody boolean addClient(@RequestParam String email,@RequestParam String password,  HttpServletRequest request) {
         Client client1=clientRepo.findByEmail(email);
         if(client1==null) {
             Client client = new Client(email);
-
+            client.setPassword(password);
             Random ra = new Random();
             int num = ra.nextInt(1000);
             client.setAccesscode(num + "");
