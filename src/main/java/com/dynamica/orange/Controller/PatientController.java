@@ -422,13 +422,15 @@ public class PatientController {
                 String url = "mainphoto-" + patient.getId();
                 while (true) {
                     String s = fileUploader.upload(file, url + i);
+                    logger.info("FILE: "+s);
                     if ("".equals(s)) {
                         i++;
                         continue;
                     } else {
-                        url = s;
+                        url=s;
                         break;
                     }
+
                 }
                 client.addPhoto(url);
                 clientRepo.save(client);

@@ -499,7 +499,7 @@ public class DoctorController {
 
 
     @RequestMapping(value = {"/addPhoto/{id}"}, method = RequestMethod.POST)
-    public String addPhoto(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
+    public @ResponseBody  boolean addPhoto(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
         if(request.getSession().getAttribute("auth")!=null) {
             if (file.isEmpty()) {
                 redirectAttributes.addFlashAttribute("message", "file is empty");
@@ -521,10 +521,13 @@ public class DoctorController {
                     }
                 }
                 client.addPhoto(url);
+                log.info(url);
                 clientRepo.save(client);
+                return true;
             }
+
         }
-        return "index";
+        return false;
     }
     @RequestMapping(value = {"/deletePhoto/{id}"}, method = RequestMethod.POST)
     public String delPhoto(@PathVariable("id") String id, @RequestParam String url, RedirectAttributes redirectAttributes, HttpServletRequest request) {
