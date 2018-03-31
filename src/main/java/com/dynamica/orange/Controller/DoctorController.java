@@ -1,10 +1,7 @@
 package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.*;
-import com.dynamica.orange.Form.ChatListForm;
-import com.dynamica.orange.Form.ClientWithDoctorForm;
-import com.dynamica.orange.Form.EducationForm;
-import com.dynamica.orange.Form.OrderListForm;
+import com.dynamica.orange.Form.*;
 import com.dynamica.orange.Repo.*;
 
 import com.google.gson.*;
@@ -30,6 +27,8 @@ public class DoctorController {
     @Autowired
     ClientRepo clientRepo;
     @Autowired
+    TokenRepo tokenRepo;
+    @Autowired
     PatientRepo patientRepo;
     @Autowired
     DoctorRepo doctorRepo;
@@ -44,28 +43,55 @@ public class DoctorController {
     @Autowired
     EducationTypeRepo educationTypeRepo;
     FileUploader fileUploader=new FileUploader();
-    @RequestMapping(value = "/addDoctor/{id}",method = RequestMethod.POST)
-    public  @ResponseBody boolean addDoctor(@PathVariable("id") String id, @RequestParam String name,@RequestParam String surname, @RequestParam String dad, @RequestParam String position, @RequestParam String info, @RequestParam String service_type_id, HttpServletRequest request){
+
+    @RequestMapping(value = "/addDoctor",method = RequestMethod.POST)
+    public  @ResponseBody Object addDoctor(@RequestHeader("token") String token,@RequestParam String name,@RequestParam String surname, @RequestParam String dad, @RequestParam String position, @RequestParam String info, @RequestParam String service_type_id, HttpServletRequest request){
         try {
-            Doctor doctor = new Doctor(id, position, info);
-            Client client = clientRepo.findById(id);
-            client.setName(name);
-            client.setSurname(surname);
-            client.setDadname(dad);
-            doctor.setInfo(info);
-            doctor.setServicetypeid(service_type_id);
-            doctorRepo.save(doctor);
-            clientRepo.save(client);
-            return true;
+            Token tok1=tokenRepo.findById(token);
+            if(tok1!=null) {
+                Doctor doctor = new Doctor(tok1.getClientid(), position, info);
+                Client client = clientRepo.findById(tok1.getClientid());
+                client.setName(name);
+                client.setSurname(surname);
+                client.setDadname(dad);
+                doctor.setInfo(info);
+                doctor.setServicetypeid(service_type_id);
+                doctorRepo.save(doctor);
+                clientRepo.save(client);
+                return new StatusObject("ok");
+            }
+            else{
+                return new StatusObject("noauth");
+            }
         }
         catch (Exception e){
             e.printStackTrace();
-        return false;}
+            return new StatusObject("exception");}
     }
-    @RequestMapping(value = {"/setAddress/{name}/{id}"}, method = RequestMethod.POST)
-    public  @ResponseBody boolean addAddress(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor doctor=doctorRepo.findById(id);
+    @RequestMapping(value={"/getDoctorId"},method = RequestMethod.POST)
+    public @ResponseBody Object getPatientId(@RequestHeader("token") String token){
+        Token tok=tokenRepo.findById(token);
+        if(tok!=null){
+            try{
+                Doctor patient=doctorRepo.findByClientid(tok.getClientid());
+                return new DoctorIdForm(patient.getId());
+            }
+            catch (NullPointerException ee){
+                return new StatusObject("nullpointerexception");
+            }
+            catch (Exception e){
+                return new StatusObject("exception");
+            }
+        }
+        else {
+            return new StatusObject("noauth");
+        }
+    }
+    @RequestMapping(value = {"/setAddress/{name}"}, method = RequestMethod.POST)
+    public  @ResponseBody Object addAddress(@RequestHeader("token") String token, @PathVariable("name") String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+            Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             switch (name) {
                 case "work":
                     doctor.setWorkAddress(new Address(cityId,address));
@@ -75,191 +101,229 @@ public class DoctorController {
                     break;
             }
             doctorRepo.save(doctor);
-            return true;}
-        return false;
+            return new StatusObject("ok");}
+            return new StatusObject("noauth");
     }
-    @RequestMapping(value = {"/setLang/{id}"}, method = RequestMethod.POST)
-    public  @ResponseBody boolean setLang(@PathVariable("id") String id, @RequestParam String lang, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor doctor = doctorRepo.findById(id);
+    @RequestMapping(value = {"/setLang"}, method = RequestMethod.POST)
+    public  @ResponseBody Object setLang(@RequestHeader("token") String token,@RequestParam String lang, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             Client client = clientRepo.findById(doctor.getClientid());
             client.setLang(lang.toUpperCase());
             clientRepo.save(client);
-            return true;}
-        return false;
+            return new StatusObject("ok");}
+        return new StatusObject("noauth");
     }
 
     //addTimeSchedule
-    @RequestMapping(value = "/addOwnService/{id}",method = RequestMethod.POST) //ottid change
-    public @ResponseBody boolean addOwnService(@PathVariable("id") String id, @RequestParam String name, @RequestParam String ottid, @RequestParam String info, @RequestParam int price, HttpServletRequest request){
+    @RequestMapping(value = "/addOwnService",method = RequestMethod.POST) //ottid change
+    public @ResponseBody Object addOwnService(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String ottid, @RequestParam String info, @RequestParam int price, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.addOwnService(new OwnService(name, ottid, info, price));
                 doctorRepo.save(doctor);
-                return true;
-            }
-            else return false;
+                return new StatusObject("ok");}
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/getOwnServices/{id}", method = RequestMethod.POST)
-    public @ResponseBody List<OwnService> getOwnServices(@PathVariable("id") String id, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor doctor = doctorRepo.findById(id);
+    @RequestMapping(value="/getOwnServices", method = RequestMethod.POST)
+    public @ResponseBody Object getOwnServices(@RequestHeader("token") String token, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             return doctor.getOwns();
         }
-        else return null;
+        else return new StatusObject("noauth");
     }
-    @RequestMapping(value="/deleteOwnService/{id}", method = RequestMethod.POST)
-    public @ResponseBody boolean deleteOwnService(@PathVariable("id") String id, @RequestParam String ownserviceid, HttpServletRequest request){
+    @RequestMapping(value="/deleteOwnService", method = RequestMethod.POST)
+    public @ResponseBody Object deleteOwnService(@RequestHeader("token") String token, @RequestParam String ownserviceid, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 for (OwnService i : doctor.getOwns()) {
                     if (i.getId().equals(ownserviceid)) {
                         doctor.getOwns().remove(i);
-                        return true;
+                        return new StatusObject("ok");
                     }
                 }
+                doctorRepo.save(doctor);
             }
-            return false;
+            else
+            return new StatusObject("noauth");
+
+            return new StatusObject("noobject");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value = "/setServiceTypeId/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean setSerTypeId(@PathVariable("id")  String id, @RequestParam String service_type_id, HttpServletRequest request){
+    @RequestMapping(value = "/setServiceTypeId/",method = RequestMethod.POST)
+    public @ResponseBody Object setSerTypeId(@RequestHeader("token") String token, @RequestParam String service_type_id, HttpServletRequest request){
         try {
-            if(request.getSession().getAttribute("auth")!=null) {
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
                 ServiceType st = serviceTypeRepo.findById(service_type_id);
                 if (st.equals(null)) {
-                    return false;
+                    return new StatusObject("noobject");
                 } else {
-                    Doctor doctor = doctorRepo.findById(id);
+                    Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                     doctor.setServicetypeid(service_type_id);
                     doctorRepo.save(doctor);
-                    return true;
+                    return new StatusObject("ok");
                 }
             }
-            return false;
+            return new StatusObject("noauth");
         }
         catch (NullPointerException e){
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/setServices/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean setServices(@PathVariable("id") String id, @RequestParam String services, HttpServletRequest request){
+    @RequestMapping(value="/setServices",method = RequestMethod.POST)
+    public @ResponseBody Object setServices(@RequestHeader("token") String token,@RequestParam String services, HttpServletRequest request){
         try {
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.clearServices();
                 String[] service = services.split(" ");
                 for (int i = 0; i < service.length; i++) {
                     doctor.addService(service[i]);
                 }
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+        return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
 
-    @RequestMapping(value="/servicesId/{id}", method = RequestMethod.POST)
-    public @ResponseBody List<String> servicesId(@PathVariable("id") String id, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor doctor = doctorRepo.findById(id);
+    @RequestMapping(value="/servicesId", method = RequestMethod.POST)
+    public @ResponseBody Object servicesId(@RequestHeader("token") String token, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             return doctor.getServices();
         }
-        else return null;
+        else return new StatusObject("noauth");
     }
-    @RequestMapping(value="/getServices/{id}", method = RequestMethod.POST)
-    public @ResponseBody List<Service> getServices(@PathVariable("id") String id, HttpServletRequest request){
+    @RequestMapping(value="/getServices/", method = RequestMethod.POST)
+    public @ResponseBody Object getServices(@RequestHeader("token") String token, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null){
-                Doctor doctor=doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 List<Service> services=new ArrayList<>();
                 for(String i:doctor.getServices()){
                     services.add(serviceRepo.findById(i));
                 }
                 return services;
             }
-            else return null;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
-            e.printStackTrace(); return null;
+            e.printStackTrace();return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/addMail/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean addMail(@PathVariable("id") String id, @RequestParam String mail){
+    @RequestMapping(value="/addMail",method = RequestMethod.POST)
+    public @ResponseBody Object addMail(@RequestHeader("token") String token, @RequestParam String mail){
         try{
-            Patient patient=patientRepo.findById(id);
-            Client client=clientRepo.findById(patient.getClientid());
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+            Client client=clientRepo.findById(doctor.getClientid());
             client.addEmail(mail);
             clientRepo.save(client);
-            return true;
+            return new StatusObject("ok");
+                }
+                return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/deleteMail/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean deleteMail(@PathVariable("id") String id, @RequestParam String mail){
-        try{
-            Patient patient=patientRepo.findById(id);
-            Client client=clientRepo.findById(patient.getClientid());
-            boolean aa=client.deleteMail(mail);
-            clientRepo.save(client);
-            return aa;
+    @RequestMapping(value="/deleteMail",method = RequestMethod.POST)
+    public @ResponseBody Object deleteMail(@RequestHeader("token") String token, @RequestParam String mail){
+        try{Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                Client client = clientRepo.findById(doctor.getClientid());
+                boolean aa = client.deleteMail(mail);
+                clientRepo.save(client);
+                if (aa) {
+                    return new StatusObject("ok");
+                } else {
+                    return new StatusObject("nomail");
+                }
+            }else{
+                return new StatusObject("noauth");
+            }
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
 
-    @RequestMapping(value="/addPhone/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean addPhone(@PathVariable("id") String id,@RequestParam String phone){
+    @RequestMapping(value="/addPhone",method = RequestMethod.POST)
+    public @ResponseBody Object addPhone(@RequestHeader("token") String token,@RequestParam String phone){
         try{
-            Patient patient=patientRepo.findById(id);
-            Client client=clientRepo.findById(patient.getClientid());
-            client.addPhone(phone);
-            clientRepo.save(client);
-            return true;
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                Client client = clientRepo.findById(doctor.getClientid());
+                client.addPhone(phone);
+                clientRepo.save(client);
+                return new StatusObject("ok");
+            }
+            else{
+                return new StatusObject("noauth");
+            }
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/deletePhone/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean deletePhone(@PathVariable("id") String id, @RequestParam String phone){
-        try{
-            Patient patient=patientRepo.findById(id);
-            Client client=clientRepo.findById(patient.getClientid());
-            boolean aa=client.deletePhone(phone);
-            clientRepo.save(client);
-            return aa;
+    @RequestMapping(value="/deletePhone",method = RequestMethod.POST)
+    public @ResponseBody Object deletePhone(@RequestHeader("token") String token, @RequestParam String phone){
+        try{Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Client client = clientRepo.findById(tok.getClientid());
+                boolean aa = client.deletePhone(phone);
+                clientRepo.save(client);
+                if (aa) {
+                    return new StatusObject("ok");
+                } else {
+                    return new StatusObject("nophone");
+                }
+            }
+            else{
+                return new StatusObject("noauth");
+            }
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/addCertificate/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean addCertificate(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor doctor = doctorRepo.findById(id);
+    @RequestMapping(value="/addCertificate",method = RequestMethod.POST)
+    public @ResponseBody Object addCertificate(@RequestHeader("token") String token, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             try {
                 String url = "doctorcertificate-" + doctor.getId();
                 int i = 0;
@@ -275,61 +339,71 @@ public class DoctorController {
                 }
                 doctor.addCertificate(url);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             } catch (NullPointerException e) {
                 e.printStackTrace();
-                return false;
+                return new StatusObject("exception");
             }
         }
-        else return false;
+        else return new StatusObject("noauth");
     }
-    @RequestMapping(value="/deleteCertificate/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean deleteCertificate(@PathVariable("id") String id, @RequestParam String url, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor doctor = doctorRepo.findById(id);
+    @RequestMapping(value="/deleteCertificate/",method = RequestMethod.POST)
+    public @ResponseBody Object deleteCertificate(@RequestHeader("token") String token, @RequestParam String url, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             boolean a = false;
             a = doctor.deleteCertificate(url);
-            fileUploader.deletePhoto(url);
+            try {
+                fileUploader.deletePhoto(url);
+            }catch (Exception e){}
             doctorRepo.save(doctor);
-            return a;
+            if (a) {
+                return new StatusObject("ok");
+            } else {
+                return new StatusObject("nocert");
+            }
         }
-        else return false;
+        else return new StatusObject("noauth");
     }
-    @RequestMapping(value = "/addEducation/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean addEducation(@PathVariable("id") String id, @RequestParam String ed_type_id,@RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
+    @RequestMapping(value = "/addEducation",method = RequestMethod.POST)
+    public @ResponseBody Object addEducation(@RequestHeader("token") String token, @RequestParam String ed_type_id,@RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
             Education education = new Education(ed_type_id, name, speciality, start, stop);
-            Doctor doctor = doctorRepo.findById(id);
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             doctor.addEducation(education);
             doctorRepo.save(doctor);
-            return true;
+            return new StatusObject("ok");
         }
-        return false;
+        return new StatusObject("ok");
     }
-    @RequestMapping(value="/deleteEducation/{id}/{edid}",method =RequestMethod.POST)
-    public @ResponseBody boolean deleteEducation(@PathVariable("id") String id, @PathVariable("edid") String edid, HttpServletRequest request){
+    @RequestMapping(value="/deleteEducation/{edid}",method =RequestMethod.POST)
+    public @ResponseBody Object deleteEducation(@RequestHeader("token") String token, @PathVariable("edid") String edid, HttpServletRequest request){
         try {
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 Education education = doctor.getEducationById(edid);
                 for (String i : education.getUrls()) {
                     fileUploader.deletePhoto(i);
                 }
                 doctor.deleteEducation(education);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (NullPointerException e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("nullpointerexception");
         }
     }
-    @RequestMapping(value="/addEducationCertificate/{id}/{edid}", method = RequestMethod.POST)
-    public @ResponseBody boolean addEdCert(@PathVariable("id") String id, @PathVariable("edid") String certid, @RequestParam MultipartFile file,  RedirectAttributes redirectAttributes, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor doctor = doctorRepo.findById(id);
+    @RequestMapping(value="/addEducationCertificate/{edid}", method = RequestMethod.POST)
+    public @ResponseBody Object addEdCert(@RequestHeader("token") String token, @PathVariable("edid") String certid, @RequestParam MultipartFile file,  RedirectAttributes redirectAttributes, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             try {
                 Education ed = doctor.getEducationById(certid);
                 String url = "educationphoto-" + ed.getId();
@@ -347,254 +421,271 @@ public class DoctorController {
                 ed.addUrl(url);
                 doctor.setEducationById(certid, ed);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             } catch (NullPointerException e) {
                 e.printStackTrace();
-                return false;
+                return new StatusObject("nullpointerexception");
             }
         }
-        else return false;
+        else return new StatusObject("noauth");
     }
-    @RequestMapping(value="/deleteEducationCertificate/{id}/{certid}", method = RequestMethod.POST)
-    public @ResponseBody boolean deleteEdCert(@PathVariable("id") String id, @PathVariable("certid") String certid, @RequestParam String url, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor doctor = doctorRepo.findById(id);
+    @RequestMapping(value="/deleteEducationCertificate/{certid}", method = RequestMethod.POST)
+    public @ResponseBody Object deleteEdCert(@RequestHeader("token") String token, @PathVariable("certid") String certid, @RequestParam String url, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             try {
                 Education ed = doctor.getEducationById(certid);
                 if (ed.getUrls().contains(url)) {
                     ed.getUrls().remove(url);
                 } else {
-                    return false;
+                    return new StatusObject("noauth");
                 }
                 doctorRepo.save(doctor);
                 fileUploader.deletePhoto(url);
-                return true;
+                return new StatusObject("ok");
             } catch (NullPointerException e) {
                 e.printStackTrace();
-                return false;
+                return new StatusObject("nullpointerexception");
             }
         }
-        else return false;
+        else return new StatusObject("noauth");
     }
-    @RequestMapping(value="/getEducationList/{id}",method = RequestMethod.POST)
-    @ResponseBody List<EducationForm> getEducations(@PathVariable("id") String id, HttpServletRequest request){
+    @RequestMapping(value="/getEducationList",method = RequestMethod.POST)
+    @ResponseBody Object getEducations(@RequestHeader("token") String token, HttpServletRequest request){
         try {
-            if(request.getSession().getAttribute("auth")!=null){
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
                 List<EducationForm> educationForms=new ArrayList<>();
-                Doctor doctor=doctorRepo.findById(id);
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 for(Education i:doctor.getEducations()){
                     educationForms.add(new EducationForm(i,educationTypeRepo.findById(i.getEd_type_id())));
                 }
                 return educationForms;
             }
-            else return null;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return null;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value={"/addProfessionalAch/{id}"},method = RequestMethod.POST)
-    public @ResponseBody boolean addProfAch(@PathVariable("id") String id, @RequestParam String info, HttpServletRequest request){
+    @RequestMapping(value={"/addProfessionalAch"},method = RequestMethod.POST)
+    public @ResponseBody Object addProfAch(@RequestHeader("token") String token, @RequestParam String info, HttpServletRequest request){
         try {
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.addProfAch(info);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (NullPointerException e){
-            return false;
+            return new StatusObject("nullpointerexception");
         }
     }
-    @RequestMapping(value={"/deleteProfessionalAch/{id}"}, method = RequestMethod.POST)
-    public @ResponseBody boolean deleteProfAch(@PathVariable("id") String id, @RequestParam int index, HttpServletRequest request){
+    @RequestMapping(value={"/deleteProfessionalAch"}, method = RequestMethod.POST)
+    public @ResponseBody Object deleteProfAch(@RequestHeader("token") String token, @RequestParam int index, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.getProfachievments().remove(index);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (NullPointerException e){
-            return false;
+            return new StatusObject("nullpointerexception");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value={"/updateProfessionalAch/{id}"},method = RequestMethod.POST)
-    public @ResponseBody boolean updateProfAch(@PathVariable("id") String id, @RequestParam int index, @RequestParam String info, HttpServletRequest request){
+    @RequestMapping(value={"/updateProfessionalAch"},method = RequestMethod.POST)
+    public @ResponseBody Object updateProfAch(@RequestHeader("token") String token, @RequestParam int index, @RequestParam String info, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.getProfachievments().set(index, info);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
 
-    @RequestMapping(value={"/addExtraInfo/{id}"},method = RequestMethod.POST)
-    public @ResponseBody boolean addExtraInfo(@PathVariable("id") String id, @RequestParam String info, HttpServletRequest request){
+    @RequestMapping(value={"/addExtraInfo"},method = RequestMethod.POST)
+    public @ResponseBody Object addExtraInfo(@RequestHeader("token") String token, @RequestParam String info, HttpServletRequest request){
         try {
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.addExtraInfo(info);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (NullPointerException e){
-            return false;
+            return new StatusObject("nullpointerexception");
         }
     }
-    @RequestMapping(value={"/deleteExtraInfo/{id}"}, method = RequestMethod.POST)
-    public @ResponseBody boolean deleteExtraInfo(@PathVariable("id") String id, @RequestParam int index,HttpServletRequest request){
+    @RequestMapping(value={"/deleteExtraInfo"}, method = RequestMethod.POST)
+    public @ResponseBody Object deleteExtraInfo(@RequestHeader("token") String token, @RequestParam int index,HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.getExtrainfo().remove(index);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (NullPointerException e){
-            return false;
+            return new StatusObject("nullpointerexception");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value={"/updateExtraInfo/{id}"},method = RequestMethod.POST)
-    public @ResponseBody boolean updateExtraInfo(@PathVariable("id") String id, @RequestParam int index, @RequestParam String info, HttpServletRequest request){
+    @RequestMapping(value={"/updateExtraInfo"},method = RequestMethod.POST)
+    public @ResponseBody Object updateExtraInfo(@RequestHeader("token") String token, @RequestParam int index, @RequestParam String info, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.getExtrainfo().set(index, info);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
 
 
 
-    @RequestMapping(value = {"/addPhoto/{id}"}, method = RequestMethod.POST)
-    public @ResponseBody  boolean addPhoto(@PathVariable("id") String id, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
-            if (file.isEmpty()) {
-                redirectAttributes.addFlashAttribute("message", "file is empty");
-
-            } else {
-                log.info(file.getSize());
-                Doctor patient = doctorRepo.findById(id);
-                Client client = clientRepo.findById(patient.getClientid());
-                int i = 0;
-                String url = "mainphoto-" + patient.getId();
-                while (true) {
-                    String s = fileUploader.upload(file, url + i);
-                    if ("".equals(s)) {
-                        i++;
-                        continue;
-                    } else {
-                        url = s;
-                        break;
+    @RequestMapping(value = {"/addPhoto"}, method = RequestMethod.POST)
+    public @ResponseBody  Object addPhoto(@RequestHeader("token") String token, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
+        try {
+            Token tok = tokenRepo.findById(token);
+            if (tok != null) {
+                if (file.isEmpty()) {
+                    redirectAttributes.addFlashAttribute("message", "file is empty");
+                    return new StatusObject("emptyfile");
+                } else {
+                    log.info(file.getSize());
+                    Doctor patient = doctorRepo.findByClientid(tok.getClientid());
+                    Client client = clientRepo.findById(patient.getClientid());
+                    int i = 0;
+                    String url = "mainphoto-" + patient.getId();
+                    while (true) {
+                        String s = fileUploader.upload(file, url + i);
+                        if ("".equals(s)) {
+                            i++;
+                            continue;
+                        } else {
+                            url = s;
+                            break;
+                        }
                     }
+                    client.addPhoto(url);
+                    log.info(url);
+                    clientRepo.save(client);
+                    return new StatusObject("ok");
                 }
-                client.addPhoto(url);
-                log.info(url);
-                clientRepo.save(client);
-                return true;
-            }
 
+            }
+            return new StatusObject("noauth");
         }
-        return false;
+        catch (Exception e){
+            return new StatusObject("exception");
+        }
     }
-    @RequestMapping(value = {"/deletePhoto/{id}"}, method = RequestMethod.POST)
-    public String delPhoto(@PathVariable("id") String id, @RequestParam String url, RedirectAttributes redirectAttributes, HttpServletRequest request) {
-        if(request.getSession().getAttribute("auth")!=null) {
-            Doctor patient = doctorRepo.findById(id);
-            Client client = clientRepo.findById(patient.getClientid());
+    @RequestMapping(value = {"/deletePhoto"}, method = RequestMethod.POST)
+    public @ResponseBody Object delPhoto(@RequestHeader("token") String token, @RequestParam String url, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+            Client client = clientRepo.findById(tok.getClientid());
             client.deletePhoto(url);
             clientRepo.save(client);
-            fileUploader.deletePhoto(url);
+            fileUploader.deletePhoto(url);return new StatusObject("ok");
         }
-        return "index";
+        return new StatusObject("noauth");
     }
 
-    @RequestMapping(value="/addExperience/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean addExperience(@PathVariable("id") String id, @RequestParam String name, @RequestParam int years, @RequestParam String position, @RequestParam String startyear, HttpServletRequest request){
+    @RequestMapping(value="/addExperience",method = RequestMethod.POST)
+    public @ResponseBody Object addExperience(@RequestHeader("token") String token,@RequestParam String name, @RequestParam int years, @RequestParam String position, @RequestParam String startyear, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 Experience experience = new Experience(name, position, years, startyear);
                 doctor.addExperience(experience);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/deleteExperience/{id}/{expid}",method = RequestMethod.POST)
-    public @ResponseBody boolean deleteExperience(@PathVariable("id") String id, @PathVariable("expid") String experienceid, HttpServletRequest request){
+    @RequestMapping(value="/deleteExperience/{expid}",method = RequestMethod.POST)
+    public @ResponseBody Object deleteExperience(@RequestHeader("token") String token, @PathVariable("expid") String experienceid, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.deleteExperiencebyId(experienceid);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/updateExperience/{id}/{expid}",method = RequestMethod.POST)
-    public @ResponseBody boolean updateExperience(@PathVariable("id") String id, @PathVariable("expid") String experienceid, @RequestParam String name, @RequestParam int years, @RequestParam String position, @RequestParam String startyear, HttpServletRequest request){
+    @RequestMapping(value="/updateExperience/{expid}",method = RequestMethod.POST)
+    public @ResponseBody Object updateExperience(@RequestHeader("token") String token, @PathVariable("expid") String experienceid, @RequestParam String name, @RequestParam int years, @RequestParam String position, @RequestParam String startyear, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 doctor.updateExperiencebyId(experienceid, name, position, years, startyear);
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value = "/setSchedule/{id}/{name}", method = RequestMethod.POST)
-    public @ResponseBody boolean addSchedule(@PathVariable("id") String id, @PathVariable("name") String name, @RequestParam String sch, HttpServletRequest request){
+    @RequestMapping(value = "/setSchedule/{name}", method = RequestMethod.POST)
+    public @ResponseBody Object addSchedule(@RequestHeader("token") String token, @PathVariable("name") String name, @RequestParam String sch, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 Schedule schedule = new Schedule();
                 JsonElement jsonElement = new JsonParser().parse(sch);
                 JsonObject object = jsonElement.getAsJsonObject();
@@ -633,28 +724,30 @@ public class DoctorController {
                         break;
                 }
                 doctorRepo.save(doctor);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
 
     }
-    @RequestMapping(value="/openChat/{id}", method = RequestMethod.POST)
-    public @ResponseBody String openChat(@PathVariable("id") String id, @RequestParam String patientid, HttpServletRequest request){
+    @RequestMapping(value="/openChat", method = RequestMethod.POST)
+    public @ResponseBody Object openChat(@RequestHeader("token") String token, @RequestParam String patientid, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                String id=doctor.getId();
                 Chat chat = chatRepo.findOneByDoctoridAndPatientid(doctor.getId(), patientid);
                 Patient doctor1 = patientRepo.findById(patientid);
                 if (doctor1 == null) {
-                    return null;
+                    return  null;
                 }
                 if (doctor == null) {
-                    return null;
+                    return  null;
                 }
                 if (chat == null) {
                     Chat chat1 = new Chat(doctor.getId(), patientid);
@@ -663,28 +756,34 @@ public class DoctorController {
                 }
                 return chat.getId();
             }
-            else return null;
+            else return new StatusObject("noauth");
         }
         catch (NullPointerException e){
             log.info(null);
-            return null;
+            return new StatusObject("nullpointerexception");
         }
         catch (Exception e){
-            return "";
+            return new StatusObject("exception");
         }
     }
 
-    @RequestMapping(value="/getAllChats/{id}",method = RequestMethod.POST)
-    public @ResponseBody List<Chat> getAllChats(@PathVariable("id") String id, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
+    @RequestMapping(value="/getAllChats",method = RequestMethod.POST)
+    public @ResponseBody Object getAllChats(@RequestHeader("token") String token, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                String id=doctor.getId();
             return chatRepo.findByDoctorid(id);
         }
-        else return null;
+        else return new StatusObject("noauth");
     }
-    @RequestMapping(value="/getAllChatsList/{id}", method = RequestMethod.POST)
-    public @ResponseBody List<ChatListForm> getAllChatsList(@PathVariable("id") String id, HttpServletRequest request){
+    @RequestMapping(value="/getAllChatsList", method = RequestMethod.POST)
+    public @ResponseBody Object getAllChatsList(@RequestHeader("token") String token, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                String id=doctor.getId();
                 List<Chat> chats = chatRepo.findByDoctorid(id);
                 List<ChatListForm> forms = new ArrayList<>();
                 for (Chat i : chats) {
@@ -692,38 +791,40 @@ public class DoctorController {
                 }
                 return forms;
             }
-            else return null;
+            else return new StatusObject("noauth");
         }
         catch(Exception e){
-
-            return null;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/sendTextMessage/{id}/{chatid}",method = RequestMethod.POST)
-    public @ResponseBody boolean sendTextMes(@PathVariable("id") String id,@PathVariable("chatid") String chatid, @RequestParam String text, HttpServletRequest request){
+    @RequestMapping(value="/sendTextMessage/{chatid}",method = RequestMethod.POST)
+    public @ResponseBody Object sendTextMes(@RequestHeader("token") String token,@PathVariable("chatid") String chatid, @RequestParam String text, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 Chat chat = chatRepo.findById(chatid);
                 Message message = new Message(doctor.getClientid(), "text", text);
                 chat.addMessage(message);
                 chat.setStatus("doctor");
                 chat.unreadPlus();
                 chatRepo.save(chat);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/sendFileMessage/{id}/{chatid}",method = RequestMethod.POST)
-    public @ResponseBody boolean sendFileMes(@PathVariable("id") String id,@PathVariable("chatid") String chatid, @RequestParam String type, @RequestParam MultipartFile file, HttpServletRequest request){
+    @RequestMapping(value="/sendFileMessage/{chatid}",method = RequestMethod.POST)
+    public @ResponseBody Object sendFileMes(@RequestHeader("token") String token,@PathVariable("chatid") String chatid, @RequestParam String type, @RequestParam MultipartFile file, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+
                 Chat chat = chatRepo.findById(chatid);
                 Message message = new Message(doctor.getClientid(), type);
                 chat.addMessage(message);
@@ -744,20 +845,21 @@ public class DoctorController {
                 message.setInfo(url);
                 chat.getMessages().add(message);
                 chatRepo.save(chat);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/getMessages/{id}/{chatid}", method = RequestMethod.POST)
-    public @ResponseBody List<Message> getMessages(@PathVariable("id") String id, @PathVariable("chatid") String chatid, HttpServletRequest request){
+    @RequestMapping(value="/getMessages/{chatid}", method = RequestMethod.POST)
+    public @ResponseBody Object getMessages(@RequestHeader("token") String token, @PathVariable("chatid") String chatid, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
-                Doctor doctor = doctorRepo.findById(id);
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 Chat chat = chatRepo.findById(chatid);
                 if (!chat.getStatus().equals("doctor")) {
                     chat.setUnread(0);
@@ -765,17 +867,20 @@ public class DoctorController {
                 chatRepo.save(chat);
                 return chat.getMessages();
             }
-            else return null;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return null;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value = "/getListOrders/{id}",method = RequestMethod.POST)
-    public @ResponseBody ArrayList<OrderListForm> getListOrders(@PathVariable("id") String id, HttpServletRequest request){
+    @RequestMapping(value = "/getListOrders",method = RequestMethod.POST)
+    public @ResponseBody Object getListOrders(@RequestHeader("token") String token, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null){
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor1=doctorRepo.findByClientid(tok.getClientid());
+                String id=doctor1.getId();
                 ArrayList<Order> orders=orderRepo.findByDoctorid(id);
                 ArrayList<OrderListForm> orderListForms=new ArrayList<>();
                 for(Order i:orders){
@@ -794,73 +899,91 @@ public class DoctorController {
                 }
                 return orderListForms;
             }
-            return null;
+            return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return null;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/getMyOrders/{id}", method = RequestMethod.POST)
-    public @ResponseBody ArrayList<Order> getMyOrders(@PathVariable("id") String id, HttpServletRequest request){
+    @RequestMapping(value="/getMyOrders", method = RequestMethod.POST)
+    public @ResponseBody Object getMyOrders(@RequestHeader("token") String token, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null){ return orderRepo.findByDoctorid(id);}
-            else return null;
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                String id=doctor.getId();
+                return orderRepo.findByDoctorid(id);}
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return null;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/cancelOrder/{id}/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody boolean cancelOrder(@PathVariable("id") String id,@PathVariable("orderid") String orderid, HttpServletRequest request){
+    @RequestMapping(value="/cancelOrder/{orderid}",method = RequestMethod.POST)
+    public @ResponseBody Object cancelOrder(@RequestHeader("token") String token,@PathVariable("orderid") String orderid, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
                 Order order = orderRepo.findById(orderid);
                 order.setStatus("doctorcancelled");
                 orderRepo.save(order);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/acceptOrder/{id}/{orderid}", method = RequestMethod.POST)
-    public @ResponseBody boolean acceptOrder(@PathVariable("id") String id,@PathVariable("orderid") String orderid, HttpServletRequest request) {
+    @RequestMapping(value="/acceptOrder/{orderid}", method = RequestMethod.POST)
+    public @ResponseBody Object acceptOrder(@RequestHeader("token") String token,@PathVariable("orderid") String orderid, HttpServletRequest request) {
         try{
-            Order order=orderRepo.findById(orderid);
-            order.setStatus("doctoraccepted");
-            orderRepo.save(order);
-            return true;
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null) {
+                Order order = orderRepo.findById(orderid);
+                order.setStatus("doctoraccepted");
+                orderRepo.save(order);
+                return new StatusObject("ok");
+            }
+            else{
+                return new StatusObject("noauth");
+            }
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value = "/setTextAnswers/{id}/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody boolean setTextAnswers(@PathVariable("id") String id, @PathVariable("orderid") String orderid, @RequestParam String diagnos, @RequestParam String healing, @RequestParam String comment, HttpServletRequest request){
+    @RequestMapping(value = "/setTextAnswers/{orderid}",method = RequestMethod.POST)
+    public @ResponseBody Object setTextAnswers(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String diagnos, @RequestParam String healing, @RequestParam String comment, HttpServletRequest request){
         try{
-            Order order=orderRepo.findById(orderid);
-            order.setDiagnosAnswer(diagnos);
-            order.setHealingAnswer(healing);
-            order.setTextAnswer(comment);
-            order.setStatus("doctoranswered");
-            orderRepo.save(order);
-            return true;
+                Token tok= tokenRepo.findById(token);
+                if(tok!=null) {
+                    Order order = orderRepo.findById(orderid);
+                    order.setDiagnosAnswer(diagnos);
+                    order.setHealingAnswer(healing);
+                    order.setTextAnswer(comment);
+                    order.setStatus("doctoranswered");
+                    orderRepo.save(order);
+                    return new StatusObject("ok");
+                }
+                else{
+                    return new StatusObject("noauth");
+                }
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/setAudioHealingAnswer/{id}/{orderid}", method = RequestMethod.POST)
-    public @ResponseBody boolean setAudioHealingAnswer(@PathVariable("id") String id, @PathVariable("orderid") String orderid, @RequestParam MultipartFile file, HttpServletRequest request){
+    @RequestMapping(value="/setAudioHealingAnswer/{orderid}", method = RequestMethod.POST)
+    public @ResponseBody Object setAudioHealingAnswer(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam MultipartFile file, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
                 Order order = orderRepo.findById(orderid);
                 String url = "ordermessage-" + order.getId();
                 int i = 0;
@@ -876,19 +999,20 @@ public class DoctorController {
                 }
                 order.setAudiohealing(url);
                 orderRepo.save(order);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/addOrderFileComment/{id}/{orderid}",method=RequestMethod.POST)
-    public @ResponseBody boolean addOrderFileComment(@PathVariable("id") String id, @PathVariable("orderid") String orderid, @RequestParam String type,@RequestParam MultipartFile file, HttpServletRequest request){
+    @RequestMapping(value="/addOrderFileComment/{orderid}",method=RequestMethod.POST)
+    public @ResponseBody Object addOrderFileComment(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String type,@RequestParam MultipartFile file, HttpServletRequest request){
         try{
-            if(request.getSession().getAttribute("auth")!=null) {
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
                 Order order = orderRepo.findById(orderid);
                 String url = "ordermessage-" + order.getId();
                 int i = 0;
@@ -911,28 +1035,30 @@ public class DoctorController {
                         break;
                 }
                 orderRepo.save(order);
-                return true;
+                return new StatusObject("ok");
             }
-            else return false;
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
-            return false;
+            return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/testRequest/{id}",method = RequestMethod.POST)
-    public @ResponseBody boolean test(@PathVariable("id") String id, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null)
+    @RequestMapping(value="/testRequest",method = RequestMethod.POST)
+    public @ResponseBody Object test(@RequestHeader("token") String token,HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null)
         log.info("all is good");
-        return true;
+        return new StatusObject("ok");
     }
     @RequestMapping(value="/getDoctorInfo/{id}")
-    public @ResponseBody ClientWithDoctorForm getDoctorInfo(@PathVariable("id") String id, HttpServletRequest request){
-        if(request.getSession().getAttribute("auth")!=null) {
+    public @ResponseBody Object getDoctorInfo(@RequestHeader("token") String token,@PathVariable("id") String id, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+            if(tok!=null){
             Doctor doctor = doctorRepo.findById(id);
             Client client = clientRepo.findById(doctor.getClientid());
             return new ClientWithDoctorForm(client, doctor);
         }
-        return null;
+        return new StatusObject("noauth");
     }
 }

@@ -14,17 +14,28 @@ public class Token {
     private String clientid;
     private long curtimestart;
     private String ip;
+    private boolean admin;
     public Token(){
         curtimestart=new Date().getTime();
     }
     public Token(String clientid){
         curtimestart=new Date().getTime();
         this.clientid=clientid;
+        admin=false;
     }
     public Token(String clientid, String ip){
         curtimestart=new Date().getTime();
         this.clientid=clientid;
         this.ip=ip;
+        admin=false;
+    }
+
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
 
     public long getCurtimestart() {

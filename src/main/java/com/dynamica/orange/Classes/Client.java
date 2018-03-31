@@ -2,6 +2,8 @@ package com.dynamica.orange.Classes;
 
 import org.springframework.data.annotation.Id;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 /**
@@ -63,7 +65,9 @@ public class Client {
     public void setSurname(String surname){this.surname=surname;}
     public void setDadname(String dadname){this.dadname=dadname;}
     public void setEmail(String email){this.email=email;}
-    public void setPassword(String password){this.password=password;}
+    public void setPassword(String password){
+        this.password=password;
+    }
     public void setLang(String lang){this.lang=lang;}
     public void addPhone(String phone){
         phones.add(phone);
