@@ -11,10 +11,19 @@ public class Address {
     public String cityid;
     public String address;
     public Map location;
+    public String name;
     public Address(){}
     public Address(String cityid, String address){
         this.address=address;
         this.cityid=cityid;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Map getLocation() {

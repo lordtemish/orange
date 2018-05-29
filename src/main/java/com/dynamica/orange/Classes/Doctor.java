@@ -113,8 +113,12 @@ public class Doctor {
             return false;
     }
 
-    public ArrayList<String> getCertificates() {
-        return certificates;
+    public ArrayList<IDObject> getCertificates() {
+        ArrayList<IDObject> idObjects=new ArrayList<>();
+        for(String i:certificates){
+            idObjects.add(new IDObject(i));
+        }
+        return idObjects;
     }
     public void addCertificate(String url){
         certificates.add(url);
@@ -286,7 +290,14 @@ public class Doctor {
         else
             return false;
     }
-    public ArrayList<String> getServices() {
+    public ArrayList<IDObject> getServices() {
+        ArrayList<IDObject> idObjects=new ArrayList<>();
+        for(String i:services){
+            idObjects.add(new IDObject(i));
+        }
+        return idObjects;
+    }
+    public ArrayList<String> getServicesList() {
         return services;
     }
     public boolean deleteService(Service s){
@@ -304,8 +315,12 @@ public class Doctor {
         services.clear();
     }
 
-    public ArrayList<String> getExtrainfo() {
-        return extrainfo;
+    public ArrayList<TextObject> getExtrainfo() {
+        ArrayList<TextObject> idObjects=new ArrayList<>();
+        for(String i:extrainfo){
+            idObjects.add(new TextObject(i));
+        }
+        return idObjects;
     }
     public boolean deleteExtraInfo(String s){
         if(extrainfo.contains(s)){
@@ -319,8 +334,12 @@ public class Doctor {
         extrainfo.add(s);
     }
 
-    public ArrayList<String> getProfachievments() {
-        return profachievments;
+    public ArrayList<TextObject> getProfachievments() {
+        ArrayList<TextObject> idObjects=new ArrayList<>();
+        for(String i:profachievments){
+            idObjects.add(new TextObject(i));
+        }
+        return idObjects;
     }
     public void addProfAch(String s){
         profachievments.add(s);

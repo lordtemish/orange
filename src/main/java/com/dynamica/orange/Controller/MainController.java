@@ -70,11 +70,13 @@ public class MainController {
     public @ResponseBody String defaults(){
         return "index";
     }
-    @RequestMapping(value = "/",method = RequestMethod.POST)
+    @RequestMapping(value = "/testOrangeQueues",method = RequestMethod.POST)
     public @ResponseBody String def(@RequestParam String mes){
         service.sendOrangeMessage(mes);
         return "";
     }
+
+
     @RequestMapping(value="/getAdminToken",method = RequestMethod.POST)
     public @ResponseBody Object createNewAdminToken(@RequestParam String password){
         if(password.equals("orangeadmin")){
@@ -365,8 +367,8 @@ public class MainController {
 
         return serviceRepo.findAll();
     }
-    @RequestMapping(value={"/allServicesById/{id}"}, method=RequestMethod.POST)
-    public @ResponseBody Object allServicesById(@PathVariable("id") String id, HttpServletRequest request){
+    @RequestMapping(value={"/allServicesById"}, method=RequestMethod.POST)
+    public @ResponseBody Object allServicesById(@RequestParam String id, HttpServletRequest request){
 
         return serviceRepo.findByServtypeid(id);
 
@@ -395,12 +397,13 @@ public class MainController {
         return new StatusObject("noauth");
     }
     @RequestMapping(value={"/changePassword"},method = RequestMethod.POST)
-    public @ResponseBody Object changePas(@RequestHeader("token") String token, @RequestParam String nPassword, @RequestParam String oPassword, HttpServletRequest request){
+    public @ResponseBody Object changePas(@RequestHeader("token"
+    ) String token, @RequestParam String nPassword, @RequestParam String oPassword, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
         if(tok!=null) {
                 Client client = clientRepo.findById(tok.getClientid());
-                if (client.getPassword().equals(hashPass(nPassword))) {
+                if (client.getPassword().equals(hashPass(oPassword))) {
                     client.setPassword(hashPass(nPassword));
                     clientRepo.save(client);
                     return new StatusObject("ok");}
@@ -647,20 +650,25 @@ public class MainController {
     public @ResponseBody Object authDoctor(@RequestParam String email,@RequestParam String password, HttpServletRequest request) throws NoSuchAlgorithmException{
             Client client = clientRepo.findByEmail(email);
             Token token=tokenRepo.findByClientid(client.getId());
+            logger.info(password);
             password=hashPass(password);
+            logger.info((client.getPassword().equals(password)&& client.isActivated())+"");
             if (client.getPassword().equals(password) && client.isActivated()) {
-                request.getSession().setAttribute("auth", client.getId());
                 try {
                     Doctor doctor = doctorRepo.findByClientid(client.getId());
+
                     if(doctor!=null)
-                        new TokenStatus("doctor",token.getId());
-                    else  new TokenStatus("patient",token.getId());
+                        return new TokenStatus("doctor",token.getId());
+                    else return  new TokenStatus("patient",token.getId());
                 } catch (NullPointerException e) {
                     Patient patient = patientRepo.findByClientid(client.getId());
                     return new TokenStatus("patient",token.getId());
                 }
             }
-            return new StatusObject("noclient");
+            else {
+                return new StatusObject("noclient");
+            }
+
     }
     @RequestMapping(value="/isAuth",method = RequestMethod.POST)
     public @ResponseBody Object isAuth(@RequestHeader("token") String token,HttpServletRequest request){

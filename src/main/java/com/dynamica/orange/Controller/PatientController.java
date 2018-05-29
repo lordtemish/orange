@@ -83,6 +83,7 @@ public class PatientController {
         }
         return new StatusObject("noauth");
     }
+
     @RequestMapping(value={"/getPatientId"},method = RequestMethod.POST)
     public @ResponseBody Object getPatientId(@RequestHeader("token") String token){
         Token tok=tokenRepo.findById(token);
@@ -163,27 +164,47 @@ public class PatientController {
     }
     @RequestMapping(value="/getPatientProfile", method = RequestMethod.POST)
     public @ResponseBody
-    Object getPatientProfile(@RequestHeader("token") String token,@PathVariable("id") String id, HttpServletRequest request){
+    Object getPatientProfile(@RequestHeader("token") String token, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
-                Patient patient=patientRepo.findById(id);
-                Client client=clientRepo.findById(patient.getClientid());
-                City workCity=cityRepo.findById(patient.getWorkAddress().getId());
-                City homeCity=cityRepo.findById(patient.getHomeAddress().getId());
+                Patient patient=patientRepo.findByClientid(tok.getClientid());
+                Client client=clientRepo.findById(patient.getClientid()); City workCity=new City("",""); City homeCity=new City("","");
+
+                try {
+                    if(patient.getWorkAddress()!=null) {
+                        workCity = cityRepo.findById(patient.getWorkAddress().getId());
+                    }
+                    if(patient.getHomeAddress()!=null) {
+                        homeCity = cityRepo.findById(patient.getHomeAddress().getId());
+                    }
+                }
+                catch (NullPointerException eee){
+
+                }
                 String homeC="";
                 String workC="";
-                switch (client.getLang()){
-                    case "R":
-                        homeC=homeCity.getNameRus();
-                        workC=workCity.getNameRus();
-                        break;
-                    default:
-                        homeC=homeCity.getNameKaz();
-                        workC=workCity.getNameKaz();
-                        break;
-                }
-                String blood=bloodRepo.findById(patient.getBlood()).getName();
+
+                String l=client.getLang();
+                if(l==null)l="R";
+                logger.info(l);
+                    switch (l) {
+                        case "R":
+                            homeC = homeCity.getNameRus();
+                            workC = workCity.getNameRus();
+                            break;
+                        default:
+                            homeC = homeCity.getNameKaz();
+                            workC = workCity.getNameKaz();
+                            break;
+                    }
+
+                logger.info(homeC+" "+workC+" "+workCity);
+                 String bloodid=patient.getBlood();
+                 String blood="";
+                 if(bloodid!=null) {
+                     blood = bloodRepo.findById(patient.getBlood()).getName();
+                 }
                 return new PatientProfileForm(patient,client,workC,homeC, blood);
             }
             else{
@@ -191,6 +212,7 @@ public class PatientController {
             }
         }
         catch (Exception e){
+            logger.info(e.getMessage());
             return new StatusObject("exception");
         }
     }
@@ -203,12 +225,61 @@ public class PatientController {
                 Client client=clientRepo.findById(doctor.getClientid());
                 ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
                 List<Service> services=new ArrayList<>();
-                for(String i:doctor.getServices()){
-                    services.add(serviceRepo.findById(i));
+                for(IDObject i:doctor.getServices()){
+                    services.add(serviceRepo.findById(i.getId()));
                 }
                 return new DoctorProfileForm(doctor,client,serviceType,services, cityRepo.findById(doctor.getWorkAddress().getCityid()),cityRepo.findById(doctor.getHomeAddress().getCityid()));
             }
             return new StatusObject("noauth");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+    @RequestMapping(value={"/getProfessionalAch"},method = RequestMethod.POST)
+    public @ResponseBody Object getProfAch(@RequestHeader("token") String token, @RequestParam String doctorid){
+        try {
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){Doctor doctor=doctorRepo.findById(doctorid);
+                List<Object> aa=new ArrayList<>();
+                for(TextObject i:doctor.getProfachievments()){
+                    aa.add(i);
+                }
+                return aa;
+            }
+            else return new StatusObject("noauth");
+        }
+        catch (NullPointerException e){
+            return new StatusObject("nullpointerexception");
+        }
+    }
+    @RequestMapping(value={"/getExtraInfo"},method = RequestMethod.POST)
+    public @ResponseBody Object getExtraInfo(@RequestHeader("token") String token, @RequestParam String doctorid){
+        try {
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){Doctor doctor=doctorRepo.findById(doctorid);
+                List<Object> aa=new ArrayList<>();
+                for(TextObject i:doctor.getExtrainfo()){
+                    aa.add(i);
+                }
+                return aa;
+            }
+            else return new StatusObject("noauth");
+        }
+        catch (NullPointerException e){
+            return new StatusObject("nullpointerexception");
+        }
+    }
+    @RequestMapping(value="/getExperience",method=RequestMethod.POST)
+    public @ResponseBody Object getExperience(@RequestHeader("token") String token,@RequestParam String doctorid){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                return doctor.getExperiences();
+            }
+            else return new StatusObject("noauth");
         }
         catch (Exception e){
             e.printStackTrace();
@@ -247,10 +318,10 @@ public class PatientController {
                 logger.info(doctors.size()+" "+service.getServtypeid());
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
-                    if(i.getServices().contains(serviceid)){
+                    if(i.getServicesList().contains(serviceid)){
                         ArrayList<Service> services=new ArrayList<>();
-                        for(String j:i.getServices()){
-                            services.add(serviceRepo.findById(j));
+                        for(IDObject j:i.getServices()){
+                            services.add(serviceRepo.findById(j.getId()));
                         }
                         doctorListForms.add(new DoctorListForm(i,clientRepo.findById(i.getClientid()),serviceTypeRepo.findById(i.getServicetypeid()),services));
                     }
@@ -296,13 +367,13 @@ public class PatientController {
             if(tok!=null){
                 List<DoctorListForm> doctorListForms=new ArrayList<>();
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
-                for(String i:patient.getFavs()){
-                    Doctor doctor=doctorRepo.findById(i);
+                for(IDObject i:patient.getFavs()){
+                    Doctor doctor=doctorRepo.findById(i.getId());
                     Client client=clientRepo.findById(doctor.getClientid());
                     ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
                     ArrayList<Service> services=new ArrayList<>();
-                    for(String jj:doctor.getServices()){
-                        services.add(serviceRepo.findById(jj));
+                    for(IDObject jj:doctor.getServices()){
+                        services.add(serviceRepo.findById(jj.getId()));
                     }
                     DoctorListForm listForm=new DoctorListForm(doctor,client,serviceType,services);
                     doctorListForms.add(listForm);
@@ -322,13 +393,13 @@ public class PatientController {
             if(tok!=null){
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             List<DoctorListForm> list = new ArrayList<>();
-            for (String i : patient.getMydocs()) {
-                Doctor doctor=doctorRepo.findById(i);
+            for (IDObject i : patient.getMydocs()) {
+                Doctor doctor=doctorRepo.findById(i.getId());
                 Client client=clientRepo.findById(doctor.getClientid());
                 ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
                 ArrayList<Service> services=new ArrayList<>();
-                for(String jj:doctor.getServices()){
-                    services.add(serviceRepo.findById(jj));
+                for(IDObject jj:doctor.getServices()){
+                    services.add(serviceRepo.findById(jj.getId()));
                 }
                 list.add(new DoctorListForm(doctor,client,serviceType,services));
             }
@@ -423,8 +494,8 @@ public class PatientController {
         }
         return new StatusObject("noauth");
     }
-    @RequestMapping(value = {"/addAddress/{name}"}, method = RequestMethod.POST)
-    public @ResponseBody Object addAddress(@RequestHeader("token") String token, @PathVariable("name") String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
+    @RequestMapping(value = {"/addAddress"}, method = RequestMethod.POST)
+    public @ResponseBody Object addAddress(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
             Patient patient = patientRepo.findByClientid(tok.getClientid());
@@ -441,8 +512,28 @@ public class PatientController {
         }
         return new StatusObject("noauth");
     }
-    @RequestMapping(value = {"/deleteAddress/{name}"}, method = RequestMethod.POST)
-    public @ResponseBody Object deleteAdress(@RequestHeader("token") String token, @PathVariable("name") String name, HttpServletRequest request){
+    @RequestMapping(value = {"/addAddressWithCompany"}, method = RequestMethod.POST)
+    public @ResponseBody Object addAddressWC(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address,@RequestParam String company, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null){
+            Patient patient = patientRepo.findByClientid(tok.getClientid());
+            Address ad=new Address(cityId,address);
+            ad.setName(company);
+            switch (name) {
+                case "work":
+                    patient.setWorkAddress(ad);
+                    break;
+                case "home":
+                    patient.setHomeAddress(ad);
+                    break;
+            }
+            patientRepo.save(patient);
+            return new StatusObject("ok");
+        }
+        return new StatusObject("noauth");
+    }
+    @RequestMapping(value = {"/deleteAddress"}, method = RequestMethod.POST)
+    public @ResponseBody Object deleteAdress(@RequestHeader("token") String token, @RequestParam String name, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
             Patient patient = patientRepo.findByClientid(tok.getClientid());
@@ -542,8 +633,8 @@ public class PatientController {
             if(tok!=null){
             Patient patient = patientRepo.findById(tok.getClientid());
             List<Doctor> list = new ArrayList<>();
-            for (String i : patient.getFavs()) {
-                list.add(doctorRepo.findById(i));
+            for (IDObject i : patient.getFavs()) {
+                list.add(doctorRepo.findById(i.getId()));
             }
             return list;
         }
@@ -589,8 +680,8 @@ public class PatientController {
             if(tok!=null){
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             List<Doctor> list = new ArrayList<>();
-            for (String i : patient.getMydocs()) {
-                list.add(doctorRepo.findById(i));
+            for (IDObject i : patient.getMydocs()) {
+                list.add(doctorRepo.findById(i.getId()  ));
             }
             return list;
         }
@@ -951,8 +1042,8 @@ public class PatientController {
                     Client client=clientRepo.findById(doctor.getClientid());
                     ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
                     ArrayList<Service> services=new ArrayList<>();
-                    for(String j:doctor.getServices()){
-                        services.add(serviceRepo.findById(j));
+                    for(IDObject j:doctor.getServices()){
+                        services.add(serviceRepo.findById(j.getId()));
                     }
                     ArrayList<EducationForm> educationForms=new ArrayList<>();
                     for(Education j:doctor.getEducations()){

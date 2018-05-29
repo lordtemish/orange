@@ -135,9 +135,18 @@ public class Patient {
     public String getAlergic(){return alergic;}
 
 
-        public ArrayList<String> getFavs(){return favs;}
-        public ArrayList<String> getMydocs() {
-            return mydocs;
+        public ArrayList<IDObject> getFavs(){
+        ArrayList<IDObject> idObjects=new ArrayList<>();
+            for(String i:favs){
+                idObjects.add(new IDObject(i));
+            }
+            return idObjects;}
+        public ArrayList<IDObject> getMydocs() {
+            ArrayList<IDObject> idObjects=new ArrayList<>();
+            for(String i:mydocs){
+                idObjects.add(new IDObject(i));
+            }
+            return idObjects;
         }
 
         public boolean deleteFav(String id){

@@ -8,11 +8,13 @@ import java.util.ArrayList;
  * Created by lordtemich on 1/16/18.
  */
 public class DoctorListForm {
+    public String doctorid;
     public String name;
     public String surname;
     public String serviceInfo;
     public double rate;
     public DoctorListForm(Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services){
+        doctorid=doctor.getId();
         name=client.getName();
         surname=client.getSurname();
         double j=0;
@@ -49,5 +51,9 @@ public class DoctorListForm {
 
     public String getSurname() {
         return surname;
+    }
+
+    public String getDoctorid() {
+        return doctorid;
     }
 }

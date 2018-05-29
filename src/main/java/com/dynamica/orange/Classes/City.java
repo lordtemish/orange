@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id;
 /**
  * Created by lordtemich on 10/27/17.
  */
-public class City {
+public class City{
     @Id
     private String id;
     private String nameKaz;
@@ -18,11 +18,20 @@ public class City {
     }
 
     public String getNameKaz() {
-        return nameKaz;
+        try{
+            return nameKaz;
+        }
+        catch (Exception e){
+            return "";
+        }
     }
 
     public String getNameRus() {
-        return nameRus;
+        try{
+        return nameRus;}
+        catch (Exception e){
+            return "";
+        }
     }
 
     public void setNameRus(String nameRus) {
