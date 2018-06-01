@@ -20,7 +20,12 @@ public class ServiceType {
     }
 
     public String getNameRus() {
-        return nameRus;
+        if(nameRus!=null) {
+            return nameRus;
+        }
+        else{
+            return "";
+        }
     }
 
     public void setNameKaz(String nameKaz) {
@@ -32,6 +37,11 @@ public class ServiceType {
     }
 
     public String getNameKaz() {
-        return nameKaz;
+        if(nameKaz!=null) {
+            return nameKaz;
+        }
+        else{
+            return "";
+        }
     }
 }

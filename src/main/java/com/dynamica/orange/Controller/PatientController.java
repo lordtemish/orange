@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -228,7 +229,27 @@ public class PatientController {
                 for(IDObject i:doctor.getServices()){
                     services.add(serviceRepo.findById(i.getId()));
                 }
-                return new DoctorProfileForm(doctor,client,serviceType,services, cityRepo.findById(doctor.getWorkAddress().getCityid()),cityRepo.findById(doctor.getHomeAddress().getCityid()));
+                City cityH;
+                City cityW;
+                if(doctor.getHomeAddress()==null) {
+                    cityH=new City("","");
+                }
+                else {
+                    cityH = cityRepo.findById(doctor.getWorkAddress().getCityid());
+                }
+                if(doctor.getWorkAddress()==null) {
+                    cityW=new City("","");
+                }
+                else{
+                    cityW = cityRepo.findById(doctor.getHomeAddress().getCityid());
+                }
+                if(cityH==null){
+                    cityH=new City("","");
+                }
+                if(cityW==null){
+                    cityW=new City("","");
+                }
+                return new DoctorProfileForm(doctor,client,serviceType,services, cityH,cityW);
             }
             return new StatusObject("noauth");
         }
@@ -323,10 +344,16 @@ public class PatientController {
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
                         }
-                        doctorListForms.add(new DoctorListForm(i,clientRepo.findById(i.getClientid()),serviceTypeRepo.findById(i.getServicetypeid()),services));
+                        doctorListForms.add(
+                                new DoctorListForm(
+                                        i,
+                                        clientRepo.findById(i.getClientid()),
+                                        serviceTypeRepo.findById(i.getServicetypeid()),
+                                        services)
+                        );
                     }
                     else
-                        doctors.remove(i);
+                        continue;
                 }
                 return doctorListForms;
             }
@@ -339,7 +366,119 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-
+    @RequestMapping(value="/searchDoctorsByServiceType/", method = RequestMethod.POST)
+    public @ResponseBody Object searchDoctorsByServiceType(@RequestHeader("token") String token, @RequestParam String servicetypeid, HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                ArrayList<Doctor> doctors=doctorRepo.findByServicetypeid(servicetypeid);
+                logger.info(doctors.size()+" "+servicetypeid);
+                ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
+                for(Doctor i:doctors){
+                    if(true){
+                        ArrayList<Service> services=new ArrayList<>();
+                        for(IDObject j:i.getServices()){
+                            services.add(serviceRepo.findById(j.getId()));
+                        }
+                        doctorListForms.add(
+                                new DoctorListForm(
+                                        i,
+                                        clientRepo.findById(i.getClientid()),
+                                        serviceTypeRepo.findById(i.getServicetypeid()),
+                                        services)
+                        );
+                    }
+                    else
+                        continue;
+                }
+                return doctorListForms;
+            }
+            else{
+                return new StatusObject("noauth");
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+    @RequestMapping(value="/searchDoctorsByServiceTypeWithText/", method = RequestMethod.POST)
+    public @ResponseBody Object searchDoctorsByServiceType1(@RequestHeader("token") String token, @RequestParam String servicetypeid, @RequestParam String text, HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                ArrayList<Doctor> doctors=doctorRepo.findByServicetypeid(servicetypeid);
+                logger.info(doctors.size()+" "+servicetypeid);
+                ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
+                for(Doctor i:doctors){
+                    Client client=clientRepo.findById(i.getClientid());
+                    if((client.getName()!=null && client.getName().toLowerCase().contains(text.toLowerCase())) || (client.getSurname()!=null && client.getSurname().toLowerCase().contains(text.toLowerCase()))){
+                        ArrayList<Service> services=new ArrayList<>();
+                        for(IDObject j:i.getServices()){
+                            services.add(serviceRepo.findById(j.getId()));
+                        }
+                        doctorListForms.add(
+                                new DoctorListForm(
+                                        i,
+                                        clientRepo.findById(i.getClientid()),
+                                        serviceTypeRepo.findById(i.getServicetypeid()),
+                                        services)
+                        );
+                    }
+                    else
+                        continue;
+                }
+                return doctorListForms;
+            }
+            else{
+                return new StatusObject("noauth");
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+    @RequestMapping(value="/searchDoctorsByServiceWithText/", method = RequestMethod.POST)
+    public @ResponseBody Object searchDoctorsByService1(@RequestHeader("token") String token, @RequestParam String serviceid, @RequestParam String text, HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Service service=serviceRepo.findById(serviceid);
+                ArrayList<Doctor> doctors=doctorRepo.findByServicetypeid(service.getServtypeid());
+                logger.info(doctors.size()+" "+service.getServtypeid());
+                ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
+                for(Doctor i:doctors){
+                    if(i.getServicesList().contains(serviceid)) {
+                        Client client = clientRepo.findById(i.getClientid());
+                        if ((client.getName()!=null && client.getName().toLowerCase().contains(text.toLowerCase())) || (client.getSurname()!=null && client.getSurname().toLowerCase().contains(text.toLowerCase()))) {
+                            ArrayList<Service> services = new ArrayList<>();
+                            for (IDObject j : i.getServices()) {
+                                services.add(serviceRepo.findById(j.getId()));
+                            }
+                            doctorListForms.add(
+                                    new DoctorListForm(
+                                            i,
+                                            clientRepo.findById(i.getClientid()),
+                                            serviceTypeRepo.findById(i.getServicetypeid()),
+                                            services)
+                            );
+                        }
+                    }
+                    else
+                        continue;
+                }
+                return doctorListForms;
+            }
+            else{
+                return new StatusObject("noauth");
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
     @RequestMapping(value = "/addComment/{doctorid}",method = RequestMethod.POST)
     public @ResponseBody Object addComment(@RequestHeader("token") String token, @PathVariable("doctorid") String doctorid, @RequestParam String message, boolean impression, HttpServletRequest request){
         try{

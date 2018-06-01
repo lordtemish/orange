@@ -29,10 +29,12 @@ public class Client {
     public Client(){
         phones=new ArrayList<>();mails=new ArrayList<>();
         photourl=new ArrayList<>();
+        lang="R";
     }
     public Client(String mail){
         this.email=mail;
         phones=new ArrayList<>();mails=new ArrayList<>();photourl=new ArrayList<>();
+        lang="R";
     }
 
     public void setActivated(boolean activated) {
