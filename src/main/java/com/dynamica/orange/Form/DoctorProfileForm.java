@@ -40,11 +40,5 @@ public class DoctorProfileForm {
         return serviceType;
     }
 
-    public City getHomeCity() {
-        return homeCity;
-    }
 
-    public City getWorkCity() {
-        return workCity;
-    }
 }

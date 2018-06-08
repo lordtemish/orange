@@ -154,7 +154,28 @@ public class DoctorController {
             return new StatusObject("ok");}
         return new StatusObject("noauth");
     }
-
+    @RequestMapping(value = "/setHomeplaceOwnService",method = RequestMethod.POST) //ottid change
+    public @ResponseBody Object setHomeplaceOwnService(@RequestHeader("token") String token, @RequestParam String name,@RequestParam int price, HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                for(OwnService i : doctor.getOwns()){
+                    if(i.getHomeplace()){
+                        doctor.deleteOwnService(i);
+                        break;
+                    }
+                }
+                doctor.addOwnService(new OwnService(name,price));
+                doctorRepo.save(doctor);
+                return new StatusObject("ok");}
+            else return new StatusObject("noauth");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
     //addTimeSchedule
     @RequestMapping(value = "/addOwnService",method = RequestMethod.POST) //ottid change
     public @ResponseBody Object addOwnService(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String ottid, @RequestParam String info, @RequestParam int price, HttpServletRequest request){
@@ -972,7 +993,8 @@ public class DoctorController {
                 for(Order i:orders){
                     Doctor doctor=doctorRepo.findById(i.getDoctorid());
                     Client client=clientRepo.findById(doctor.getClientid());
-                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+
+                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                     ArrayList<Service> services=new ArrayList<>();
                     for(IDObject j:doctor.getServices()){
                         services.add(serviceRepo.findById(j.getId()));
@@ -981,7 +1003,18 @@ public class DoctorController {
                     for(Education j:doctor.getEducations()){
                         educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id())));
                     }
-                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,educationForms));
+
+                    ArrayList<OwnService> ownServices=new ArrayList<>();
+                    for(Object j:i.getOwnServices()){
+                        for(OwnService jj:doctor1.getOwns()){
+                            if((j+"").equals(jj.getId())){
+                                ownServices.add(jj);
+                                break;
+                            }
+
+                        }
+                    }
+                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,ownServices,educationForms));
                 }
                 return orderListForms;
             }

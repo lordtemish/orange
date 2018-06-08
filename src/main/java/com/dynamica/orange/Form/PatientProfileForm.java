@@ -9,15 +9,46 @@ import com.dynamica.orange.Classes.Patient;
 public class PatientProfileForm {
         Patient patient;
         Client client;
-        String workC;
-        String homeC;
-        String blood;
+        info info;
+        class info{
+            String workC;
+            String homeC;
+            String blood;
+            public info(){
+            }
+            public info(String workC, String homeC, String blood){
+                this.workC=workC;
+                this.homeC=homeC;
+                this.blood=blood;
+            }
+            public String getBlood() {
+                return blood;
+            }
+
+            public String getHomeC() {
+                return homeC;
+            }
+
+            public String getWorkC() {
+                return workC;
+            }
+
+            public void setBlood(String blood) {
+                this.blood = blood;
+            }
+
+            public void setHomeC(String homeC) {
+                this.homeC = homeC;
+            }
+
+            public void setWorkC(String workC) {
+                this.workC = workC;
+            }
+        }
         public PatientProfileForm(Patient patient, Client client, String workCity, String homeCity, String blood){
                 this.patient=patient;
                 this.client=client;
-                this.workC=workCity;
-                this.homeC=homeCity;
-                this.blood=blood;
+                info=new info(workCity,homeCity,blood);
         }
 
     public Client getClient() {
@@ -28,15 +59,7 @@ public class PatientProfileForm {
         return patient;
     }
 
-    public String getBlood() {
-        return blood;
-    }
-
-    public String getHomeC() {
-        return homeC;
-    }
-
-    public String getWorkC() {
-        return workC;
+    public PatientProfileForm.info getInfo() {
+        return info;
     }
 }

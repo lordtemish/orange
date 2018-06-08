@@ -18,7 +18,7 @@ public class Doctor {
         private String info;
     private Address homeAddress;
     private Address workAddress;
-    private String servicetypeid;
+    private Object servicetypeid;
     private ArrayList<Education> educations;
     private String serv_type;
     private ArrayList<String> certificates;
@@ -75,11 +75,11 @@ public class Doctor {
 
 
 
-    public String getServicetypeid() {
+    public Object getServicetypeid() {
         return servicetypeid;
     }
 
-    public void setServicetypeid(String service_type_id) {
+    public void setServicetypeid(Object service_type_id) {
         this.servicetypeid = service_type_id;
     }
 
@@ -235,6 +235,14 @@ public class Doctor {
 
     public ArrayList<OwnService> getOwns() {
         return owns;
+    }
+    public String getHomePlaceOwn(){
+        for(OwnService i:owns){
+            if(i.getHomeplace()){
+                return i.getId()+" ";
+            }
+        }
+        return "";
     }
     public void addOwnService(OwnService s){
         String id=s.getId();

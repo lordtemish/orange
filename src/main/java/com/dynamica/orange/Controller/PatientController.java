@@ -104,11 +104,32 @@ public class PatientController {
             return new StatusObject("noauth");
         }
     }
-    @RequestMapping(value = {"/addinfo"},method = RequestMethod.POST)
+    @RequestMapping(value = {"/changeFIO"},method = RequestMethod.POST)
+    public @ResponseBody Object changeFIO(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String surname, @RequestParam String dad, HttpServletRequest request) {
+        try {
+            Token tok = tokenRepo.findById(token);
+            if (tok != null) {
+                Client client = clientRepo.findById(tok.getClientid());
+                client.setName(name);
+                client.setSurname(surname);
+                client.setDadname(dad);
+                clientRepo.save(client);
+                return new StatusObject("ok");
+            }
+            else{
+                return new StatusObject("noauth");
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+            @RequestMapping(value = {"/addinfo"},method = RequestMethod.POST)
         public @ResponseBody Object addInfo(@RequestHeader("token") String token, @RequestParam String gender, @RequestParam String dateofbirth, @RequestParam int weight, @RequestParam int height, @RequestParam String bloodid, @RequestParam String chronic, @RequestParam String alergic, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
-        Patient patient=patientRepo.findById(tok.getClientid());
+        Patient patient=patientRepo.findByClientid(tok.getClientid());
         patient.setGender(gender.toUpperCase());
         patient.setDate(dateofbirth);
         patient.setWeight(weight);
@@ -163,41 +184,53 @@ public class PatientController {
             return new StatusObject("noauth");
         }
     }
-    @RequestMapping(value="/getPatientProfile", method = RequestMethod.POST)
+    @RequestMapping(value="/getPatientProfile", method = RequestMethod.POST) // need put objects
     public @ResponseBody
     Object getPatientProfile(@RequestHeader("token") String token, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
-                Client client=clientRepo.findById(patient.getClientid()); City workCity=new City("",""); City homeCity=new City("","");
+                Client client=clientRepo.findById(tok.getClientid());
+                City simple=new City("","");
+                City workCity=simple; City homeCity=simple;
 
                 try {
                     if(patient.getWorkAddress()!=null) {
-                        workCity = cityRepo.findById(patient.getWorkAddress().getId());
+                        workCity = cityRepo.findById(patient.getWorkAddress().getCityid()+"");
                     }
                     if(patient.getHomeAddress()!=null) {
-                        homeCity = cityRepo.findById(patient.getHomeAddress().getId());
+                        homeCity = cityRepo.findById(patient.getHomeAddress().getCityid()+"");
+                    }
+                    if(workCity==null){
+                        workCity=simple;
+                    }
+                    if(homeCity==null){
+                        homeCity=simple;
                     }
                 }
                 catch (NullPointerException eee){
-
                 }
-                String homeC="";
-                String workC="";
-
-                String l=client.getLang();
-                if(l==null)l="R";
+                String homeC;
+                String workC;
+                String l;
+                if(client!=null) {
+                    if (client.getLang() != null)
+                        l = client.getLang();
+                    else
+                        l = "R";
+                }
+                else{
+                    l="R";
+                }
                 logger.info(l);
-                    switch (l) {
-                        case "R":
-                            homeC = homeCity.getNameRus();
-                            workC = workCity.getNameRus();
-                            break;
-                        default:
+                 if(l.equals("R")) {
+                     homeC = homeCity.getNameRus();
+                     workC = workCity.getNameRus();
+                 }
+                  else{
                             homeC = homeCity.getNameKaz();
                             workC = workCity.getNameKaz();
-                            break;
                     }
 
                 logger.info(homeC+" "+workC+" "+workCity);
@@ -214,6 +247,7 @@ public class PatientController {
         }
         catch (Exception e){
             logger.info(e.getMessage());
+            e.printStackTrace();
             return new StatusObject("exception");
         }
     }
@@ -224,7 +258,7 @@ public class PatientController {
             if(tok!=null){
                 Doctor doctor=doctorRepo.findById(doctorid);
                 Client client=clientRepo.findById(doctor.getClientid());
-                ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                 List<Service> services=new ArrayList<>();
                 for(IDObject i:doctor.getServices()){
                     services.add(serviceRepo.findById(i.getId()));
@@ -235,13 +269,13 @@ public class PatientController {
                     cityH=new City("","");
                 }
                 else {
-                    cityH = cityRepo.findById(doctor.getWorkAddress().getCityid());
+                    cityH = cityRepo.findById(doctor.getHomeAddress().getCityid()+"");
                 }
                 if(doctor.getWorkAddress()==null) {
                     cityW=new City("","");
                 }
                 else{
-                    cityW = cityRepo.findById(doctor.getHomeAddress().getCityid());
+                    cityW = cityRepo.findById(doctor.getWorkAddress().getCityid()+"");
                 }
                 if(cityH==null){
                     cityH=new City("","");
@@ -249,6 +283,7 @@ public class PatientController {
                 if(cityW==null){
                     cityW=new City("","");
                 }
+                doctor.setServicetypeid(serviceType);
                 return new DoctorProfileForm(doctor,client,serviceType,services, cityH,cityW);
             }
             return new StatusObject("noauth");
@@ -330,7 +365,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/searchDoctorsByService/", method = RequestMethod.POST)
-    public @ResponseBody Object searchDoctorsByService(@RequestHeader("token") String token, @RequestParam String serviceid, HttpServletRequest request){
+    public @ResponseBody Object searchDoctorsByService(@RequestHeader("token") String token, @RequestParam String serviceid,@RequestParam String cityId, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -339,7 +374,17 @@ public class PatientController {
                 logger.info(doctors.size()+" "+service.getServtypeid());
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
-                    if(i.getServicesList().contains(serviceid)){
+                    if(i.getWorkAddress()==null){
+                        Address s=new Address();
+                        s.setCityid("");
+                        i.setWorkAddress(s);
+                    }
+                    if(i.getHomeAddress()==null){
+                        Address s=new Address();
+                        s.setCityid("");
+                        i.setHomeAddress(s);
+                    }
+                    if(i.getServicesList().contains(serviceid) && (i.getHomeAddress().getCityid().equals(cityId) || i.getWorkAddress().getCityid().equals(cityId))){
                         ArrayList<Service> services=new ArrayList<>();
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
@@ -348,12 +393,14 @@ public class PatientController {
                                 new DoctorListForm(
                                         i,
                                         clientRepo.findById(i.getClientid()),
-                                        serviceTypeRepo.findById(i.getServicetypeid()),
+                                        serviceTypeRepo.findById(i.getServicetypeid()+""),
                                         services)
                         );
                     }
+
                     else
                         continue;
+
                 }
                 return doctorListForms;
             }
@@ -366,8 +413,8 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/searchDoctorsByServiceType/", method = RequestMethod.POST)
-    public @ResponseBody Object searchDoctorsByServiceType(@RequestHeader("token") String token, @RequestParam String servicetypeid, HttpServletRequest request){
+        @RequestMapping(value="/searchDoctorsByServiceType/", method = RequestMethod.POST)
+    public @ResponseBody Object searchDoctorsByServiceType(@RequestHeader("token") String token, @RequestParam String servicetypeid,@RequestParam String cityId, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -375,7 +422,17 @@ public class PatientController {
                 logger.info(doctors.size()+" "+servicetypeid);
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
-                    if(true){
+                    if(i.getWorkAddress()==null){
+                        Address s=new Address();
+                        s.setCityid("");
+                        i.setWorkAddress(s);
+                    }
+                    if(i.getHomeAddress()==null){
+                        Address s=new Address();
+                        s.setCityid("");
+                        i.setHomeAddress(s);
+                    }
+                    if(i.getWorkAddress().getCityid().equals(cityId) || i.getHomeAddress().getCityid().equals(cityId)){
                         ArrayList<Service> services=new ArrayList<>();
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
@@ -384,7 +441,7 @@ public class PatientController {
                                 new DoctorListForm(
                                         i,
                                         clientRepo.findById(i.getClientid()),
-                                        serviceTypeRepo.findById(i.getServicetypeid()),
+                                        serviceTypeRepo.findById(i.getServicetypeid()+""),
                                         services)
                         );
                     }
@@ -403,7 +460,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/searchDoctorsByServiceTypeWithText/", method = RequestMethod.POST)
-    public @ResponseBody Object searchDoctorsByServiceType1(@RequestHeader("token") String token, @RequestParam String servicetypeid, @RequestParam String text, HttpServletRequest request){
+    public @ResponseBody Object searchDoctorsByServiceType1(@RequestHeader("token") String token, @RequestParam String servicetypeid, @RequestParam String text, @RequestParam String cityId, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -411,8 +468,18 @@ public class PatientController {
                 logger.info(doctors.size()+" "+servicetypeid);
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
+                    if(i.getWorkAddress()==null){
+                        Address s=new Address();
+                        s.setCityid("");
+                        i.setWorkAddress(s);
+                    }
+                    if(i.getHomeAddress()==null){
+                        Address s=new Address();
+                        s.setCityid("");
+                        i.setHomeAddress(s);
+                    }
                     Client client=clientRepo.findById(i.getClientid());
-                    if((client.getName()!=null && client.getName().toLowerCase().contains(text.toLowerCase())) || (client.getSurname()!=null && client.getSurname().toLowerCase().contains(text.toLowerCase()))){
+                    if(((client.getName()!=null && client.getName().toLowerCase().contains(text.toLowerCase())) || (client.getSurname()!=null && client.getSurname().toLowerCase().contains(text.toLowerCase()))) && (i.getHomeAddress().getCityid().equals(cityId) || i.getWorkAddress().getCityid().equals(cityId))){
                         ArrayList<Service> services=new ArrayList<>();
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
@@ -421,7 +488,7 @@ public class PatientController {
                                 new DoctorListForm(
                                         i,
                                         clientRepo.findById(i.getClientid()),
-                                        serviceTypeRepo.findById(i.getServicetypeid()),
+                                        serviceTypeRepo.findById(i.getServicetypeid()+""),
                                         services)
                         );
                     }
@@ -440,7 +507,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/searchDoctorsByServiceWithText/", method = RequestMethod.POST)
-    public @ResponseBody Object searchDoctorsByService1(@RequestHeader("token") String token, @RequestParam String serviceid, @RequestParam String text, HttpServletRequest request){
+    public @ResponseBody Object searchDoctorsByService1(@RequestHeader("token") String token, @RequestParam String serviceid, @RequestParam String text,@RequestParam String cityId, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -449,7 +516,17 @@ public class PatientController {
                 logger.info(doctors.size()+" "+service.getServtypeid());
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
-                    if(i.getServicesList().contains(serviceid)) {
+                    if(i.getWorkAddress()==null){
+                        Address s=new Address();
+                        s.setCityid("");
+                        i.setWorkAddress(s);
+                    }
+                    if(i.getHomeAddress()==null){
+                        Address s=new Address();
+                        s.setCityid("");
+                        i.setHomeAddress(s);
+                    }
+                    if(i.getServicesList().contains(serviceid) && (i.getWorkAddress().getCityid().equals(cityId) || i.getHomeAddress().getCityid().equals(cityId))) {
                         Client client = clientRepo.findById(i.getClientid());
                         if ((client.getName()!=null && client.getName().toLowerCase().contains(text.toLowerCase())) || (client.getSurname()!=null && client.getSurname().toLowerCase().contains(text.toLowerCase()))) {
                             ArrayList<Service> services = new ArrayList<>();
@@ -460,7 +537,7 @@ public class PatientController {
                                     new DoctorListForm(
                                             i,
                                             clientRepo.findById(i.getClientid()),
-                                            serviceTypeRepo.findById(i.getServicetypeid()),
+                                            serviceTypeRepo.findById(i.getServicetypeid()+""),
                                             services)
                             );
                         }
@@ -509,7 +586,7 @@ public class PatientController {
                 for(IDObject i:patient.getFavs()){
                     Doctor doctor=doctorRepo.findById(i.getId());
                     Client client=clientRepo.findById(doctor.getClientid());
-                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                     ArrayList<Service> services=new ArrayList<>();
                     for(IDObject jj:doctor.getServices()){
                         services.add(serviceRepo.findById(jj.getId()));
@@ -535,7 +612,7 @@ public class PatientController {
             for (IDObject i : patient.getMydocs()) {
                 Doctor doctor=doctorRepo.findById(i.getId());
                 Client client=clientRepo.findById(doctor.getClientid());
-                ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                 ArrayList<Service> services=new ArrayList<>();
                 for(IDObject jj:doctor.getServices()){
                     services.add(serviceRepo.findById(jj.getId()));
@@ -973,8 +1050,9 @@ public class PatientController {
                 String id=patient.getId();
                 Order order = new Order(doctorid, id);
                 order.setAtwork(atwork);
+                order.setStatus("patientstarted");
                 orderRepo.save(order);
-                return order.getId();
+                return order.getId();//FORM need
             }
             else return new StatusObject("noauth");
         }
@@ -983,7 +1061,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoWorkplace/{orderid}", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfo(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String services, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam String text, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfo(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam String text, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -991,11 +1069,12 @@ public class PatientController {
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
-                order.addServices(services);
                 order.setChoseTime(chosetime);
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
+
                 order.setAtwork(true);
+                order.setStatus("patientcreated");
                 orderRepo.save(order);
                 return new StatusObject("ok");
             }
@@ -1007,19 +1086,77 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoHome/{orderid}", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String services, @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @PathVariable("orderid") String orderid,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
-                order.addServices(services);
+                Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setChoseTime(chosetime);
                 order.setTextMessage(text);
                 order.setPeriodinhours(period);
+                order.addOwnServices(doctor.getHomePlaceOwn());
                 order.setAddress(patient.getHomeAddress());
                 order.setAtwork(false);
+                order.setStatus("patientcreated");
+                orderRepo.save(order);
+                return new StatusObject("ok");
+            }
+            else return new StatusObject("noauth");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+
+
+    //
+
+    @RequestMapping(value="/setOrderInfoWorkplaceWithOwnService/{orderid}", method=RequestMethod.POST)
+    public @ResponseBody Object addOrderInfoOwnService(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam long chosetime,@RequestParam String ownServices, @RequestParam String periodTime, @RequestParam String text, @RequestParam String ownservices, HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Patient patient=patientRepo.findByClientid(tok.getClientid());
+                String id=patient.getId();
+                Order order = orderRepo.findById(orderid);
+                Doctor doctor=doctorRepo.findById(order.getDoctorid());
+                order.setChoseTime(chosetime);
+                order.setPeriodTime(periodTime);
+                order.setTextMessage(text);
+                order.setAtwork(true);
+                order.addOwnServices(ownServices);
+                order.setStatus("patientcreated");
+                order.addServices(ownservices);
+                orderRepo.save(order);
+                return new StatusObject("ok");
+            }
+            else return new StatusObject("noauth");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+    @RequestMapping(value="/setOrderInfoHomeWithOwnService/{orderid}", method=RequestMethod.POST)
+    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @PathVariable("orderid") String orderid,@RequestParam String ownServices,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Patient patient=patientRepo.findByClientid(tok.getClientid());
+                String id=patient.getId();
+                Order order = orderRepo.findById(orderid);
+                Doctor doctor=doctorRepo.findById(order.getDoctorid());
+                order.setChoseTime(chosetime);
+                order.setTextMessage(text);
+                order.addOwnServices(doctor.getHomePlaceOwn()+  ownServices);
+                order.setPeriodinhours(period);
+                order.setAddress(patient.getHomeAddress());
+                order.setAtwork(false);
+                order.setStatus("patientcreated");
                 orderRepo.save(order);
                 return new StatusObject("ok");
             }
@@ -1069,6 +1206,10 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
+
+
+
+
     @RequestMapping(value = "/addOrderAddress/{orderid}",method = RequestMethod.POST)
     public @ResponseBody Object addOrderAddress(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String cityid, @RequestParam String address, HttpServletRequest request){
         try{ // Set Normal cities and addresses
@@ -1179,7 +1320,7 @@ public class PatientController {
                 for(Order i:orders){
                     Doctor doctor=doctorRepo.findById(i.getDoctorid());
                     Client client=clientRepo.findById(doctor.getClientid());
-                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid());
+                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                     ArrayList<Service> services=new ArrayList<>();
                     for(IDObject j:doctor.getServices()){
                         services.add(serviceRepo.findById(j.getId()));
@@ -1188,7 +1329,18 @@ public class PatientController {
                     for(Education j:doctor.getEducations()){
                         educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id())));
                     }
-                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,educationForms));
+                    ArrayList<OwnService> ownServices=new ArrayList<>();
+                    for(Object j:i.getOwnServices()){
+                        for(OwnService jj:doctor.getOwns()){
+                            logger.info(jj.getId().length()+" "+(j+"").length()+"   "+(j+"").equals(jj.getId()+""));
+                            if((j+"").equals(jj.getId())){
+                                ownServices.add(jj);
+                                break;
+                            }
+
+                        }
+                    }
+                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,ownServices,educationForms));
                 }
                 return orderListForms;
             }

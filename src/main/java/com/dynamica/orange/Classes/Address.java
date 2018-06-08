@@ -8,7 +8,7 @@ import org.springframework.data.annotation.Id;
 public class Address {
     @Id
     String id;
-    public String cityid;
+    public Object cityid;
     public String address;
     public Map location;
     public String name;
@@ -34,7 +34,7 @@ public class Address {
         return address;
     }
 
-    public String getCityid() {
+    public Object getCityid() {
         return cityid;
     }
 

@@ -11,17 +11,19 @@ import java.util.List;
 public class OrderListForm {
     String id;
     ArrayList<Service> services;
+    ArrayList<OwnService> ownServices;
     long time;
     String status;
     DoctorListForm doctor;
     ArrayList<EducationForm> educationForms;
-    public OrderListForm(Order order, Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services, ArrayList<EducationForm> educationForms){
+    public OrderListForm(Order order, Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services,ArrayList<OwnService> ownServices, ArrayList<EducationForm> educationForms){
             id=order.getId();
             time=order.getCreatedTime();
             status=order.getStatus();
             this.services=services;
             this.doctor=new DoctorListForm(doctor,client,serviceType,services);
             this.educationForms=educationForms;
+            this.ownServices=ownServices;
     }
 
     public ArrayList<EducationForm> getEducationForms() {
@@ -46,5 +48,13 @@ public class OrderListForm {
 
     public String getStatus() {
         return status;
+    }
+
+    public ArrayList<OwnService> getOwnServices() {
+        return ownServices;
+    }
+
+    public void setOwnServices(ArrayList<OwnService> ownServices) {
+        this.ownServices = ownServices;
     }
 }

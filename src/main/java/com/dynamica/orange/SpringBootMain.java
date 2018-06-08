@@ -25,7 +25,7 @@ public class SpringBootMain extends SpringBootServletInitializer {
     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
         return builder.sources(SpringBootMain.class);
     }*/
-
+/*
     @Bean
     Queue queue() {
         return new Queue(SFG_MESSAGE_QUEUE, false);
@@ -51,6 +51,6 @@ public class SpringBootMain extends SpringBootServletInitializer {
         container.setQueueNames(SFG_MESSAGE_QUEUE);
         container.setMessageListener(adapter);
         return container;
-    }
+    }*/
 
 }

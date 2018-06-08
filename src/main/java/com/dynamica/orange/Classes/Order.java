@@ -19,7 +19,9 @@ public class Order {
     private long createdTime;
     private long choseTime;
     private String periodTime;
-    List<String> services;
+    List<Object> services;
+
+    List<Object> ownServices;
     private boolean atwork;
     private double periodinhours;
     private String textMessage;
@@ -33,13 +35,14 @@ public class Order {
     private String photoAnswer;
     private String audioAnswer;
     public Order(){
-        createdTime=new Date().getTime();services=new ArrayList<>();
+        createdTime=new Date().getTime();services=new ArrayList<>();ownServices=new ArrayList<>();
     }
     public Order(String doctorid, String patientid){
         this.doctorid=doctorid;
         this.patientid=patientid;
         createdTime=new Date().getTime();
         services=new ArrayList<>();
+        ownServices=new ArrayList<>();
     }
 
 
@@ -75,7 +78,7 @@ public class Order {
         return periodinhours;
     }
 
-    public List<String> getServices() {
+    public List<Object> getServices() {
         return services;
     }
 
@@ -183,7 +186,7 @@ public class Order {
         this.photoMessage = photoMessage;
     }
 
-    public void setServices(List<String> services) {
+    public void setServices(List<Object> services) {
         this.services = services;
     }
     public void setServiceTypeId(String serviceTypeId) {
@@ -219,4 +222,21 @@ public class Order {
             this.services.add(alls[i]);
         }
     }
+    public void addOwnService(String service){
+        ownServices.add(service);
+    }
+    public void addOwnServices(String services){
+        String[] alls=services.split(" ");
+        for(int i=0;i<alls.length;i++){
+            this.ownServices.add(alls[i]);
+        }
+    }
+    public void setOwnServices(List<Object> ownServices) {
+        this.ownServices = ownServices;
+    }
+
+    public List<Object> getOwnServices() {
+        return ownServices;
+    }
+
 }

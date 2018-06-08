@@ -12,7 +12,15 @@ public class OwnService {
     private String own_time_type_id;
     private String info;
     private int price;
-    public OwnService(){}
+    private Boolean homeplace;
+    public OwnService(){
+        homeplace=false;
+    }
+    public OwnService(String name, int price){
+        homeplace=true;
+        this.name=name;
+        this.price=price;
+    }
     public OwnService(String name, String own_time_type_id, String info, int price){
         this.name=name;this.own_time_type_id=own_time_type_id;this.info=info;this.price=price;
     }
@@ -56,4 +64,11 @@ public class OwnService {
         this.price = price;
     }
 
+    public Boolean getHomeplace() {
+        return homeplace;
+    }
+
+    public void setHomeplace(Boolean homeplace) {
+        this.homeplace = homeplace;
+    }
 }
