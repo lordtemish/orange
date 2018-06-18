@@ -137,4 +137,8 @@ public class Client {
     public String getLang() {
         return lang;
     }
+
+    public void setPhotourl(ArrayList<String> photourl) {
+        this.photourl = photourl;
+    }
 }

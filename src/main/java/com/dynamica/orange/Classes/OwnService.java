@@ -9,7 +9,7 @@ public class OwnService {
     @Id
     private String id;
     private String name;
-    private String own_time_type_id;
+    private Object own_time_type_id;
     private String info;
     private int price;
     private Boolean homeplace;
@@ -44,7 +44,7 @@ public class OwnService {
         return name;
     }
 
-    public String getOwn_time_type_id() {
+    public Object getOwn_time_type_id() {
         return own_time_type_id;
     }
 
@@ -56,7 +56,7 @@ public class OwnService {
         this.name = name;
     }
 
-    public void setOwn_time_type_id(String own_time_type_id) {
+    public void setOwn_time_type_id(Object own_time_type_id) {
         this.own_time_type_id = own_time_type_id;
     }
 

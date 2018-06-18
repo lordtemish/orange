@@ -42,6 +42,8 @@ public class DoctorController {
     OrderRepo orderRepo;
     @Autowired
     EducationTypeRepo educationTypeRepo;
+    @Autowired
+    OwnTimeTypeRepo ownTimeTypeRepo;
     FileUploader fileUploader=new FileUploader();
 
     @RequestMapping(value = "/addDoctor",method = RequestMethod.POST)
@@ -198,6 +200,10 @@ public class DoctorController {
         Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                for(OwnService i:doctor.getOwns()){
+                    i.setOwn_time_type_id(ownTimeTypeRepo.findById(i.getOwn_time_type_id()+""));
+                    log.info(i.getId());
+                }
             return doctor.getOwns();
         }
         else return new StatusObject("noauth");
@@ -208,13 +214,18 @@ public class DoctorController {
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-                for (OwnService i : doctor.getOwns()) {
+                /*for (OwnService i : doctor.getOwns()) {
                     if (i.getId().equals(ownserviceid)) {
-                        doctor.getOwns().remove(i);
+                        doctor.deleteOwnService(i);
                         return new StatusObject("ok");
                     }
-                }
+                }*/
+                Boolean deleted=doctor.deleteOwnServiceById(ownserviceid);
                 doctorRepo.save(doctor);
+             //   log.info(deleted);
+                if(deleted){
+                    return new StatusObject("ok");
+                }
             }
             else
             return new StatusObject("noauth");
@@ -426,6 +437,38 @@ public class DoctorController {
         }
         else return new StatusObject("noauth");
     }
+
+    @RequestMapping(value = "/addEducationWithCertificate",method = RequestMethod.POST)
+    public @ResponseBody Object addEducationWithCertificate(@RequestHeader("token") String token, @RequestParam String ed_type_id, @RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop,@RequestParam MultipartFile file, HttpServletRequest request){
+        Token tok=tokenRepo.findById(token);
+        try {
+            if (tok != null) {
+                Education education = new Education(ed_type_id, name, speciality, start, stop);
+                Doctor doctor = doctorRepo.findByClientid(tok.getClientid());
+                doctor.addEducation(education);
+                String url = "educationphoto-" + education.getId();
+                int i = 0;
+                while (true) {
+                    String s = fileUploader.upload(file, url + i);
+                    if (s.equals("")) {
+                        i++;
+                        continue;
+                    } else {
+                        url = s;
+                        break;
+                    }
+                }
+                education.addUrl(url);
+                doctor.setEducationById(education.getId(),education);
+                doctorRepo.save(doctor);
+                return new StatusObject("ok");
+            }
+            return new StatusObject("noauth");
+        }
+        catch (Exception e){
+            return new StatusObject("exception");
+        }
+    }
     @RequestMapping(value = "/addEducation",method = RequestMethod.POST)
     public @ResponseBody Object addEducation(@RequestHeader("token") String token, @RequestParam String ed_type_id,@RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
@@ -436,7 +479,7 @@ public class DoctorController {
             doctorRepo.save(doctor);
             return new StatusObject("ok");
         }
-        return new StatusObject("ok");
+        return new StatusObject("noauth");
     }
     @RequestMapping(value="/deleteEducation",method =RequestMethod.POST)
     public @ResponseBody Object deleteEducation(@RequestHeader("token") String token, @RequestParam String edid, HttpServletRequest request){

@@ -17,6 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 public class SpringBootMain extends SpringBootServletInitializer {
     public final static String SFG_MESSAGE_QUEUE = "sfg-message-queue";
+
     public static void main(String[] args) throws Exception {
         SpringApplication.run(SpringBootMain.class, args);
     }

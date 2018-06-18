@@ -808,6 +808,16 @@ public class PatientController {
                 return new StatusObject("ok");
             }
         return new StatusObject("noauth");
+    }  @RequestMapping(value = {"/deletePhotos"}, method = RequestMethod.POST)
+    public @ResponseBody Object delPhotos(@RequestHeader("token") String token, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null) {
+            Client client = clientRepo.findById(tok.getClientid());
+            client.setPhotourl(new ArrayList<>());
+            clientRepo.save(client);
+            return new StatusObject("ok");
+        }
+        return new StatusObject("noauth");
     }
     @RequestMapping(value={"/addFavouriteDoctor"}, method = RequestMethod.POST)
     public @ResponseBody Object addFavDoc(@RequestHeader("token") String token, @RequestParam String doctorid, HttpServletRequest request){

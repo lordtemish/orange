@@ -4,11 +4,14 @@ import com.dynamica.orange.Classes.*;
 import com.dynamica.orange.Repo.*;
 import com.dynamica.orange.Service.OrangeService;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -33,6 +36,7 @@ import java.util.Random;
 @RequestMapping(value= {"/"})
 public class MainController {
     private Logger logger = LoggerFactory.getLogger(MainController.class);
+    FileUploader fileUploader=new FileUploader();
     private Mailing mailing=new Mailing();
     private OrangeService service;
     @Autowired
@@ -599,7 +603,18 @@ public class MainController {
             return null;
         }
     }
+    @RequestMapping(value = "/getFileasBase", method = RequestMethod.POST)
 
+    public   @ResponseBody Object getImage(@RequestParam String url,HttpServletResponse response, HttpServletRequest request) throws IOException{
+
+        return new TextObject(fileUploader.encodeFileToBase64Binary(url));
+        /*
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);
+        headers.setContentLength(image.length);
+        return new HttpEntity<byte[]>(image, headers);
+        */
+    }
     @RequestMapping(value="/getAllChats", method = RequestMethod.POST)
     public @ResponseBody Object getAllChat(@RequestHeader("token") String token,HttpServletRequest request){
         Token tok= tokenRepo.findById(token);

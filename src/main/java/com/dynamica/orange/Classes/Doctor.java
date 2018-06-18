@@ -265,7 +265,16 @@ public class Doctor {
         else
             return false;
     }
+    public boolean deleteOwnServiceById(String s){
+        for(OwnService i:owns){
+            if(i.getId().equals(s)){
+                owns.remove(i);
+                return true;
+            }
+        }
 
+            return false;
+    }
     public ArrayList<Rate> getRates() {
         return rates;
     }

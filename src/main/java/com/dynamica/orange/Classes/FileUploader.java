@@ -1,14 +1,12 @@
 package com.dynamica.orange.Classes;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,6 +37,7 @@ public class FileUploader {
              BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverf));
                              stream.write(bytes);
                              stream.close();
+                             
                             return serverf.getAbsolutePath();
 
            /* Path path= Paths.get(rootPath+"/photo");
@@ -169,7 +168,16 @@ public class FileUploader {
             return false;
         }
     }
-
+    public boolean deleteFile(String url){
+        try {
+            Files.delete(Paths.get(url));
+            return true;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
     public boolean deletePhoto(String url){
         try {
             Files.delete(Paths.get("photo/" + url));
@@ -179,5 +187,40 @@ public class FileUploader {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public String encodeFileToBase64Binary(String fileName)
+            throws IOException {
+
+        File file = new File(fileName);
+        byte[] bytes = loadFile(file);
+        byte[] encoded = Base64.encodeBase64(bytes);
+        String encodedString = new String(encoded);
+
+        return encodedString;
+    }
+
+    private static byte[] loadFile(File file) throws IOException {
+        InputStream is = new FileInputStream(file);
+
+        long length = file.length();
+        if (length > Integer.MAX_VALUE) {
+            // File is too large
+        }
+        byte[] bytes = new byte[(int)length];
+
+        int offset = 0;
+        int numRead = 0;
+        while (offset < bytes.length
+                && (numRead=is.read(bytes, offset, bytes.length-offset)) >= 0) {
+            offset += numRead;
+        }
+
+        if (offset < bytes.length) {
+            throw new IOException("Could not completely read file "+file.getName());
+        }
+
+        is.close();
+        return bytes;
     }
 }
