@@ -1,5 +1,6 @@
 package com.dynamica.orange.Classes;
 
+import com.dynamica.orange.Form.FileObjectForm;
 import org.apache.log4j.Logger;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.annotation.Id;
@@ -21,7 +22,7 @@ public class Doctor {
     private Object servicetypeid;
     private ArrayList<Education> educations;
     private String serv_type;
-    private ArrayList<String> certificates;
+    private ArrayList<Object> certificates;
     private ArrayList<String> services;
     private ArrayList<Rate> rates;
     private ArrayList<OwnService> owns;
@@ -113,22 +114,29 @@ public class Doctor {
             return false;
     }
 
-    public ArrayList<IDObject> getCertificates() {
-        ArrayList<IDObject> idObjects=new ArrayList<>();
-        for(String i:certificates){
-            idObjects.add(new IDObject(i));
-        }
-        return idObjects;
+    public ArrayList<Object> getCertificates() {
+        return certificates;
     }
-    public void addCertificate(String url){
-        certificates.add(url);
+    public void   addCertificate(Object id){
+        certificates.add(id);
     }
-    public boolean deleteCertificate(String url){
-        if(certificates.contains(url)){
-            certificates.remove(url);
-            return true;
+    public void deleteCertificates(){
+        certificates=new ArrayList<>();
+    }
+    public boolean deleteCertificate(String id){
+        for(Object i:certificates){
+            try {
+                FileObjectForm ii = (FileObjectForm) i;
+                if (ii.getId().equals(id)) {
+                    certificates.remove(i);
+                    return true;
+                }
+            }
+            catch (Exception e){
+                continue;
+            }
         }
-        else return false;
+        return false;
     }
     public ArrayList<Education> getEducations() {
         return educations;
@@ -339,9 +347,17 @@ public class Doctor {
         }
         return idObjects;
     }
-    public boolean deleteExtraInfo(String s){
-        if(extrainfo.contains(s)){
+    public boolean deleteExtraInfo(int s){
+        if(extrainfo.size()>s && s>=0){
             extrainfo.remove(s);
+            return true;
+        }
+        else
+            return false;
+    }
+    public boolean updateExtraInfo(int s, String b){
+        if(extrainfo.size()>s && s>=0){
+            extrainfo.set(s,b);
             return true;
         }
         else
@@ -361,9 +377,17 @@ public class Doctor {
     public void addProfAch(String s){
         profachievments.add(s);
     }
-    public boolean deleteProfAchs(String s){
-        if(profachievments.contains(s)){
+    public boolean deleteProfAchs(int s){
+        if(profachievments.size()>s && s>=0){
             profachievments.remove(s);
+            return true;
+        }
+        else
+            return false;
+    }
+    public boolean updateProfAch(int s, String b){
+        if(profachievments.size()>s && s>=0){
+            profachievments.set(s,b);
             return true;
         }
         else

@@ -10,9 +10,9 @@ import java.util.Date;
 public class Message {
     @Id
     private String id;
-    private String clientid;
+    private Object clientid;
     private String type;
-    private String info;
+    private Object info;
     private long time;
     private boolean read=false;
     public Message(){
@@ -23,7 +23,7 @@ public class Message {
     public Message(String clientid, String type, String info){this.clientid =clientid;this.type=type;this.info=info;time=new Date().getTime();}
     public Message(String clientid, String type, String info, long time){this.clientid =clientid;this.type=type;this.info=info;this.time=time;time=new Date().getTime();}
 
-    public void setClientid(String clientid) {
+    public void setClientid(Object clientid) {
         this.clientid = clientid;
     }
 
@@ -31,7 +31,7 @@ public class Message {
         this.id = id;
     }
 
-    public void setInfo(String info) {
+    public void setInfo(Object info) {
         this.info = info;
     }
 
@@ -55,11 +55,11 @@ public class Message {
         return time;
     }
 
-    public String getClientid() {
+    public Object getClientid() {
         return clientid;
     }
 
-    public String getInfo() {
+    public Object getInfo() {
         return info;
     }
 

@@ -1,5 +1,6 @@
 package com.dynamica.orange.Classes;
 
+import com.dynamica.orange.Form.FileObjectForm;
 import org.springframework.data.annotation.Id;
 
 import java.util.ArrayList;
@@ -10,12 +11,12 @@ import java.util.ArrayList;
 public class Education {
     @Id
     private String id;
-    private String ed_type_id;
+    private Object ed_type_id;
     private String name;
     private String speciality;
     private String start_year;
     private String stop_year;
-    private ArrayList<String> urls;
+    private ArrayList<Object> urls;
     public Education(){
         urls=new ArrayList<>();
     }
@@ -27,18 +28,24 @@ public class Education {
         this.stop_year=stop_year;
         urls=new ArrayList<>();
     }
-    public void addUrl(String url){urls.add(url);}
-    public ArrayList<String> getUrls() {
+    public void addUrl(Object url){urls.add(url);}
+    public ArrayList<Object> getUrls() {
         return urls;
     }
-    public boolean deleteUrl(String url){
-        if(urls.contains(url)){
-            urls.remove(url);
-            return true;
+    public boolean deleteUrl(String id){
+        for(Object i:urls){
+            try {
+                FileObjectForm ii = (FileObjectForm) i;
+                if (ii.getId().equals(id)) {
+                    urls.remove(i);
+                    return true;
+                }
+            }
+            catch (Exception e){
+                continue;
+            }
         }
-        else{
-            return false;
-        }
+        return false;
     }
 
     public String getId() {
@@ -49,7 +56,7 @@ public class Education {
         this.id = id;
     }
 
-    public String getEd_type_id() {
+    public Object getEd_type_id() {
         return ed_type_id;
     }
 
@@ -69,7 +76,7 @@ public class Education {
         return stop_year;
     }
 
-    public void setEd_type_id(String ed_type_id) {
+    public void setEd_type_id(Object ed_type_id) {
         this.ed_type_id = ed_type_id;
     }
 

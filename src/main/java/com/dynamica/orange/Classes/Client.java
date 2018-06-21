@@ -1,5 +1,6 @@
 package com.dynamica.orange.Classes;
 
+import com.dynamica.orange.Form.FileObjectForm;
 import org.springframework.data.annotation.Id;
 
 import java.security.MessageDigest;
@@ -25,7 +26,7 @@ public class Client {
     private boolean push, publ;
     ArrayList<String> phones;
     ArrayList<String> mails;
-    ArrayList<String> photourl;
+    ArrayList<Object> photourl;
     public Client(){
         phones=new ArrayList<>();mails=new ArrayList<>();
         photourl=new ArrayList<>();
@@ -83,17 +84,24 @@ public class Client {
     public void setPubl(boolean b){
         publ=b;
     }
-    public void addPhoto(String url){
+    public void addPhoto(Object url){
         photourl.add(url);
     }
-    public boolean deletePhoto(String url){
-        if(photourl.contains(url)){
-            photourl.remove(url);
-            return true;
+    public boolean deletePhoto(String id){
+
+        for(Object i:photourl){
+            try {
+                FileObjectForm ii = (FileObjectForm) i;
+                if (ii.getId().equals(id)) {
+                    photourl.remove(i);
+                    return true;
+                }
+            }
+            catch (Exception e){
+                continue;
+            }
         }
-        else{
-            return false;
-        }
+        return false;
     }
     public boolean deleteMail(String mail){
         if(mails.contains(mail)){
@@ -130,7 +138,7 @@ public class Client {
     public ArrayList<String> getPhones(){return phones;}
     public ArrayList<String> getMails(){return mails;}
 
-    public ArrayList<String> getPhotourl() {
+    public ArrayList<Object> getPhotourl() {
         return photourl;
     }
 
@@ -138,7 +146,7 @@ public class Client {
         return lang;
     }
 
-    public void setPhotourl(ArrayList<String> photourl) {
+    public void setPhotourl(ArrayList<Object> photourl) {
         this.photourl = photourl;
     }
 }

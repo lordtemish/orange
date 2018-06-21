@@ -391,12 +391,12 @@ public class DoctorController {
         }
     }
     @RequestMapping(value="/addCertificate",method = RequestMethod.POST)
-    public @ResponseBody Object addCertificate(@RequestHeader("token") String token, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
+    public @ResponseBody Object addCertificate(@RequestHeader("token") String token, @RequestParam List<String> files, RedirectAttributes redirectAttributes, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             try {
-                String url = "doctorcertificate-" + doctor.getId();
+               /* String url = "doctorcertificate-" + doctor.getId();
                 int i = 0;
                 while (true) {
                     String s = fileUploader.upload(file, url + i);
@@ -407,8 +407,11 @@ public class DoctorController {
                         url = s;
                         break;
                     }
+                }*/
+                for(String i:files) {
+                    FileObjectForm fileObjectForm = new FileObjectForm(i);
+                    doctor.addCertificate(fileObjectForm);
                 }
-                doctor.addCertificate(url);
                 doctorRepo.save(doctor);
                 return new StatusObject("ok");
             } catch (NullPointerException e) {
@@ -419,15 +422,12 @@ public class DoctorController {
         else return new StatusObject("noauth");
     }
     @RequestMapping(value="/deleteCertificate/",method = RequestMethod.POST)
-    public @ResponseBody Object deleteCertificate(@RequestHeader("token") String token, @RequestParam String url, HttpServletRequest request){
+    public @ResponseBody Object deleteCertificate(@RequestHeader("token") String token, @RequestParam String id, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             boolean a = false;
-            a = doctor.deleteCertificate(url);
-            try {
-                fileUploader.deletePhoto(url);
-            }catch (Exception e){}
+            a = doctor.deleteCertificate(id);
             doctorRepo.save(doctor);
             if (a) {
                 return new StatusObject("ok");
@@ -439,14 +439,14 @@ public class DoctorController {
     }
 
     @RequestMapping(value = "/addEducationWithCertificate",method = RequestMethod.POST)
-    public @ResponseBody Object addEducationWithCertificate(@RequestHeader("token") String token, @RequestParam String ed_type_id, @RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop,@RequestParam MultipartFile file, HttpServletRequest request){
+    public @ResponseBody Object addEducationWithCertificate(@RequestHeader("token") String token, @RequestParam String ed_type_id, @RequestParam String name, @RequestParam String speciality, @RequestParam String start, @RequestParam String stop,@RequestParam List<String> files, HttpServletRequest request){
         Token tok=tokenRepo.findById(token);
         try {
             if (tok != null) {
                 Education education = new Education(ed_type_id, name, speciality, start, stop);
                 Doctor doctor = doctorRepo.findByClientid(tok.getClientid());
                 doctor.addEducation(education);
-                String url = "educationphoto-" + education.getId();
+              /*  String url = "educationphoto-" + education.getId();
                 int i = 0;
                 while (true) {
                     String s = fileUploader.upload(file, url + i);
@@ -457,8 +457,12 @@ public class DoctorController {
                         url = s;
                         break;
                     }
+                }*/
+
+                for(String i:files) {
+                    FileObjectForm fileObjectForm = new FileObjectForm(i);
+                    education.addUrl(fileObjectForm);
                 }
-                education.addUrl(url);
                 doctor.setEducationById(education.getId(),education);
                 doctorRepo.save(doctor);
                 return new StatusObject("ok");
@@ -488,9 +492,6 @@ public class DoctorController {
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 Education education = doctor.getEducationById(edid);
-                for (String i : education.getUrls()) {
-                    fileUploader.deletePhoto(i);
-                }
                 doctor.deleteEducation(education);
                 doctorRepo.save(doctor);
                 return new StatusObject("ok");
@@ -503,13 +504,13 @@ public class DoctorController {
         }
     }
     @RequestMapping(value="/addEducationCertificate", method = RequestMethod.POST)
-    public @ResponseBody Object addEdCert(@RequestHeader("token") String token, @RequestParam String certid, @RequestParam MultipartFile file,  RedirectAttributes redirectAttributes, HttpServletRequest request){
+    public @ResponseBody Object addEdCert(@RequestHeader("token") String token, @RequestParam String certid, @RequestParam List<String> files,  RedirectAttributes redirectAttributes, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             try {
                 Education ed = doctor.getEducationById(certid);
-                String url = "educationphoto-" + ed.getId();
+            /*    String url = "educationphoto-" + ed.getId();
                 int i = 0;
                 while (true) {
                     String s = fileUploader.upload(file, url + i);
@@ -520,8 +521,11 @@ public class DoctorController {
                         url = s;
                         break;
                     }
+                }*/
+                for(String i:files) {
+                    FileObjectForm fileObjectForm = new FileObjectForm(i);
+                    ed.addUrl(fileObjectForm);
                 }
-                ed.addUrl(url);
                 doctor.setEducationById(certid, ed);
                 doctorRepo.save(doctor);
                 return new StatusObject("ok");
@@ -533,20 +537,17 @@ public class DoctorController {
         else return new StatusObject("noauth");
     }
     @RequestMapping(value="/deleteEducationCertificate", method = RequestMethod.POST)
-    public @ResponseBody Object deleteEdCert(@RequestHeader("token") String token, @RequestParam String certid, @RequestParam String url, HttpServletRequest request){
+    public @ResponseBody Object deleteEdCert(@RequestHeader("token") String token, @RequestParam String certid, @RequestParam String id, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             try {
                 Education ed = doctor.getEducationById(certid);
-                if (ed.getUrls().contains(url)) {
-                    ed.getUrls().remove(url);
-                } else {
-                    return new StatusObject("noauth");
-                }
+                boolean deleted=ed.deleteUrl(id);
                 doctorRepo.save(doctor);
-                fileUploader.deletePhoto(url);
+                if(deleted)
                 return new StatusObject("ok");
+                else return new StatusObject("notdeleted");
             } catch (NullPointerException e) {
                 e.printStackTrace();
                 return new StatusObject("nullpointerexception");
@@ -562,7 +563,7 @@ public class DoctorController {
                 List<EducationForm> educationForms=new ArrayList<>();
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 for(Education i:doctor.getEducations()){
-                    educationForms.add(new EducationForm(i,educationTypeRepo.findById(i.getEd_type_id())));
+                    educationForms.add(new EducationForm(i,educationTypeRepo.findById(i.getEd_type_id()+"")));
                 }
                 return educationForms;
             }
@@ -611,9 +612,11 @@ public class DoctorController {
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-                doctor.getProfachievments().remove(index);
+                boolean a=doctor.deleteProfAchs(index);
                 doctorRepo.save(doctor);
+                if(a)
                 return new StatusObject("ok");
+                else return new StatusObject("notdeleted");
             }
             else return new StatusObject("noauth");
         }
@@ -631,9 +634,11 @@ public class DoctorController {
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-                doctor.getProfachievments().set(index, new TextObject(info));
+                boolean a = doctor.updateProfAch(index, info);
                 doctorRepo.save(doctor);
+                if(a)
                 return new StatusObject("ok");
+                else return new StatusObject("notdeleted");
             }
             else return new StatusObject("noauth");
         }
@@ -681,9 +686,11 @@ public class DoctorController {
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-                doctor.getExtrainfo().remove(index);
+                boolean a=doctor.deleteExtraInfo(index);
                 doctorRepo.save(doctor);
+                if(a)
                 return new StatusObject("ok");
+                else return new StatusObject("notdeleted");
             }
             else return new StatusObject("noauth");
         }
@@ -701,9 +708,11 @@ public class DoctorController {
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-                doctor.getExtrainfo().set(index, new TextObject(info));
+                boolean a = doctor.updateExtraInfo(index,info);
                 doctorRepo.save(doctor);
+                if(a)
                 return new StatusObject("ok");
+                else return new StatusObject("notdeleted");
             }
             else return new StatusObject("noauth");
         }
@@ -716,7 +725,7 @@ public class DoctorController {
 
 
     @RequestMapping(value = {"/addPhoto"}, method = RequestMethod.POST)
-    public @ResponseBody  Object addPhoto(@RequestHeader("token") String token, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
+    public @ResponseBody  Object addPhoto(@RequestHeader("token") String token, @RequestParam String file, RedirectAttributes redirectAttributes, HttpServletRequest request){
         try {
             Token tok = tokenRepo.findById(token);
             if (tok != null) {
@@ -724,10 +733,10 @@ public class DoctorController {
                     redirectAttributes.addFlashAttribute("message", "file is empty");
                     return new StatusObject("emptyfile");
                 } else {
-                    log.info(file.getSize());
+                    //log.info(file.getSize());
                     Doctor patient = doctorRepo.findByClientid(tok.getClientid());
                     Client client = clientRepo.findById(patient.getClientid());
-                    int i = 0;
+                 /*   int i = 0;
                     String url = "mainphoto-" + patient.getId();
                     while (true) {
                         String s = fileUploader.upload(file, url + i);
@@ -738,9 +747,9 @@ public class DoctorController {
                             url = s;
                             break;
                         }
-                    }
-                    client.addPhoto(url);
-                    log.info(url);
+                    }*/
+                 FileObjectForm fileObjectForm=new FileObjectForm(file);
+                    client.addPhoto(fileObjectForm);
                     clientRepo.save(client);
                     return new StatusObject("ok");
                 }
@@ -753,13 +762,16 @@ public class DoctorController {
         }
     }
     @RequestMapping(value = {"/deletePhoto"}, method = RequestMethod.POST)
-    public @ResponseBody Object delPhoto(@RequestHeader("token") String token, @RequestParam String url, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    public @ResponseBody Object delPhoto(@RequestHeader("token") String token, @RequestParam String id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         Token tok= tokenRepo.findById(token);
             if(tok!=null){
             Client client = clientRepo.findById(tok.getClientid());
-            client.deletePhoto(url);
+            boolean deleted=client.deletePhoto(id);
             clientRepo.save(client);
-            fileUploader.deletePhoto(url);return new StatusObject("ok");
+            if(deleted)
+            return new StatusObject("ok");
+            else
+                return new StatusObject("notdeleted");
         }
         return new StatusObject("noauth");
     }
@@ -904,7 +916,7 @@ public class DoctorController {
                     chatRepo.save(chat1);
                     chat = chatRepo.findOneByDoctoridAndPatientid(id, patientid);
                 }
-                return chat.getId();
+                return new IDObject(chat.getId());
             }
             else return new StatusObject("noauth");
         }
@@ -937,7 +949,16 @@ public class DoctorController {
                 List<Chat> chats = chatRepo.findByDoctorid(id);
                 List<ChatListForm> forms = new ArrayList<>();
                 for (Chat i : chats) {
-                    forms.add(new ChatListForm(i, i.getLastMessage(), clientRepo.findById(i.getLastMessage().getClientid())));
+                    Client client=clientRepo.findById(i.getLastMessage().getClientid()+"");
+                    Patient patient=patientRepo.findByClientid(client.getId());
+                    MessageForm form;
+                    if(patient!=null){
+                        form=new MessageForm(i.getLastMessage(),client,patient);
+                    }
+                    else{
+                        form=new MessageForm(i.getLastMessage(),client,doctor);
+                    }
+                    forms.add(new ChatListForm(i,form,client));
                 }
                 return forms;
             }
@@ -969,7 +990,7 @@ public class DoctorController {
         }
     }
     @RequestMapping(value="/sendFileMessage",method = RequestMethod.POST)
-    public @ResponseBody Object sendFileMes(@RequestHeader("token") String token,@RequestParam String chatid, @RequestParam String type, @RequestParam MultipartFile file, HttpServletRequest request){
+    public @ResponseBody Object sendFileMes(@RequestHeader("token") String token,@RequestParam String chatid, @RequestParam String type, @RequestParam String file, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -980,7 +1001,7 @@ public class DoctorController {
                 chat.addMessage(message);
                 message = chat.getMessages().get(chat.getMessages().size() - 1);
                 chat.getMessages().remove(message);
-                String url = "message-" + message.getId();
+               /* String url = "message-" + message.getId();
                 int i = 0;
                 while (true) {
                     String s = fileUploader.uploadMessageFile(file, url + i);
@@ -991,8 +1012,9 @@ public class DoctorController {
                         url = s;
                         break;
                     }
-                }
-                message.setInfo(url);
+                }*/
+               FileObjectForm fileObjectForm=new FileObjectForm(file);
+                message.setInfo(fileObjectForm);
                 chat.getMessages().add(message);
                 chatRepo.save(chat);
                 return new StatusObject("ok");
@@ -1015,7 +1037,19 @@ public class DoctorController {
                     chat.setUnread(0);
                 }
                 chatRepo.save(chat);
-                return chat.getMessages();
+                List<Message> list=chat.getMessages();
+                List<MessageForm> formList=new ArrayList<>();
+                for(Message i:list){
+                    Patient patient=patientRepo.findByClientid(i.getClientid()+"");
+                    Client client=clientRepo.findById(i.getClientid()+"");
+                    if(patient!=null){
+                        formList.add(new MessageForm(i,client,patient));
+                    }
+                    else{
+                        formList.add(new MessageForm(i,client,doctor));
+                    }
+                }
+                return formList;
             }
             else return new StatusObject("noauth");
         }
@@ -1034,30 +1068,9 @@ public class DoctorController {
                 ArrayList<Order> orders=orderRepo.findByDoctorid(id);
                 ArrayList<OrderListForm> orderListForms=new ArrayList<>();
                 for(Order i:orders){
-                    Doctor doctor=doctorRepo.findById(i.getDoctorid());
-                    Client client=clientRepo.findById(doctor.getClientid());
-
-                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
-                    ArrayList<Service> services=new ArrayList<>();
-                    for(IDObject j:doctor.getServices()){
-                        services.add(serviceRepo.findById(j.getId()));
-                    }
-                    ArrayList<EducationForm> educationForms=new ArrayList<>();
-                    for(Education j:doctor.getEducations()){
-                        educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id())));
-                    }
-
-                    ArrayList<OwnService> ownServices=new ArrayList<>();
-                    for(Object j:i.getOwnServices()){
-                        for(OwnService jj:doctor1.getOwns()){
-                            if((j+"").equals(jj.getId())){
-                                ownServices.add(jj);
-                                break;
-                            }
-
-                        }
-                    }
-                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,ownServices,educationForms));
+                    Patient patient=patientRepo.findById(i.getPatientid());
+                    Client client=clientRepo.findById(patient.getClientid());
+                    orderListForms.add(new OrderListForm(i,patient,client));
                 }
                 return orderListForms;
             }
@@ -1142,12 +1155,12 @@ public class DoctorController {
         }
     }
     @RequestMapping(value="/setAudioHealingAnswer", method = RequestMethod.POST)
-    public @ResponseBody Object setAudioHealingAnswer(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam MultipartFile file, HttpServletRequest request){
+    public @ResponseBody Object setAudioHealingAnswer(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam String file, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Order order = orderRepo.findById(orderid);
-                String url = "ordermessage-" + order.getId();
+              /*  String url = "ordermessage-" + order.getId();
                 int i = 0;
                 while (true) {
                     String s = fileUploader.uploadOrderFile(file, url + i);
@@ -1158,8 +1171,9 @@ public class DoctorController {
                         url = s;
                         break;
                     }
-                }
-                order.setAudiohealing(url);
+                }*/
+              FileObjectForm fileObjectForm=new FileObjectForm(file);
+                order.setAudiohealing(fileObjectForm);
                 orderRepo.save(order);
                 return new StatusObject("ok");
             }
@@ -1171,12 +1185,12 @@ public class DoctorController {
         }
     }
     @RequestMapping(value="/addOrderFileComment",method=RequestMethod.POST)
-    public @ResponseBody Object addOrderFileComment(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam String type,@RequestParam MultipartFile file, HttpServletRequest request){
+    public @ResponseBody Object addOrderFileComment(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam String type,@RequestParam String file, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Order order = orderRepo.findById(orderid);
-                String url = "ordermessage-" + order.getId();
+              /*  String url = "ordermessage-" + order.getId();
                 int i = 0;
                 while (true) {
                     String s = fileUploader.uploadOrderFile(file, url + i);
@@ -1187,13 +1201,14 @@ public class DoctorController {
                         url = s;
                         break;
                     }
-                }
+                }*/
+                FileObjectForm fileObjectForm=new FileObjectForm(file);
                 switch (type) {
                     case "photo":
-                        order.setPhotoAnswer(url);
+                        order.setPhotoAnswer(fileObjectForm);
                         break;
                     case "audio":
-                        order.setAudioAnswer(url);
+                        order.setAudioAnswer(fileObjectForm);
                         break;
                 }
                 orderRepo.save(order);

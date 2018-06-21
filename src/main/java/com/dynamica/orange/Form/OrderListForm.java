@@ -15,6 +15,7 @@ public class OrderListForm {
     long time;
     String status;
     DoctorListForm doctor;
+    PatientListForm patient;
     ArrayList<EducationForm> educationForms;
     public OrderListForm(Order order, Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services,ArrayList<OwnService> ownServices, ArrayList<EducationForm> educationForms){
             id=order.getId();
@@ -24,6 +25,28 @@ public class OrderListForm {
             this.doctor=new DoctorListForm(doctor,client,serviceType,services);
             this.educationForms=educationForms;
             this.ownServices=ownServices;
+    }
+    public OrderListForm(Order order, Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services,ArrayList<OwnService> ownServices){
+        id=order.getId();
+        time=order.getCreatedTime();
+        status=order.getStatus();
+        this.services=services;
+        this.doctor=new DoctorListForm(doctor,client,serviceType,services);
+        this.ownServices=ownServices;
+    }
+    public OrderListForm(Order order, Patient patient, Client client){
+        id=order.getId();
+        time=order.getCreatedTime();
+        status=order.getStatus();
+        this.patient=new PatientListForm(patient,client);
+    }
+
+    public PatientListForm getPatient() {
+        return patient;
+    }
+
+    public void setPatient(PatientListForm patient) {
+        this.patient = patient;
     }
 
     public ArrayList<EducationForm> getEducationForms() {

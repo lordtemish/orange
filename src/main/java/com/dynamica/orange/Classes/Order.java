@@ -25,15 +25,15 @@ public class Order {
     private boolean atwork;
     private double periodinhours;
     private String textMessage;
-    private String photoMessage;
-    private String audioMessage;
+    private Object photoMessage;
+    private Object audioMessage;
     private Address address;
     private String diagnosAnswer;
     private String healingAnswer;
-    private String audiohealing;
+    private Object audiohealing;
     private String textAnswer;
-    private String photoAnswer;
-    private String audioAnswer;
+    private Object photoAnswer;
+    private Object audioAnswer;
     public Order(){
         createdTime=new Date().getTime();services=new ArrayList<>();ownServices=new ArrayList<>();
     }
@@ -54,11 +54,11 @@ public class Order {
         this.id = id;
     }
 
-    public String getAudiohealing() {
+    public Object getAudiohealing() {
         return audiohealing;
     }
 
-    public void setAudiohealing(String audiohealing) {
+    public void setAudiohealing(Object audiohealing) {
         this.audiohealing = audiohealing;
     }
 
@@ -98,10 +98,10 @@ public class Order {
         return periodTime;
     }
 
-    public String getAudioAnswer() {
+    public Object getAudioAnswer() {
         return audioAnswer;
     }
-    public String getAudioMessage() {
+    public Object getAudioMessage() {
         return audioMessage;
     }
 
@@ -113,11 +113,11 @@ public class Order {
         return patientid;
     }
 
-    public String getPhotoAnswer() {
+    public Object getPhotoAnswer() {
         return photoAnswer;
     }
 
-    public String getPhotoMessage() {
+    public Object getPhotoMessage() {
         return photoMessage;
     }
 
@@ -150,11 +150,11 @@ public class Order {
     public void setAddress(Address address) {
         this.address = address;
     }
-    public void setAudioAnswer(String audioAnswer) {
+    public void setAudioAnswer(Object audioAnswer) {
         this.audioAnswer = audioAnswer;
     }
 
-    public void setAudioMessage(String audioMessage) {
+    public void setAudioMessage(Object audioMessage) {
         this.audioMessage = audioMessage;
     }
 
@@ -178,11 +178,11 @@ public class Order {
         this.periodinhours = periodinhours;
     }
 
-    public void setPhotoAnswer(String photoAnswer) {
+    public void setPhotoAnswer(Object photoAnswer) {
         this.photoAnswer = photoAnswer;
     }
 
-    public void setPhotoMessage(String photoMessage) {
+    public void setPhotoMessage(Object photoMessage) {
         this.photoMessage = photoMessage;
     }
 

@@ -11,9 +11,10 @@ public class ChatListForm {
     String chatid;
     String status;
     int unread;
-    Message message;
+    MessageForm message;
     String namesurname;
-    public ChatListForm(Chat chat, Message message, Client client){
+    Object photo;
+    public ChatListForm(Chat chat, MessageForm message, Client client){
         this.chatid=chat.getId();
         this.status=chat.getStatus();
         this.unread=chat.getUnread();
@@ -22,6 +23,8 @@ public class ChatListForm {
             client.setDadname("");
         }
         namesurname=client.getSurname()+" "+client.getName()+" "+client.getDadname();
+        if(client.getPhotourl().size()>0)
+        photo=client.getPhotourl().get(client.getPhotourl().size()-1);
     }
 
     public int getUnread() {
@@ -36,7 +39,7 @@ public class ChatListForm {
         return status;
     }
 
-    public Message getMessage() {
+    public MessageForm getMessage() {
         return message;
     }
 

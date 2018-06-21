@@ -767,7 +767,7 @@ public class PatientController {
         return new StatusObject("noauth");
     }
     @RequestMapping(value = {"/addPhoto"}, method = RequestMethod.POST)
-    public @ResponseBody Object addPhoto(@RequestHeader("token") String token, @RequestParam MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request){
+    public @ResponseBody Object addPhoto(@RequestHeader("token") String token, @RequestParam String file, RedirectAttributes redirectAttributes, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
             if (file.isEmpty()) {
@@ -777,7 +777,7 @@ public class PatientController {
                 Client client = clientRepo.findById(tok.getClientid());
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 int i = 0;
-                String url = "mainphoto-" + patient.getId();
+               /* String url = "mainphoto-" + patient.getId();
                 while (true) {
                     String s = fileUploader.upload(file, url + i);
                     logger.info("FILE: "+s);
@@ -789,8 +789,9 @@ public class PatientController {
                         break;
                     }
 
-                }
-                client.addPhoto(url);
+                }*/
+                FileObjectForm fileObjectForm=new FileObjectForm(file);
+                client.addPhoto(fileObjectForm);
                 clientRepo.save(client);
             }
             return new StatusObject("ok");
@@ -798,14 +799,15 @@ public class PatientController {
         return new StatusObject("noauth");
     }
     @RequestMapping(value = {"/deletePhoto"}, method = RequestMethod.POST)
-    public @ResponseBody Object delPhoto(@RequestHeader("token") String token, @RequestParam String url, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    public @ResponseBody Object delPhoto(@RequestHeader("token") String token, @RequestParam String id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
        Token tok= tokenRepo.findById(token);
             if(tok!=null) {
                 Client client = clientRepo.findById(tok.getClientid());
-                client.deletePhoto(url);
+                boolean deleted=client.deletePhoto(id);
                 clientRepo.save(client);
-                fileUploader.deletePhoto(url);
+                if(deleted)
                 return new StatusObject("ok");
+                else return new StatusObject("notdeleted");
             }
         return new StatusObject("noauth");
     }  @RequestMapping(value = {"/deletePhotos"}, method = RequestMethod.POST)
@@ -964,7 +966,16 @@ public class PatientController {
                 List<Chat> chats = chatRepo.findByPatientid(patient.getId());
                 List<ChatListForm> forms = new ArrayList<>();
                 for (Chat i : chats) {
-                    forms.add(new ChatListForm(i, i.getLastMessage(), clientRepo.findById(i.getLastMessage().getClientid())));
+                    Client client=clientRepo.findById(i.getLastMessage().getClientid()+"");
+                    Doctor doctor=doctorRepo.findByClientid(client.getId());
+                    MessageForm form;
+                    if(doctor!=null){
+                        form=new MessageForm(i.getLastMessage(),client,doctor);
+                    }
+                    else{
+                        form=new MessageForm(i.getLastMessage(),client,patient);
+                    }
+                    forms.add(new ChatListForm(i,form,client));
                 }
                 return forms;
             }
@@ -995,18 +1006,30 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/getMessages/}/{chatid}", method = RequestMethod.POST)
-    public @ResponseBody Object getMessages(@RequestHeader("token") String token, @PathVariable("chatid") String chatid, HttpServletRequest request){
+    @RequestMapping(value="/getMessages", method = RequestMethod.POST)
+    public @ResponseBody Object getMessages(@RequestHeader("token") String token, @RequestParam String chatid, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
-                Patient doctor = patientRepo.findByClientid(tok.getClientid());
+                Patient patient = patientRepo.findByClientid(tok.getClientid());
                 Chat chat = chatRepo.findById(chatid);
                 if (!chat.getStatus().equals("patient")) {
                     chat.setUnread(0);
                 }
                 chatRepo.save(chat);
-                return chat.getMessages();
+                List<Message> list=chat.getMessages();
+                List<MessageForm> formList=new ArrayList<>();
+                for(Message i:list){
+                    Doctor doctor=doctorRepo.findByClientid(i.getClientid()+"");
+                    Client client=clientRepo.findById(i.getClientid()+"");
+                    if(doctor!=null){
+                        formList.add(new MessageForm(i,client,doctor));
+                    }
+                    else{
+                        formList.add(new MessageForm(i,client,patient));
+                    }
+                }
+                return formList;
             }
             else return new StatusObject("noauth");
         }
@@ -1016,7 +1039,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/sendFileMessage/{chatid}",method = RequestMethod.POST)
-    public @ResponseBody Object sendFileMes(@RequestHeader("token") String token,@PathVariable("chatid") String chatid, @RequestParam String type, @RequestParam MultipartFile file, HttpServletRequest request){
+    public @ResponseBody Object sendFileMes(@RequestHeader("token") String token,@PathVariable("chatid") String chatid, @RequestParam String type, @RequestParam String file, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1026,8 +1049,8 @@ public class PatientController {
                 chat.addMessage(message);
                 message = chat.getMessages().get(chat.getMessages().size() - 1);
                 chat.getMessages().remove(message);
-                String url = "message-" + message.getId();
-                int i = 0;
+               /*   String url = "message-" + message.getId();
+              int i = 0;
                 while (true) {
                     String s = fileUploader.uploadMessageFile(file, url + i);
                     if (s.equals("")) {
@@ -1037,8 +1060,9 @@ public class PatientController {
                         url = s;
                         break;
                     }
-                }
-                message.setInfo(url);
+                }*/
+               FileObjectForm fileObjectForm=new FileObjectForm(file);
+                message.setInfo(fileObjectForm);
                 chat.getMessages().add(message);
                 chatRepo.save(chat);
                 return new StatusObject("ok");
@@ -1179,14 +1203,14 @@ public class PatientController {
     }
     //order atHome
     @RequestMapping(value="/addOrderFile/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody Object addOrderFile(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String type, @RequestParam MultipartFile file, HttpServletRequest request){
+    public @ResponseBody Object addOrderFile(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String type, @RequestParam String file, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
-                String url = "ordermessage-" + order.getId();
+               /* String url = "ordermessage-" + order.getId();
                 int i = 0;
                 while (true) {
                     String s = fileUploader.uploadOrderFile(file, url + i);
@@ -1197,13 +1221,14 @@ public class PatientController {
                         url = s;
                         break;
                     }
-                }
+                }*/
+               FileObjectForm fileObjectForm=new FileObjectForm(file);
                 switch (type) {
                     case "audio":
-                        order.setAudioMessage(url);
+                        order.setAudioMessage(fileObjectForm);
                         break;
                     case "photo":
-                        order.setPhotoMessage(url);
+                        order.setPhotoMessage(fileObjectForm);
                         break;
                 }
                 orderRepo.save(order);
@@ -1337,7 +1362,7 @@ public class PatientController {
                     }
                     ArrayList<EducationForm> educationForms=new ArrayList<>();
                     for(Education j:doctor.getEducations()){
-                        educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id())));
+                        educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id()+"")));
                     }
                     ArrayList<OwnService> ownServices=new ArrayList<>();
                     for(Object j:i.getOwnServices()){
@@ -1350,7 +1375,7 @@ public class PatientController {
 
                         }
                     }
-                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,ownServices,educationForms));
+                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,ownServices));
                 }
                 return orderListForms;
             }

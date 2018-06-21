@@ -13,6 +13,7 @@ public class DoctorListForm {
     public String surname;
     public String serviceInfo="";
     public double rate;
+    public Object photo;
     public DoctorListForm(Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services){
         if(doctor!=null) {
             doctorid = doctor.getId();
@@ -26,6 +27,9 @@ public class DoctorListForm {
             surname = client.getSurname();
             if(client.getLang()==null){
                 client.setLang("R");
+            }
+            if(client.getPhotourl().size()>0){
+                photo=client.getPhotourl().get(client.getPhotourl().size()-1);
             }
         }
         else{
@@ -90,5 +94,13 @@ public class DoctorListForm {
 
     public String getDoctorid() {
         return doctorid;
+    }
+
+    public void setPhoto(Object photo) {
+        this.photo = photo;
+    }
+
+    public Object getPhoto() {
+        return photo;
     }
 }

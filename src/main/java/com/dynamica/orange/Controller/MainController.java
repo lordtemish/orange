@@ -75,8 +75,7 @@ public class MainController {
         return "index";
     }
     @RequestMapping(value = "/testOrangeQueues",method = RequestMethod.POST)
-    public @ResponseBody String def(@RequestParam String mes){
-        service.sendOrangeMessage(mes);
+    public @ResponseBody String def(/*@RequestParam String mes*/ @RequestParam List<String> files){
         return "";
     }
 
@@ -677,13 +676,15 @@ public class MainController {
                     else return  new TokenStatus("patient",token.getId());
                 } catch (NullPointerException e) {
                     Patient patient = patientRepo.findByClientid(client.getId());
-                    return new TokenStatus("patient",token.getId());
+                    if(patient!=null) {
+                        return new TokenStatus("patient", token.getId());
+                    }
                 }
             }
             else {
                 return new StatusObject("noclient");
             }
-
+            return new StatusObject("noclient");
     }
     @RequestMapping(value="/isAuth",method = RequestMethod.POST)
     public @ResponseBody Object isAuth(@RequestHeader("token") String token,HttpServletRequest request){
