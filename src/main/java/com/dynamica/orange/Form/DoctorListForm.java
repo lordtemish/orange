@@ -3,17 +3,19 @@ package com.dynamica.orange.Form;
 import com.dynamica.orange.Classes.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by lordtemich on 1/16/18.
  */
-public class DoctorListForm {
+public class    DoctorListForm {
     public String doctorid;
     public String name;
     public String surname;
     public String serviceInfo="";
     public double rate;
     public Object photo;
+    boolean online;
     public DoctorListForm(Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services){
         if(doctor!=null) {
             doctorid = doctor.getId();
@@ -23,6 +25,10 @@ public class DoctorListForm {
             doctor=new Doctor(null,null,null);
         }
         if(client!=null) {
+            if(client.getLastOnline()-(new Date().getTime())<=600000){
+                online=true;
+            }
+            else online=false;
             name = client.getName();
             surname = client.getSurname();
             if(client.getLang()==null){
@@ -74,6 +80,14 @@ public class DoctorListForm {
                     }
                 }
         }
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
     }
 
     public double getRate() {

@@ -15,6 +15,7 @@ public class Message {
     private Object info;
     private long time;
     private boolean read=false;
+    private Object clientinfo;
     public Message(){
         time=new Date().getTime();
     }
@@ -22,6 +23,14 @@ public class Message {
     public Message(String clientid, String type){this.clientid =clientid;this.type=type;time=new Date().getTime();}
     public Message(String clientid, String type, String info){this.clientid =clientid;this.type=type;this.info=info;time=new Date().getTime();}
     public Message(String clientid, String type, String info, long time){this.clientid =clientid;this.type=type;this.info=info;this.time=time;time=new Date().getTime();}
+
+    public void setClientinfo(Object clientinfo) {
+        this.clientinfo = clientinfo;
+    }
+
+    public Object getClientinfo() {
+        return clientinfo;
+    }
 
     public void setClientid(Object clientid) {
         this.clientid = clientid;

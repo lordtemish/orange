@@ -34,6 +34,7 @@ public class Order {
     private String textAnswer;
     private Object photoAnswer;
     private Object audioAnswer;
+    private Object doctorComment;
     public Order(){
         createdTime=new Date().getTime();services=new ArrayList<>();ownServices=new ArrayList<>();
     }
@@ -45,6 +46,13 @@ public class Order {
         ownServices=new ArrayList<>();
     }
 
+    public Object getDoctorComment() {
+        return doctorComment;
+    }
+
+    public void setDoctorComment(Object doctorComment) {
+        this.doctorComment = doctorComment;
+    }
 
     public String getId() {
         return id;

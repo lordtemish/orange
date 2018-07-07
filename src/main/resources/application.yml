@@ -10,5 +10,5 @@ tutorial:
   client:
     duration: 10000
 server:
-  port: 8040
+  port: 8050
   contextPath: /

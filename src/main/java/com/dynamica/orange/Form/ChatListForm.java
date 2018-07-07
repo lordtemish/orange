@@ -1,8 +1,8 @@
 package com.dynamica.orange.Form;
 
-import com.dynamica.orange.Classes.Chat;
-import com.dynamica.orange.Classes.Client;
-import com.dynamica.orange.Classes.Message;
+import com.dynamica.orange.Classes.*;
+
+import java.util.Date;
 
 /**
  * Created by lordtemich on 1/21/18.
@@ -12,19 +12,68 @@ public class ChatListForm {
     String status;
     int unread;
     MessageForm message;
-    String namesurname;
+    public String serviceInfo="";
+    String name;
+    String surname;
+    String dadname;
     Object photo;
-    public ChatListForm(Chat chat, MessageForm message, Client client){
+    boolean online;
+    public ChatListForm(Chat chat, MessageForm message, Patient patient, Client client){
         this.chatid=chat.getId();
         this.status=chat.getStatus();
         this.unread=chat.getUnread();
         this.message=message;
-        if(client.getDadname().equals(null)){
+        if(client.getDadname()==null){
             client.setDadname("");
         }
-        namesurname=client.getSurname()+" "+client.getName()+" "+client.getDadname();
+        if((new Date().getTime())-client.getLastOnline()<=600000) {
+            online=true;
+        }
+        else{
+            online=false;
+        }
+        name=client.getName();
+        surname=client.getSurname();
+        dadname=client.getDadname();
         if(client.getPhotourl().size()>0)
         photo=client.getPhotourl().get(client.getPhotourl().size()-1);
+    }
+    public ChatListForm(Chat chat, MessageForm message, Doctor doctor, Client client,String serviceInfo){
+        this.chatid=chat.getId();
+        this.status=chat.getStatus();
+        this.unread=chat.getUnread();
+        this.message=message;
+        this.serviceInfo=serviceInfo;
+        if((new Date().getTime())-client.getLastOnline()<=600000) {
+            online=true;
+        }
+        else{
+            online=false;
+        }
+        if(client.getDadname()==null){
+            client.setDadname("");
+        }
+        name=client.getName();
+        surname=client.getSurname();
+        dadname=client.getDadname();
+        if(client.getPhotourl().size()>0)
+            photo=client.getPhotourl().get(client.getPhotourl().size()-1);
+    }
+
+    public String getServiceInfo() {
+        return serviceInfo;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
+    public Object getPhoto() {
+        return photo;
     }
 
     public int getUnread() {
@@ -43,7 +92,27 @@ public class ChatListForm {
         return message;
     }
 
-    public String getNamesurname() {
-        return namesurname;
+    public String getSurname() {
+        return surname;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDadname() {
+        return dadname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public void setPhoto(Object photo) {
+        this.photo = photo;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

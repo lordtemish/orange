@@ -1,6 +1,7 @@
 package com.dynamica.orange.Classes;
 
 import com.dynamica.orange.Form.FileObjectForm;
+import com.dynamica.orange.Form.myPatientForm;
 import org.apache.log4j.Logger;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.annotation.Id;
@@ -30,6 +31,7 @@ public class Doctor {
     private ArrayList<String> profachievments;
     private ArrayList<String> extrainfo;
     private ArrayList<Comment> comments;
+    private ArrayList<Object> myPatients;
     private Schedule workSchedule;
     private Schedule homeSchedule;
     public Doctor(){
@@ -42,6 +44,7 @@ public class Doctor {
         extrainfo=new ArrayList<>();
         comments=new ArrayList<>();
         certificates=new ArrayList<>();
+        myPatients=new ArrayList<>();
     }
     public Doctor(String client_id, String position, String info){
         this.clientid=client_id;
@@ -56,7 +59,50 @@ public class Doctor {
         extrainfo=new ArrayList<>();
         comments=new ArrayList<>();
         certificates=new ArrayList<>();
+        myPatients=new ArrayList<>();
     }
+
+    public ArrayList<Object> getMyPatients() {
+        return myPatients;
+    }
+    public myPatientForm getPatientbyId(String id){
+        for(Object i:myPatients){
+            myPatientForm form=(myPatientForm) i;
+            if(form.getId().equals(id)){
+                return form;
+            }
+        }
+        return null;
+    }
+    public void deleteMyPatients(){
+        myPatients=new ArrayList<>();
+    }
+    public boolean deleteMyPatient(String id){
+        for(Object i:myPatients){
+            myPatientForm form=(myPatientForm) i;
+            if(form.getId().equals(id)){
+                myPatients.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+    public void addMyPatient(Object o){
+        myPatients.add(o);
+    }
+    public boolean setPatientById(String id, Object o){
+        int l=0;
+        for(Object i:myPatients){
+            myPatientForm form=(myPatientForm) i;
+            if(form.getId().equals(id)){
+                myPatients.set(l,o);
+                return true;
+            }
+            l++;
+        }
+        return false;
+    }
+
 
     public String getId() {
         return id;
@@ -120,6 +166,11 @@ public class Doctor {
     public void   addCertificate(Object id){
         certificates.add(id);
     }
+
+    public void setCertificates(ArrayList<Object> certificates) {
+        this.certificates = certificates;
+    }
+
     public void deleteCertificates(){
         certificates=new ArrayList<>();
     }

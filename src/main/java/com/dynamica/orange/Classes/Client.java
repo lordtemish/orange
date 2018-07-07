@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by lordtemich on 10/27/17.
@@ -27,6 +28,17 @@ public class Client {
     ArrayList<String> phones;
     ArrayList<String> mails;
     ArrayList<Object> photourl;
+    private long lastOnline;
+
+    public long getLastOnline() {
+        return lastOnline;
+    }
+    public void setLastOnline(long lastOnline) {
+        this.lastOnline = lastOnline;
+    }
+    public void onReqested(){
+        this.lastOnline=new Date().getTime();
+    }
     public Client(){
         phones=new ArrayList<>();mails=new ArrayList<>();
         photourl=new ArrayList<>();
@@ -85,7 +97,11 @@ public class Client {
         publ=b;
     }
     public void addPhoto(Object url){
+        photourl.clear();
         photourl.add(url);
+    }
+    public void deletePhoto(){
+        photourl.clear();
     }
     public boolean deletePhoto(String id){
 

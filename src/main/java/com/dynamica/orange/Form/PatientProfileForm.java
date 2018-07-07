@@ -3,6 +3,8 @@ package com.dynamica.orange.Form;
 import com.dynamica.orange.Classes.Client;
 import com.dynamica.orange.Classes.Patient;
 
+import java.util.Date;
+
 /**
  * Created by lordtemich on 1/15/18.
  */
@@ -10,6 +12,7 @@ public class PatientProfileForm {
         Patient patient;
         Client client;
         info info;
+        boolean online;
         class info{
             String workC;
             String homeC;
@@ -49,7 +52,17 @@ public class PatientProfileForm {
                 this.patient=patient;
                 this.client=client;
                 info=new info(workCity,homeCity,blood);
+            if((new Date().getTime())-client.getLastOnline()<=600000) {
+                online=true;
+            }
+            else{
+                online=false;
+            }
         }
+
+    public boolean isOnline() {
+        return online;
+    }
 
     public Client getClient() {
         return client;

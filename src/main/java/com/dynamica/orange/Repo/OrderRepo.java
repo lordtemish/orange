@@ -13,6 +13,7 @@ public interface OrderRepo extends MongoRepository<Order, String>{
     public ArrayList<Order> findAll();
     public ArrayList<Order> findByStatusAndPatientid(String status, String patientid);
     public ArrayList<Order> findByStatusAndDoctorid(String status, String doctorid);
+    public ArrayList<Order> findByPatientidAndDoctorid(String patientid, String doctorid);
     public ArrayList<Order> findByPatientid(String patientid);
     public ArrayList<Order> findByDoctorid(String doctorid);
 

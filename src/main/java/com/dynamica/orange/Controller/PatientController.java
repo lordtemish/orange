@@ -58,6 +58,7 @@ public class PatientController {
                Token tok= tokenRepo.findById(token);
                if(tok!=null) {
                    Client client = clientRepo.findById(tok.getClientid());
+                   client.onReqested();
                    Patient patient = new Patient(tok.getClientid());
 
                    client.setName(name);
@@ -78,6 +79,7 @@ public class PatientController {
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
             Client client = clientRepo.findById(tok.getClientid());
+                client.onReqested();
             client.setLang(lang.toUpperCase());
             clientRepo.save(client);
             return new StatusObject("ok");
@@ -110,6 +112,7 @@ public class PatientController {
             Token tok = tokenRepo.findById(token);
             if (tok != null) {
                 Client client = clientRepo.findById(tok.getClientid());
+                client.onReqested();
                 client.setName(name);
                 client.setSurname(surname);
                 client.setDadname(dad);
@@ -129,6 +132,9 @@ public class PatientController {
         public @ResponseBody Object addInfo(@RequestHeader("token") String token, @RequestParam String gender, @RequestParam String dateofbirth, @RequestParam int weight, @RequestParam int height, @RequestParam String bloodid, @RequestParam String chronic, @RequestParam String alergic, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
         Patient patient=patientRepo.findByClientid(tok.getClientid());
         patient.setGender(gender.toUpperCase());
         patient.setDate(dateofbirth);
@@ -149,6 +155,7 @@ public class PatientController {
            if(tok!=null) {
                Patient patient = new Patient(tok.getClientid());
                Client client = clientRepo.findById(tok.getClientid());
+               client.onReqested();
                patient.setGender(gender.toUpperCase());
                patient.setDate(dateofbirth);
                patient.setWeight(weight);
@@ -177,7 +184,9 @@ public class PatientController {
             if(tok!=null){
             Patient patient = patientRepo.findById(id);
             Client client = clientRepo.findById(patient.getClientid());
+                client.onReqested();
             ClientWithPatientForm clientWithPatientForm = new ClientWithPatientForm(client, patient);
+                clientRepo.save(client);
             return clientWithPatientForm;
         }
         else{
@@ -192,6 +201,8 @@ public class PatientController {
             if(tok!=null){
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 City simple=new City("","");
                 City workCity=simple; City homeCity=simple;
 
@@ -256,8 +267,11 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Patient patient=patientRepo.findByClientid(tok.getClientid());
                 Doctor doctor=doctorRepo.findById(doctorid);
                 Client client=clientRepo.findById(doctor.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                 List<Service> services=new ArrayList<>();
                 for(IDObject i:doctor.getServices()){
@@ -284,7 +298,20 @@ public class PatientController {
                     cityW=new City("","");
                 }
                 doctor.setServicetypeid(serviceType);
-                return new DoctorProfileForm(doctor,client,serviceType,services, cityH,cityW);
+                DoctorProfileForm form=new DoctorProfileForm(doctor,client,serviceType,services, cityH,cityW);
+                List<Order> orders=orderRepo.findByPatientidAndDoctorid(patient.getId(),doctor.getId());
+                int home=0, work=0;
+                for(Order ii:orders){
+                    if(ii.isAtwork()){
+                        work++;
+                    }
+                    else{
+                        home++;
+                    }
+                }
+                form.setCalls(home);
+                form.setCommings(work);
+                return form;
             }
             return new StatusObject("noauth");
         }
@@ -297,7 +324,11 @@ public class PatientController {
     public @ResponseBody Object getProfAch(@RequestHeader("token") String token, @RequestParam String doctorid){
         try {
             Token tok= tokenRepo.findById(token);
-            if(tok!=null){Doctor doctor=doctorRepo.findById(doctorid);
+            if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
+                Doctor doctor=doctorRepo.findById(doctorid);
                 List<Object> aa=new ArrayList<>();
                 for(TextObject i:doctor.getProfachievments()){
                     aa.add(i);
@@ -314,7 +345,11 @@ public class PatientController {
     public @ResponseBody Object getExtraInfo(@RequestHeader("token") String token, @RequestParam String doctorid){
         try {
             Token tok= tokenRepo.findById(token);
-            if(tok!=null){Doctor doctor=doctorRepo.findById(doctorid);
+            if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
+                Doctor doctor=doctorRepo.findById(doctorid);
                 List<Object> aa=new ArrayList<>();
                 for(TextObject i:doctor.getExtrainfo()){
                     aa.add(i);
@@ -332,6 +367,9 @@ public class PatientController {
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
                 return doctor.getExperiences();
             }
@@ -347,6 +385,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 List<CommentForm> forms=new ArrayList<>();
                 Doctor doctor=doctorRepo.findById(doctorid);
                 for(Comment i:doctor.getComments()){
@@ -369,6 +410,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Service service=serviceRepo.findById(serviceid);
                 ArrayList<Doctor> doctors=doctorRepo.findByServicetypeid(service.getServtypeid());
                 logger.info(doctors.size()+" "+service.getServtypeid());
@@ -418,6 +462,9 @@ public class PatientController {
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 ArrayList<Doctor> doctors=doctorRepo.findByServicetypeid(servicetypeid);
                 logger.info(doctors.size()+" "+servicetypeid);
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
@@ -464,6 +511,9 @@ public class PatientController {
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client11=clientRepo.findById(tok.getClientid());
+                client11.onReqested();
+                clientRepo.save(client11);
                 ArrayList<Doctor> doctors=doctorRepo.findByServicetypeid(servicetypeid);
                 logger.info(doctors.size()+" "+servicetypeid);
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
@@ -511,6 +561,9 @@ public class PatientController {
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client11=clientRepo.findById(tok.getClientid());
+                client11.onReqested();
+                clientRepo.save(client11);
                 Service service=serviceRepo.findById(serviceid);
                 ArrayList<Doctor> doctors=doctorRepo.findByServicetypeid(service.getServtypeid());
                 logger.info(doctors.size()+" "+service.getServtypeid());
@@ -561,6 +614,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 Doctor doctor=doctorRepo.findById(doctorid);
                 Comment comment=new Comment(patient.getId(),message);
@@ -581,6 +637,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client clien11t=clientRepo.findById(tok.getClientid());
+                clien11t.onReqested();
+                clientRepo.save(clien11t);
                 List<DoctorListForm> doctorListForms=new ArrayList<>();
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 for(IDObject i:patient.getFavs()){
@@ -603,15 +662,74 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value = {"/getMyDoctorsList/"}, method = RequestMethod.POST) //need to make new Form
+    @RequestMapping(value = {"/getMyRequestsList"}, method = RequestMethod.POST) //need to make new Form
+    public @ResponseBody Object getMyReqsList(@RequestHeader("token") String token, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null){
+            Patient patient=patientRepo.findByClientid(tok.getClientid());
+            List<PatientRequestForm> requestForms=new ArrayList<>();
+            for(IDObject i:patient.getMydocs()){
+                Doctor doctor=doctorRepo.findById(i.getId());
+                Client client=clientRepo.findById(doctor.getClientid());
+                ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
+                ArrayList<Service> services=new ArrayList<>();
+                for(String ii:doctor.getServicesList()){
+                    Service service=new Service();
+                }
+                myPatientForm form=doctor.getPatientbyId(patient.getId());
+                DoctorListForm doctorProfileForm=new DoctorListForm(doctor,client,serviceType,services);
+
+                PatientRequestForm requestForm=new PatientRequestForm(doctorProfileForm,"","");
+                if(form==null){
+                    requestForm=new PatientRequestForm(doctorProfileForm,"accept","cancelled");
+                }
+                else{
+                    if(form.isPhonedoctor()){
+                        requestForm=new PatientRequestForm(doctorProfileForm,"phone","accepted");
+                        requestForms.add(requestForm);
+                    }
+                    else if(form.isPhone() && !form.isPhonedoctor()){
+                        requestForm=new PatientRequestForm(doctorProfileForm,"phone","inprocess");
+                        requestForms.add(requestForm);
+                    }
+
+                    else if(!form.isAccepted()){
+                        requestForm=new PatientRequestForm(doctorProfileForm,"accept","inprocess");
+                        requestForms.add(requestForm);
+                    }
+                    else if(form.isAccepted()){
+                        requestForm=new PatientRequestForm(doctorProfileForm,"accept","accepted");
+                        requestForms.add(requestForm);
+                    }
+                }
+            }
+            return requestForms;
+        }
+        else return new StatusObject("noauth");
+    }
+    @RequestMapping(value = {"/getMyDoctorsList"}, method = RequestMethod.POST) //need to make new Form
     public @ResponseBody Object getMyDocsList(@RequestHeader("token") String token, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client cl11ient=clientRepo.findById(tok.getClientid());
+                cl11ient.onReqested();
+                clientRepo.save(cl11ient);
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             List<DoctorListForm> list = new ArrayList<>();
             for (IDObject i : patient.getMydocs()) {
                 Doctor doctor=doctorRepo.findById(i.getId());
                 Client client=clientRepo.findById(doctor.getClientid());
+                boolean a=false;
+                myPatientForm form=doctor.getPatientbyId(patient.getId());
+                if(form==null){
+                    a=true;
+                }
+                else{
+                    if(!form.isAccepted()){
+                        a=true;
+                    }
+                }
+                if(a) continue;
                 ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                 ArrayList<Service> services=new ArrayList<>();
                 for(IDObject jj:doctor.getServices()){
@@ -623,12 +741,14 @@ public class PatientController {
         }
         else return new StatusObject("noauth");
     }
-
     @RequestMapping(value="/addRate/{doctorid}", method = RequestMethod.POST)
     public @ResponseBody Object addRate(@RequestHeader("token") String token,@PathVariable("doctorid") String doctorid, @RequestParam int num, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 Rate rate=new Rate(patient.getId(), num);
                 Doctor doctor=doctorRepo.findById(doctorid);
@@ -650,6 +770,7 @@ public class PatientController {
             if(tok!=null){
                 Client client = clientRepo.findById(tok.getClientid());
             client.addEmail(mail);
+            client.onReqested();
             clientRepo.save(client);
             return new StatusObject("ok");
         }
@@ -662,6 +783,7 @@ public class PatientController {
                 Client client = clientRepo.findById(tok.getClientid());
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             client.deleteMail(mail);
+            client.onReqested();
             clientRepo.save(client);
             return new StatusObject("ok");
         }
@@ -674,6 +796,7 @@ public class PatientController {
                 Client client = clientRepo.findById(tok.getClientid());
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             client.addPhone(phone);
+            client.onReqested();
             clientRepo.save(client);return new StatusObject("ok");
         }
         return new StatusObject("noauth");
@@ -685,6 +808,7 @@ public class PatientController {
                 Client client = clientRepo.findById(tok.getClientid());
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             client.deletePhone(phone);
+            client.onReqested();
             clientRepo.save(client);return new StatusObject("ok");
         }
         return new StatusObject("noauth");
@@ -695,6 +819,7 @@ public class PatientController {
             if(tok!=null){
                 Client client = clientRepo.findById(tok.getClientid());
             client.setPush(push);
+            client.onReqested();
             clientRepo.save(client);return new StatusObject("ok");
         }
         return new StatusObject("noauth");
@@ -705,6 +830,7 @@ public class PatientController {
             if(tok!=null){
                 Client client = clientRepo.findById(tok.getClientid());
             client.setPubl(publ);
+            client.onReqested();
             clientRepo.save(client);
             return new StatusObject("ok");
         }
@@ -714,6 +840,9 @@ public class PatientController {
     public @ResponseBody Object addAddress(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             switch (name) {
                 case "work":
@@ -732,6 +861,9 @@ public class PatientController {
     public @ResponseBody Object addAddressWC(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address,@RequestParam String company, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
         if(tok!=null){
+            Client client=clientRepo.findById(tok.getClientid());
+            client.onReqested();
+            clientRepo.save(client);
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             Address ad=new Address(cityId,address);
             ad.setName(company);
@@ -752,6 +884,9 @@ public class PatientController {
     public @ResponseBody Object deleteAdress(@RequestHeader("token") String token, @RequestParam String name, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             switch (name) {
                 case "work":
@@ -799,28 +934,31 @@ public class PatientController {
         return new StatusObject("noauth");
     }
     @RequestMapping(value = {"/deletePhoto"}, method = RequestMethod.POST)
-    public @ResponseBody Object delPhoto(@RequestHeader("token") String token, @RequestParam String id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    public @ResponseBody Object delPhoto(@RequestHeader("token") String token, RedirectAttributes redirectAttributes, HttpServletRequest request) {
        Token tok= tokenRepo.findById(token);
             if(tok!=null) {
+
                 Client client = clientRepo.findById(tok.getClientid());
-                boolean deleted=client.deletePhoto(id);
+                boolean deleted=true;client.deletePhoto();
+                client.onReqested();
                 clientRepo.save(client);
                 if(deleted)
                 return new StatusObject("ok");
                 else return new StatusObject("notdeleted");
             }
         return new StatusObject("noauth");
-    }  @RequestMapping(value = {"/deletePhotos"}, method = RequestMethod.POST)
+    }  /*@RequestMapping(value = {"/deletePhotos"}, method = RequestMethod.POST)
     public @ResponseBody Object delPhotos(@RequestHeader("token") String token, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         Token tok= tokenRepo.findById(token);
         if(tok!=null) {
             Client client = clientRepo.findById(tok.getClientid());
             client.setPhotourl(new ArrayList<>());
+            client.onReqested();
             clientRepo.save(client);
             return new StatusObject("ok");
         }
         return new StatusObject("noauth");
-    }
+    }*/
     @RequestMapping(value={"/addFavouriteDoctor"}, method = RequestMethod.POST)
     public @ResponseBody Object addFavDoc(@RequestHeader("token") String token, @RequestParam String doctorid, HttpServletRequest request){
         try{
@@ -828,6 +966,9 @@ public class PatientController {
             if(tok!=null){
                 Patient patient = patientRepo.findByClientid(tok.getClientid());
                 patient.addFav(doctorid);
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 patientRepo.save(patient);
                 return new StatusObject("ok");
             }
@@ -843,6 +984,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient = patientRepo.findByClientid(tok.getClientid());
                 boolean a = patient.deleteFav(doctorid);
                 patientRepo.save(patient);
@@ -859,6 +1003,9 @@ public class PatientController {
     public @ResponseBody Object getFavDocs(@RequestHeader("token") String token,HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
             Patient patient = patientRepo.findById(tok.getClientid());
             List<Doctor> list = new ArrayList<>();
             for (IDObject i : patient.getFavs()) {
@@ -873,10 +1020,66 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient = patientRepo.findByClientid(tok.getClientid());
-                patient.addDoc(doctorid);
-                patientRepo.save(patient);
-                return new StatusObject("ok");
+                Doctor doctor=doctorRepo.findById(doctorid);
+                doctor.getId();
+                boolean a=patient.addDoc(doctorid);
+                if(a) {
+                    patientRepo.save(patient);
+                    myPatientForm patientForm=new myPatientForm(false, false, patient.getId());
+                    doctor.addMyPatient(patientForm);
+                    doctorRepo.save(doctor);
+                    return new StatusObject("ok");
+                }
+                else{
+                    myPatientForm form=doctor.getPatientbyId(patient.getId());
+                    if(form==null){
+                        myPatientForm patientForm=new myPatientForm(false, false, patient.getId());
+                        doctor.addMyPatient(patientForm);
+                        doctorRepo.save(doctor);
+                        return new StatusObject("ok request resent");
+                    }
+                    else {
+                        return new StatusObject("doctorwasinside");
+                    }
+                }
+            }
+            else return new StatusObject("noauth");
+        }
+        catch (NullPointerException e){
+            e.printStackTrace();
+            return new StatusObject("nullpointer");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+    @RequestMapping(value={"/sendPhoneRequest"}, method = RequestMethod.POST)
+    public @ResponseBody Object sendPhone(@RequestHeader("token") String token, @RequestParam String doctorid,HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
+                Patient patient = patientRepo.findByClientid(tok.getClientid());
+                boolean bb=patient.getMyDocs().contains(doctorid);
+                if(bb) {
+                    Doctor doctor = doctorRepo.findById(doctorid);
+                    myPatientForm patientForm = doctor.getPatientbyId(patient.getId());
+                    patientForm.setPhone(true);
+                    doctor.setPatientById(patient.getId(),patientForm);
+                    doctorRepo.save(doctor);
+                    return new StatusObject("ok");
+
+                }
+                else{
+                    return new StatusObject("nodoctorinside");
+                }
             }
             else return new StatusObject("noauth");
         }
@@ -890,10 +1093,23 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient = patientRepo.findByClientid(tok.getClientid());
                 boolean a = patient.deleteMyDoc(doctorid);
                 patientRepo.save(patient);
-                return a;
+                Doctor doctor=doctorRepo.findById(doctorid);
+                if(doctor!=null){
+                    doctor.deleteMyPatient(patient.getId());
+                    doctorRepo.save(doctor);
+                }
+                if(a){
+                    return new StatusObject("ok");
+                }
+                else{
+                    return new StatusObject("notdeleted");
+                }
             }
             else return new StatusObject("noauth");
         }
@@ -906,6 +1122,9 @@ public class PatientController {
     public @ResponseBody Object getMyDocs(@RequestHeader("token") String token, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             List<Doctor> list = new ArrayList<>();
             for (IDObject i : patient.getMydocs()) {
@@ -921,6 +1140,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient doctor = patientRepo.findByClientid(tok.getClientid());
                 String id=doctor.getId();
                 Chat chat = chatRepo.findOneByDoctoridAndPatientid(doctorid, id);
@@ -933,6 +1155,7 @@ public class PatientController {
                 }
                 if (chat == null) {
                     Chat chat1 = new Chat(doctorid, id);
+                    chat1.setStatus("patient");
                     chatRepo.save(chat1);
                     chat = chatRepo.findOneByDoctoridAndPatientid(doctorid, id);
                 }
@@ -952,6 +1175,9 @@ public class PatientController {
     public @ResponseBody Object getAllChats(@RequestHeader("token") String token, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 return chatRepo.findByPatientid(patient.getId());
             }
@@ -962,27 +1188,85 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
-                Patient patient=patientRepo.findByClientid(tok.getClientid());
+                Client client11=clientRepo.findById(tok.getClientid());
+                client11.onReqested();
+                clientRepo.save(client11);
+                Patient patient;
+                try {
+                    patient = patientRepo.findByClientid(tok.getClientid());
+                }
+                catch (NullPointerException e){
+                    patient=new Patient();
+                }
                 List<Chat> chats = chatRepo.findByPatientid(patient.getId());
                 List<ChatListForm> forms = new ArrayList<>();
                 for (Chat i : chats) {
+                    Client oppClient;
+                    try {
+                        oppClient = clientRepo.findById(doctorRepo.findById(i.getDoctorid()).getClientid());
+                    }
+                    catch (NullPointerException e){
+                        continue;
+                    }
                     Client client=clientRepo.findById(i.getLastMessage().getClientid()+"");
-                    Doctor doctor=doctorRepo.findByClientid(client.getId());
-                    MessageForm form;
-                    if(doctor!=null){
-                        form=new MessageForm(i.getLastMessage(),client,doctor);
+                    MessageForm form=null;
+                    Doctor doctor=doctorRepo.findById(i.getDoctorid());
+                    String serviceInfo="";
+                    if(client!=null) {
+                        Doctor doctor1 = doctorRepo.findByClientid(client.getId());
+
+                        if (doctor1 != null) {
+                            form = new MessageForm(i.getLastMessage(), client, doctor);
+                            form.setMymessage(false);
+                        } else {
+                            form = new MessageForm(i.getLastMessage(), client, patient);
+                            form.setMymessage(true);
+                        }
+
                     }
-                    else{
-                        form=new MessageForm(i.getLastMessage(),client,patient);
+                    client=clientRepo.findById(patient.getClientid());
+                    if(doctor.getServicetypeid()!=null){
+                        ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
+                        try {
+                            client.getLang() ;
+
+                        }
+                        catch (NullPointerException e){
+                            client.setLang("R");
+                        }
+                        switch (client.getLang()) {
+                            case "K":
+                                serviceInfo += serviceType.getNameKaz();
+                                for(IDObject ii:doctor.getServices()){
+                                    Service i3=serviceRepo.findById(ii.getId());
+                                    if(i3!=null && i3.getInfoKaz()!=null)
+                                        serviceInfo+=", "+i3.getInfoKaz();
+                                    else{
+                                        serviceInfo+=", "+null;
+                                    }
+                                }
+                                break;
+                            default:
+                                serviceInfo += serviceType.getNameRus();
+                                for(IDObject ii:doctor.getServices()){
+                                    Service i3=serviceRepo.findById(ii.getId());
+                                    if(i3!=null && i3.getInfoRus()!=null)
+                                        serviceInfo+=", "+i3.getInfoRus();
+                                    else{
+                                        serviceInfo+=", "+null;
+                                    }
+                                }
+                        }
                     }
-                    forms.add(new ChatListForm(i,form,client));
+                    forms.add(new ChatListForm(i, form, doctor, oppClient,serviceInfo));
                 }
                 return forms;
             }
             else return new StatusObject("noauth");
         }
         catch(Exception e){
-            return new StatusObject("exception");
+            e.printStackTrace();
+            return new StatusObject("exception"+" "+e.getMessage());
         }
     }
     @RequestMapping(value="/sendTextMessage/{chatid}",method = RequestMethod.POST)
@@ -990,6 +1274,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient doctor = patientRepo.findByClientid(tok.getClientid());
                 Chat chat = chatRepo.findById(chatid);
                 Message message = new Message(doctor.getClientid(), "text", text);
@@ -1010,7 +1297,9 @@ public class PatientController {
     public @ResponseBody Object getMessages(@RequestHeader("token") String token, @RequestParam String chatid, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
-            if(tok!=null){
+            if(tok!=null){    Client cliqqent=clientRepo.findById(tok.getClientid());
+                cliqqent.onReqested();
+                clientRepo.save(cliqqent);
                 Patient patient = patientRepo.findByClientid(tok.getClientid());
                 Chat chat = chatRepo.findById(chatid);
                 if (!chat.getStatus().equals("patient")) {
@@ -1023,10 +1312,14 @@ public class PatientController {
                     Doctor doctor=doctorRepo.findByClientid(i.getClientid()+"");
                     Client client=clientRepo.findById(i.getClientid()+"");
                     if(doctor!=null){
-                        formList.add(new MessageForm(i,client,doctor));
+                        MessageForm form= new MessageForm(i,client,doctor);
+                        form.setMymessage(false);
+                        formList.add(form);
                     }
                     else{
-                        formList.add(new MessageForm(i,client,patient));
+                        MessageForm form=new MessageForm(i,client,patient);
+                        form.setMymessage(true);
+                        formList.add(form);
                     }
                 }
                 return formList;
@@ -1043,12 +1336,17 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient doctor = patientRepo.findByClientid(tok.getClientid());
                 Chat chat = chatRepo.findById(chatid);
                 Message message = new Message(doctor.getClientid(), type);
                 chat.addMessage(message);
                 message = chat.getMessages().get(chat.getMessages().size() - 1);
                 chat.getMessages().remove(message);
+                chat.setStatus("patient");
+                chat.unreadPlus();
                /*   String url = "message-" + message.getId();
               int i = 0;
                 while (true) {
@@ -1080,13 +1378,16 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = new Order(doctorid, id);
                 order.setAtwork(atwork);
                 order.setStatus("patientstarted");
                 orderRepo.save(order);
-                return order.getId();//FORM need
+                return new IDObject(order.getId());//FORM need
             }
             else return new StatusObject("noauth");
         }
@@ -1099,6 +1400,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
@@ -1124,6 +1428,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
@@ -1154,6 +1461,10 @@ public class PatientController {
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
+
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
@@ -1180,6 +1491,9 @@ public class PatientController {
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
@@ -1207,6 +1521,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
@@ -1250,6 +1567,9 @@ public class PatientController {
         try{ // Set Normal cities and addresses
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
@@ -1269,6 +1589,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
@@ -1288,6 +1611,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Order order=orderRepo.findById(orderid);
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setStatus("patientfinished");
@@ -1313,6 +1639,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 return orderRepo.findByPatientid(id);
@@ -1329,6 +1658,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
                 Order order=orderRepo.findById(orderid);
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 Client clientd=clientRepo.findById(doctor.getClientid());
@@ -1348,6 +1680,9 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+                Client clientqq=clientRepo.findById(tok.getClientid());
+                clientqq.onReqested();
+                clientRepo.save(clientqq);
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 ArrayList<Order> orders=orderRepo.findByPatientid(id);

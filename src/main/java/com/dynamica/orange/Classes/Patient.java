@@ -116,7 +116,15 @@ public class Patient {
         }
 
         public void addFav(String id){favs.add(id);}
-    public void addDoc(String id){mydocs.add(id);}
+    public boolean addDoc(String id){
+        if(mydocs.contains(id)){
+            return false;
+        }
+        else {
+            mydocs.add(id);
+            return true;
+        }
+    }
         public void setDate(String date) {
             this.date = date;
         }
@@ -148,7 +156,9 @@ public class Patient {
             }
             return idObjects;
         }
-
+        public ArrayList<String> getMyDocs(){
+            return mydocs;
+        }
         public boolean deleteFav(String id){
             if(favs.contains(id)){
                 favs.remove(id);

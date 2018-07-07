@@ -7,13 +7,22 @@ import com.dynamica.orange.Classes.Patient;
 
 public class MessageForm {
     Message message;
+    boolean mymessage;
     public MessageForm(Message message, Client client, Patient patient){
-        message.setClientid(new PatientClientForm(client,patient));
+        message.setClientinfo(new PatientClientForm(patient));
         this.message=message;
     }
     public MessageForm(Message message, Client client, Doctor doctor){
-        message.setClientid(new DoctorClientForm(client,doctor));
+        message.setClientinfo(new DoctorClientForm(doctor));
         this.message=message;
+    }
+
+    public boolean isMymessage() {
+        return mymessage;
+    }
+
+    public void setMymessage(boolean mymessage) {
+        this.mymessage = mymessage;
     }
 
     public Message getMessage() {

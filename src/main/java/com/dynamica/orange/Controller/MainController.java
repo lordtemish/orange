@@ -1,6 +1,7 @@
 package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.*;
+import com.dynamica.orange.Form.FileObjectForm;
 import com.dynamica.orange.Repo.*;
 import com.dynamica.orange.Service.OrangeService;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -328,6 +329,65 @@ public class MainController {
         return edTypeRepo.findAll();
 
     }
+    @RequestMapping(value={"/deleteCertificates"}, method = RequestMethod.POST)
+    public @ResponseBody Object deleteCertificates(@RequestHeader("token") String token,HttpServletRequest request) {
+        Token tok = tokenRepo.findById(token);
+        if (tok != null) {
+            if (tok.isAdmin()) {
+                try {
+                    List<Doctor> doctors=doctorRepo.findAll();
+                    for(Doctor doctor:doctors){
+                        ArrayList<Object> list=new ArrayList<>();
+                        for(Object io:doctor.getCertificates()){
+                            if(io.getClass().equals(FileObjectForm.class)){
+                                list.add(io);
+                            }
+                        }
+                        doctor.setCertificates(list);
+                        doctorRepo.save(doctor);
+                    }
+                    return new StatusObject("ok");
+
+                } catch (Exception e) {
+                    return new StatusObject("exception");
+                }
+            }
+        }
+        return new StatusObject("noauth");
+    }
+    @RequestMapping(value={"/deleteWrongFiles"}, method = RequestMethod.POST)
+    public @ResponseBody Object deleteWrongFiles(@RequestHeader("token") String token,HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null) {
+            if (tok.isAdmin()) {
+                try {
+                    List<Client> clients = clientRepo.findAll();
+                    for (Client client : clients) {
+                        ArrayList<Object> photos = client.getPhotourl();
+                        ArrayList<Object> nesw = new ArrayList<>();
+                        for (int i = 0; i < photos.size(); i++) {
+                            if (photos.get(i).getClass().equals(FileObjectForm.class)) {
+                                nesw.add(photos.get(i));
+                            } else {
+
+                            }
+                        }
+                        client.setPhotourl(nesw);
+                        clientRepo.save(client);
+                    }
+                    return "";
+                } catch (Exception e) {
+                    return new StatusObject("exception");
+                }
+            }
+            else{
+                return new StatusObject("noauth");
+            }
+        }
+        else{
+            return  new StatusObject("notoken");
+        }
+    }
     @RequestMapping(value={"/deleteEdTypes"}, method = RequestMethod.POST)
     public @ResponseBody Object deleteEdTypes(@RequestHeader("token") String token,HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
@@ -418,11 +478,37 @@ public class MainController {
 
         }
     }
+    @RequestMapping(value = {"/addClientbyAdmin"},method = RequestMethod.POST)
+    public @ResponseBody Object addClasdadient(@RequestHeader("token"
+    ) String token,@RequestParam String email,@RequestParam String password,  HttpServletRequest request) throws NoSuchAlgorithmException {
+        Token tok=tokenRepo.findById(token);
+        if(tok!=null) {
+            if(tok.isAdmin()) {
+                Client client1 = clientRepo.findByEmail(email.toLowerCase());
+                if (client1 == null) {
+                    Client client = new Client(email);
+
+                    password = hashPass(password);
+                    client.setPassword(password);
+                    client.setAccesscode("777");
+
+                    clientRepo.save(client);
+                    request.getSession().setAttribute("auth", client.getId());
+
+                    return new StatusObject("ok");
+                } else return new StatusObject("noclient");
+            }
+            return new StatusObject("notadmin");
+        }
+        else{
+             return new StatusObject("noauth");
+        }
+    }
     @RequestMapping(value = {"/addClient"},method = RequestMethod.POST)
     public @ResponseBody Object addClient(@RequestParam String email,@RequestParam String password,  HttpServletRequest request) throws NoSuchAlgorithmException {
-        Client client1=clientRepo.findByEmail(email);
+        Client client1=clientRepo.findByEmail(email.toLowerCase());
         if(client1==null) {
-            Client client = new Client(email);
+            Client client = new Client(email.toLowerCase());
             password=hashPass(password);
             client.setPassword(password);
             Random ra = new Random();
@@ -436,7 +522,7 @@ public class MainController {
                 }
             client.setAccesscode(num + "");
             try {
-                mailing.Send("orangesuppkz@gmail.com", "orange12345", email, "Orange authentication", "Your Access Code: " + num);
+                mailing.Send("orangesuppkz@gmail.com", "orange12345", email.toLowerCase(), "Orange authentication", "Your Access Code: " + num);
             } catch (Exception e) {
                 e.printStackTrace();
             return new StatusObject("MailSendException");
@@ -446,16 +532,44 @@ public class MainController {
 
             return new StatusObject("ok");
         }
-        else return new StatusObject("noclient");
+        else{
+            if(!client1.isActivated()){
+                resend(email,password);
+                return new StatusObject("ok");
+            }
+            return new StatusObject("noclient");
+        }
     }
     public String hashPass(String s) throws NoSuchAlgorithmException{
         String myHash = DigestUtils.md2Hex(s);
         return myHash;
     }
+    public Object resend(String email, String password) {
+        try {
+            Client client = clientRepo.findByEmail(email.toLowerCase());
+
+                Random ra = new Random();
+                int num = ra.nextInt(1000);
+                client.setAccesscode(num + "");
+                password = hashPass(password);
+                client.setPassword(password);
+                mailing.Send("orangesuppkz@gmail.com", "orange12345", email, "Orange authentication", "Your Access Code: " + num);
+                clientRepo.save(client);
+                return new StatusObject("ok");
+            }
+        catch (NullPointerException e) {
+            e.printStackTrace();
+            return new StatusObject("null");
+        }
+         catch (Exception e) {
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
     @RequestMapping(value="/resend",method = RequestMethod.POST)
     public @ResponseBody Object resend(@RequestParam String email, HttpServletRequest request){
         try{
-            Client client=new Client(email);
+            Client client = clientRepo.findByEmail(email.toLowerCase());
             if (client != null) {
 
                 Random ra = new Random();
@@ -472,10 +586,11 @@ public class MainController {
         return new StatusObject("exception");
         }
     }
+
     @RequestMapping(value = "/checkCode", method = RequestMethod.POST)
     public @ResponseBody Object checkCode(@RequestParam String email, @RequestParam String code){
         try{
-            Client client=clientRepo.findByEmail(email);
+            Client client=clientRepo.findByEmail(email.toLowerCase());
             Token token=null;
             logger.info(client.getAccesscode());
             if(client.getAccesscode().equals(code)){
@@ -498,7 +613,33 @@ public class MainController {
             e.printStackTrace();return new StatusObject("exception");
         }
     }
-
+    @RequestMapping(value = {"/deleteClient"},method = RequestMethod.POST)
+    public @ResponseBody Object deleteClient(@RequestHeader("token") String token,@RequestParam String id, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        try {
+            if (tok != null) {
+                if (tok.isAdmin()) {
+                    Client client = clientRepo.findById(id);
+                    clientRepo.delete(client);
+                    try {
+                        Doctor doctor = doctorRepo.findByClientid(client.getId());
+                        doctor.getId();
+                        doctorRepo.delete(doctor);
+                    } catch (NullPointerException e) {
+                        Patient patient = patientRepo.findByClientid(client.getId());
+                        patient.getId();
+                        patientRepo.delete(patient);
+                    }
+                    return new StatusObject("ok");
+                }
+            }
+            return new StatusObject("noauth");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
     @RequestMapping(value = {"/deleteClients"},method = RequestMethod.POST)
     public @ResponseBody Object deleteClients(@RequestHeader("token") String token,HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
@@ -573,6 +714,18 @@ public class MainController {
         if(tok!=null) {
             if (tok.isAdmin()) {
                 patientRepo.deleteAll();
+                return new StatusObject("ok");
+            }
+        }
+        return new StatusObject("noauth");
+    }
+    @RequestMapping(value={"/deletePatient/{id}"}, method= RequestMethod.POST)
+    public @ResponseBody Object deletePatient(@RequestHeader("token") String token,@PathVariable("id") String id, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null) {
+            if (tok.isAdmin()) {
+                Patient patient=patientRepo.findById(id);
+                patientRepo.delete(patient);
                 return new StatusObject("ok");
             }
         }
@@ -662,7 +815,7 @@ public class MainController {
 
     @RequestMapping(value = "/authClient", method = RequestMethod.POST)
     public @ResponseBody Object authDoctor(@RequestParam String email,@RequestParam String password, HttpServletRequest request) throws NoSuchAlgorithmException{
-            Client client = clientRepo.findByEmail(email);
+            Client client = clientRepo.findByEmail(email.toLowerCase());
             Token token=tokenRepo.findByClientid(client.getId());
             logger.info(password);
             password=hashPass(password);
