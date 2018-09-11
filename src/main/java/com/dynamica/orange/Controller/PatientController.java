@@ -1269,8 +1269,8 @@ public class PatientController {
             return new StatusObject("exception"+" "+e.getMessage());
         }
     }
-    @RequestMapping(value="/sendTextMessage/{chatid}",method = RequestMethod.POST)
-    public @ResponseBody Object sendTextMes(@RequestHeader("token") String token,@PathVariable("chatid") String chatid, @RequestParam String text, HttpServletRequest request){
+    @RequestMapping(value="/sendTextMessage",method = RequestMethod.POST)
+    public @ResponseBody Object sendTextMes(@RequestHeader("token") String token,@RequestParam String chatid, @RequestParam String text, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1331,8 +1331,8 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/sendFileMessage/{chatid}",method = RequestMethod.POST)
-    public @ResponseBody Object sendFileMes(@RequestHeader("token") String token,@PathVariable("chatid") String chatid, @RequestParam String type, @RequestParam String file, HttpServletRequest request){
+    @RequestMapping(value="/sendFileMessage",method = RequestMethod.POST)
+    public @ResponseBody Object sendFileMes(@RequestHeader("token") String token,@RequestParam String chatid, @RequestParam String type, @RequestParam String file, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1395,8 +1395,8 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/setOrderInfoWorkplace/{orderid}", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfo(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam String text, HttpServletRequest request){
+    @RequestMapping(value="/setOrderInfoWorkplace", method=RequestMethod.POST)
+    public @ResponseBody Object addOrderInfo(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam String text, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1423,8 +1423,8 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/setOrderInfoHome/{orderid}", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @PathVariable("orderid") String orderid,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
+    @RequestMapping(value="/setOrderInfoHome", method=RequestMethod.POST)
+    public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @RequestParam String orderid,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1456,8 +1456,8 @@ public class PatientController {
 
     //
 
-    @RequestMapping(value="/setOrderInfoWorkplaceWithOwnService/{orderid}", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoOwnService(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam long chosetime,@RequestParam String ownServices, @RequestParam String periodTime, @RequestParam String text, @RequestParam String ownservices, HttpServletRequest request){
+    @RequestMapping(value="/setOrderInfoWorkplaceWithOwnService", method=RequestMethod.POST)
+    public @ResponseBody Object addOrderInfoOwnService(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime,@RequestParam String ownServices, @RequestParam String periodTime, @RequestParam String text, @RequestParam String ownservices, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1486,8 +1486,8 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/setOrderInfoHomeWithOwnService/{orderid}", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @PathVariable("orderid") String orderid,@RequestParam String ownServices,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
+    @RequestMapping(value="/setOrderInfoHomeWithOwnService", method=RequestMethod.POST)
+    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam String ownServices,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1516,8 +1516,8 @@ public class PatientController {
         }
     }
     //order atHome
-    @RequestMapping(value="/addOrderFile/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody Object addOrderFile(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String type, @RequestParam String file, HttpServletRequest request){
+    @RequestMapping(value="/addOrderFile",method = RequestMethod.POST)
+    public @ResponseBody Object addOrderFile(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam String type, @RequestParam String file, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1562,8 +1562,8 @@ public class PatientController {
 
 
 
-    @RequestMapping(value = "/addOrderAddress/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody Object addOrderAddress(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, @RequestParam String cityid, @RequestParam String address, HttpServletRequest request){
+    @RequestMapping(value = "/addOrderAddress",method = RequestMethod.POST)
+    public @ResponseBody Object addOrderAddress(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam String cityid, @RequestParam String address, HttpServletRequest request){
         try{ // Set Normal cities and addresses
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1584,8 +1584,8 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/cancelOrder/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody Object cancelOrder(@RequestHeader("token") String token,@PathVariable("orderid") String orderid, HttpServletRequest request){
+    @RequestMapping(value="/cancelOrder",method = RequestMethod.POST)
+    public @ResponseBody Object cancelOrder(@RequestHeader("token") String token,@RequestParam String orderid, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1606,8 +1606,8 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/finishOrder/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody Object finishOrder(@RequestHeader("token") String token, @PathVariable("orderid") String orderid,@RequestParam String comment,@RequestParam boolean impression,@RequestParam  int num, HttpServletRequest request){
+    @RequestMapping(value="/finishOrder",method = RequestMethod.POST)
+    public @ResponseBody Object finishOrder(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam String comment,@RequestParam boolean impression,@RequestParam  int num, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1653,8 +1653,8 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/getOrderInfo/{orderid}", method = RequestMethod.POST)
-    public @ResponseBody Object getOrderInfo(@RequestHeader("token") String token, @PathVariable("orderid") String orderid, HttpServletRequest request){
+    @RequestMapping(value="/getOrderInfo", method = RequestMethod.POST)
+    public @ResponseBody Object getOrderInfo(@RequestHeader("token") String token, @RequestParam String orderid, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){

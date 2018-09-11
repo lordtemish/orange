@@ -1559,8 +1559,8 @@ public class DoctorController {
             return new StatusObject("exception");
         }
     }
-    @RequestMapping(value="/finishOrder/{orderid}",method = RequestMethod.POST)
-    public @ResponseBody Object finishOrder(@RequestHeader("token") String token, @PathVariable("orderid") String orderid,@RequestParam String diagnosis,@RequestParam  String healing, @RequestParam String comment, HttpServletRequest request){
+    @RequestMapping(value="/finishOrder",method = RequestMethod.POST)
+    public @ResponseBody Object finishOrder(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam String diagnosis,@RequestParam  String healing, @RequestParam String comment, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){    Client client=clientRepo.findById(tok.getClientid());

@@ -23,7 +23,7 @@ public class myPatientForm {
     public void setId(String id) {
         this.id = id;
     }
-g
+
     public boolean isPhonedoctor() {
         return phonedoctor;
     }

@@ -71,6 +71,7 @@ public class MainController {
     public void setProductService(OrangeService service) {
         this.service = service;
     }
+
     @RequestMapping(value="/",method = RequestMethod.GET)
     public @ResponseBody String defaults(){
         return "index";
