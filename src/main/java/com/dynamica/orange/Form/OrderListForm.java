@@ -67,6 +67,10 @@ public class OrderListForm {
         else online=false;
     }
 
+    public void setServices(ArrayList<Service> services) {
+        this.services = services;
+    }
+
     public CommentForm getCommentForms() {
         return commentForms;
     }

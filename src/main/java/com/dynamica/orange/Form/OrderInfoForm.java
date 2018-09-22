@@ -19,7 +19,15 @@ public class OrderInfoForm {
         this.doctor=new ClientWithDoctorForm(client,doctor);
         this.patient=new ClientWithPatientForm(client1,patient);
     }
+    public  void isDoctor(boolean t){
+        if(t){
+            doctor=null;
 
+        }
+        else{
+            patient=null;
+        }
+    }
     public void setCommentForms(CommentForm commentForms) {
         this.commentForms = commentForms;
     }

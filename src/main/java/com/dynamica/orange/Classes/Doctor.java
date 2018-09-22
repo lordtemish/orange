@@ -298,7 +298,7 @@ public class Doctor {
     public String getHomePlaceOwn(){
         for(OwnService i:owns){
             if(i.getHomeplace()){
-                return i.getId()+" ";
+                return i.getId();
             }
         }
         return "";

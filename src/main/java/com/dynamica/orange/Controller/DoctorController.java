@@ -1395,6 +1395,11 @@ public class DoctorController {
                 Client clientd=clientRepo.findById(doctor.getClientid());
                 Patient patient=patientRepo.findById(order.getPatientid());
                 Client clientp  =clientRepo.findById(patient.getClientid());
+                ArrayList<Object> services1 = new ArrayList<>();
+                for (Object j : order.getServices()) {
+                    services1.add(serviceRepo.findById(j+""));
+                }
+                order.setServices(services1);
                 List<Object> services=new ArrayList<>();
                 for(Object i: order.getOwnServices()){
                     for (OwnService jj : doctor.getOwns()) {
@@ -1440,7 +1445,10 @@ public class DoctorController {
                 for(Order i:orders){
                     Patient patient=patientRepo.findById(i.getPatientid());
                     Client client=clientRepo.findById(patient.getClientid());
-
+                    ArrayList<Service> services = new ArrayList<>();
+                    for (Object j : i.getServices()) {
+                        services.add(serviceRepo.findById(j+""));
+                    }
                     ArrayList<OwnService> ownServices = new ArrayList<>();
                     for (Object j : i.getOwnServices()) {
                         for (OwnService jj : doctor1.getOwns()) {
@@ -1463,6 +1471,7 @@ public class DoctorController {
                     if(forms.size()>0)
                     orderListForm.setCommentForms(forms.get(0));
                     orderListForm.setOwnServices(ownServices);
+                    orderListForm.setServices(services);
                     orderListForms.add(orderListForm);
                 }
                 return orderListForms;

@@ -1397,7 +1397,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoWorkplace", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfo(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam String text, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfo(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam List<Object> services, @RequestParam String text, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1412,7 +1412,7 @@ public class PatientController {
                 order.setCreatedTime(new Date().getTime());
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
-
+                order.setServices(services);
                 order.setAtwork(true);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
@@ -1426,7 +1426,8 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoHome", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @RequestParam String orderid,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @RequestParam String orderid,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period,
+                                                @RequestParam List<Object> services, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1441,7 +1442,10 @@ public class PatientController {
                 order.setCreatedTime(new Date().getTime());
                 order.setTextMessage(text);
                 order.setPeriodinhours(period);
-                order.addOwnServices(doctor.getHomePlaceOwn());
+                order.setServices(services);
+                List<Object> ows=new ArrayList<>();
+                ows.add(doctor.getHomePlaceOwn());
+                order.setOwnServices(ows);
                 order.setAddress(patient.getHomeAddress());
                 order.setAtwork(false);
                 order.setStatus("patientcreated");
@@ -1460,7 +1464,8 @@ public class PatientController {
     //
 
     @RequestMapping(value="/setOrderInfoWorkplaceWithOwnService", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoOwnService(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime,@RequestParam String ownServices, @RequestParam String periodTime, @RequestParam String text, @RequestParam String ownservices, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfoOwnService(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime,@RequestParam List<Object> ownServices, @RequestParam String periodTime, @RequestParam String text
+            , @RequestParam List<Object> services, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1477,9 +1482,9 @@ public class PatientController {
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
                 order.setAtwork(true);
-                order.addOwnServices(ownServices);
+                order.setServices(services);
+                order.setOwnServices(ownServices);
                 order.setStatus("patientcreated");
-                order.addOwnService(ownservices);
                 orderRepo.save(order);
                 return new StatusObject("ok");
             }
@@ -1491,7 +1496,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoHomeWithOwnService", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam String ownServices,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam List<Object> ownServices,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam List<Object> services, @RequestParam double period, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1505,10 +1510,12 @@ public class PatientController {
                 order.setChoseTime(chosetime);
                 order.setCreatedTime(new Date().getTime());
                 order.setTextMessage(text);
-                order.addOwnServices(doctor.getHomePlaceOwn()+ownServices);
+                ownServices.add(doctor.getHomePlaceOwn());
+                order.setOwnServices(ownServices);
                 order.setPeriodinhours(period);
                 order.setAddress(patient.getHomeAddress());
                 order.setAtwork(false);
+                order.setServices(services);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
                 return new StatusObject("ok");
@@ -1673,6 +1680,11 @@ public class PatientController {
                 Client clientd=clientRepo.findById(doctor.getClientid());
                 Patient patient=patientRepo.findById(order.getPatientid());
                 Client clientp  =clientRepo.findById(patient.getClientid());
+                ArrayList<Object> services1 = new ArrayList<>();
+                for (Object j : order.getServices()) {
+                    services1.add(serviceRepo.findById(j+""));
+                }
+                order.setServices(services1);
                 List<Object> services=new ArrayList<>();
                 for(Object i: order.getOwnServices()){
                     for (OwnService jj : doctor.getOwns()) {
@@ -1724,8 +1736,8 @@ public class PatientController {
                         Client client = clientRepo.findById(doctor.getClientid());
                     ServiceType serviceType = serviceTypeRepo.findById(doctor.getServicetypeid() + "");
                     ArrayList<Service> services = new ArrayList<>();
-                    for (IDObject j : doctor.getServices()) {
-                        services.add(serviceRepo.findById(j.getId()));
+                    for (Object j : i.getServices()) {
+                        services.add(serviceRepo.findById(j+""));
                     }
                     ArrayList<EducationForm> educationForms = new ArrayList<>();
                     for (Education j : doctor.getEducations()) {
