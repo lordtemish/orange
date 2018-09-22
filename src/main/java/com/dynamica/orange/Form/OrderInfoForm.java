@@ -1,9 +1,6 @@
 package com.dynamica.orange.Form;
 
-import com.dynamica.orange.Classes.Client;
-import com.dynamica.orange.Classes.Doctor;
-import com.dynamica.orange.Classes.Order;
-import com.dynamica.orange.Classes.Patient;
+import com.dynamica.orange.Classes.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,22 +11,39 @@ import java.util.List;
  */
 public class OrderInfoForm {
     Order order;
-    List<Object> doctor=new ArrayList<>();
-    List<Object> patient=new ArrayList<>();
-
+    ClientWithDoctorForm doctor;
+    ClientWithPatientForm patient;
+    CommentForm commentForms;
     public OrderInfoForm(Order order, Doctor doctor, Client client, Patient patient, Client client1){
         this.order=order;
-        this.doctor.add(client);this.doctor.add(doctor);
-        this.patient.add(client1);this.patient.add(patient);
+        this.doctor=new ClientWithDoctorForm(client,doctor);
+        this.patient=new ClientWithPatientForm(client1,patient);
     }
+
+    public void setCommentForms(CommentForm commentForms) {
+        this.commentForms = commentForms;
+    }
+
+    public CommentForm getCommentForms() {
+        return commentForms;
+    }
+
     public Order getOrder() {
         return order;
     }
-    public List<Object> getDoctor() {
+
+    public ClientWithDoctorForm getDoctor() {
+        return doctor;
+    }
+
+    public ClientWithPatientForm getPatient() {
+        return patient;
+    }
+    /*    public List<Object> getDoctor() {
         return doctor;
     }
     public List<Object> getPatient() {
         return patient;
-    }
+    }*/
 
 }

@@ -16,6 +16,7 @@ public class Comment {
     private String text;
     private String date;
     private String time;
+    private  int rate;
   /*  private SimpleDateFormat sdf=new SimpleDateFormat("dd.mm.yyyy");
     private SimpleDateFormat sdh=new SimpleDateFormat("HH:mm");*/
     private long createdTime;
@@ -27,7 +28,16 @@ public class Comment {
         this.time=sdh.format(date);*/
         createdTime=date.getTime();
     }
-    public Comment(String patient_id,String text){
+
+    public void setRate(int rate) {
+        this.rate = rate;
+    }
+
+    public int getRate() {
+        return rate;
+    }
+
+    public Comment(String patient_id, String text){
         Calendar calendar=Calendar.getInstance();
         this.patient_id=patient_id;
         this.text=text;

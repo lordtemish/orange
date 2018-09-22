@@ -16,5 +16,7 @@ public interface OrderRepo extends MongoRepository<Order, String>{
     public ArrayList<Order> findByPatientidAndDoctorid(String patientid, String doctorid);
     public ArrayList<Order> findByPatientid(String patientid);
     public ArrayList<Order> findByDoctorid(String doctorid);
+    public ArrayList<Order> findByDoctoridAndAtwork(String doctorid, boolean atwork);
+    public ArrayList<Order> findByPatientidAndAtwork(String patient, boolean atwork);
 
 }

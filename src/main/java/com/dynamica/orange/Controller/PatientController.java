@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1408,6 +1409,7 @@ public class PatientController {
                 Order order = orderRepo.findById(orderid);
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setChoseTime(chosetime);
+                order.setCreatedTime(new Date().getTime());
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
 
@@ -1436,6 +1438,7 @@ public class PatientController {
                 Order order = orderRepo.findById(orderid);
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setChoseTime(chosetime);
+                order.setCreatedTime(new Date().getTime());
                 order.setTextMessage(text);
                 order.setPeriodinhours(period);
                 order.addOwnServices(doctor.getHomePlaceOwn());
@@ -1470,12 +1473,13 @@ public class PatientController {
                 Order order = orderRepo.findById(orderid);
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setChoseTime(chosetime);
+                order.setCreatedTime(new Date().getTime());
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
                 order.setAtwork(true);
                 order.addOwnServices(ownServices);
                 order.setStatus("patientcreated");
-                order.addServices(ownservices);
+                order.addOwnService(ownservices);
                 orderRepo.save(order);
                 return new StatusObject("ok");
             }
@@ -1499,8 +1503,9 @@ public class PatientController {
                 Order order = orderRepo.findById(orderid);
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setChoseTime(chosetime);
+                order.setCreatedTime(new Date().getTime());
                 order.setTextMessage(text);
-                order.addOwnServices(doctor.getHomePlaceOwn()+  ownServices);
+                order.addOwnServices(doctor.getHomePlaceOwn()+ownServices);
                 order.setPeriodinhours(period);
                 order.setAddress(patient.getHomeAddress());
                 order.setAtwork(false);
@@ -1618,7 +1623,9 @@ public class PatientController {
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setStatus("patientfinished");
                 Comment comment1=new Comment(order.getPatientid(),comment);
+                comment1.setId(orderid);
                 comment1.setImpression(impression);
+                comment1.setRate(num);
                 if(comment.length()>0) // comment won't save if text's length is 0
                 doctor.addComment(comment1);
                 if(num>=0) //Rate won't set if num is -1 or less
@@ -1666,7 +1673,28 @@ public class PatientController {
                 Client clientd=clientRepo.findById(doctor.getClientid());
                 Patient patient=patientRepo.findById(order.getPatientid());
                 Client clientp  =clientRepo.findById(patient.getClientid());
-                return new OrderInfoForm(order,doctor,clientd,patient,clientp);
+                List<Object> services=new ArrayList<>();
+                for(Object i: order.getOwnServices()){
+                    for (OwnService jj : doctor.getOwns()) {
+                        logger.info(jj.getId().length() + " " + (i + "").length() + "   " + (i + "").equals(jj.getId() + ""));
+                        if ((i + "").equals(jj.getId())) {
+                            services.add(jj);
+                            break;
+                        }
+
+                    }
+                }
+                List<CommentForm> forms=new ArrayList<>();
+                for(Comment j:doctor.getComments()){
+                    if(j.getId().equals(order.getId())){
+                        forms.add(new CommentForm(patient,clientp,j));
+                    }
+                }
+                order.setOwnServices(services);
+                OrderInfoForm infoForm= new OrderInfoForm(order,doctor,clientd,patient,clientp);
+                if(forms.size()>0)
+                    infoForm.setCommentForms(forms.get(0));
+                return infoForm;
             }
             else return new StatusObject("noauth");
         }
@@ -1687,30 +1715,50 @@ public class PatientController {
                 String id=patient.getId();
                 ArrayList<Order> orders=orderRepo.findByPatientid(id);
                 ArrayList<OrderListForm> orderListForms=new ArrayList<>();
-                for(Order i:orders){
-                    Doctor doctor=doctorRepo.findById(i.getDoctorid());
-                    Client client=clientRepo.findById(doctor.getClientid());
-                    ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
-                    ArrayList<Service> services=new ArrayList<>();
-                    for(IDObject j:doctor.getServices()){
+                for(Order i:orders) {
+                    Doctor doctor = doctorRepo.findById(i.getDoctorid());
+                    if (doctor == null) {
+                       continue;
+                    }
+                    else {
+                        Client client = clientRepo.findById(doctor.getClientid());
+                    ServiceType serviceType = serviceTypeRepo.findById(doctor.getServicetypeid() + "");
+                    ArrayList<Service> services = new ArrayList<>();
+                    for (IDObject j : doctor.getServices()) {
                         services.add(serviceRepo.findById(j.getId()));
                     }
-                    ArrayList<EducationForm> educationForms=new ArrayList<>();
-                    for(Education j:doctor.getEducations()){
-                        educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id()+"")));
+                    ArrayList<EducationForm> educationForms = new ArrayList<>();
+                    for (Education j : doctor.getEducations()) {
+                        educationForms.add(new EducationForm(j, educationTypeRepo.findById(j.getEd_type_id() + "")));
                     }
-                    ArrayList<OwnService> ownServices=new ArrayList<>();
-                    for(Object j:i.getOwnServices()){
-                        for(OwnService jj:doctor.getOwns()){
-                            logger.info(jj.getId().length()+" "+(j+"").length()+"   "+(j+"").equals(jj.getId()+""));
-                            if((j+"").equals(jj.getId())){
+                    ArrayList<OwnService> ownServices = new ArrayList<>();
+                    for (Object j : i.getOwnServices()) {
+                        for (OwnService jj : doctor.getOwns()) {
+                            logger.info(jj.getId().length() + " " + (j + "").length() + "   " + (j + "").equals(jj.getId() + ""));
+                            if ((j + "").equals(jj.getId())) {
                                 ownServices.add(jj);
                                 break;
                             }
 
                         }
                     }
-                    orderListForms.add(new OrderListForm(i,doctor,client,serviceType,services,ownServices));
+
+                    List<CommentForm> forms=new ArrayList<>();
+                    for(Comment j:doctor.getComments()){
+                        if(j.getId().equals(i.getId())){
+                            forms.add(new CommentForm(patient,clientqq,j));
+                        }
+                    }
+
+                    OrderListForm form=new OrderListForm(i, doctor, client, serviceType, services, ownServices);
+                    if(forms.size()>0) form.setCommentForms(forms.get(0));
+                    List<Order> orderList=orderRepo.findByDoctoridAndAtwork(doctor.getId(),false);
+                    List<Order> orderList1=orderRepo.findByDoctoridAndAtwork(doctor.getId(),true);
+                    form.setCalls(orderList.size());
+                    form.setCommings(orderList1.size());
+                    form.setAtwork(i.isAtwork());
+                    orderListForms.add(form);
+                }
                 }
                 return orderListForms;
             }

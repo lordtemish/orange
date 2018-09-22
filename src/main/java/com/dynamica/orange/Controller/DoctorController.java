@@ -1382,6 +1382,50 @@ public class DoctorController {
             e.printStackTrace();
             return new StatusObject("exception") ;}
     }
+    @RequestMapping(value="/getOrderInfo", method = RequestMethod.POST)
+    public @ResponseBody Object getOrderInfo(@RequestHeader("token") String token, @RequestParam String orderid, HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Client client=clientRepo.findById(tok.getClientid());
+                client.onReqested();
+                clientRepo.save(client);
+                Order order=orderRepo.findById(orderid);
+                Doctor doctor=doctorRepo.findById(order.getDoctorid());
+                Client clientd=clientRepo.findById(doctor.getClientid());
+                Patient patient=patientRepo.findById(order.getPatientid());
+                Client clientp  =clientRepo.findById(patient.getClientid());
+                List<Object> services=new ArrayList<>();
+                for(Object i: order.getOwnServices()){
+                    for (OwnService jj : doctor.getOwns()) {
+                        log.info(jj.getId().length() + " " + (i + "").length() + "   " + (i + "").equals(jj.getId() + ""));
+                        if ((i + "").equals(jj.getId())) {
+                            services.add(jj);
+                            break;
+                        }
+
+                    }
+                }
+                List<CommentForm> forms=new ArrayList<>();
+                for(Comment j:doctor.getComments()){
+                    if(j.getId().equals(order.getId())){
+                        forms.add(new CommentForm(patient,clientp,j));
+                    }
+                }
+
+                order.setOwnServices(services);
+                OrderInfoForm infoForm= new OrderInfoForm(order,doctor,clientd,patient,clientp);
+                if(forms.size()>0)
+                infoForm.setCommentForms(forms.get(0));
+                return infoForm;
+            }
+            else return new StatusObject("noauth");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
     @RequestMapping(value = "/getListOrders",method = RequestMethod.POST)
     public @ResponseBody Object getListOrders(@RequestHeader("token") String token, HttpServletRequest request){
         try{
@@ -1396,7 +1440,30 @@ public class DoctorController {
                 for(Order i:orders){
                     Patient patient=patientRepo.findById(i.getPatientid());
                     Client client=clientRepo.findById(patient.getClientid());
-                    orderListForms.add(new OrderListForm(i,patient,client));
+
+                    ArrayList<OwnService> ownServices = new ArrayList<>();
+                    for (Object j : i.getOwnServices()) {
+                        for (OwnService jj : doctor1.getOwns()) {
+                            log.info(jj.getId().length() + " " + (j + "").length() + "   " + (j + "").equals(jj.getId() + ""));
+                            if ((j + "").equals(jj.getId())) {
+                                ownServices.add(jj);
+                                break;
+                            }
+
+                        }
+                    }
+                    List<CommentForm> forms=new ArrayList<>();
+                    for(Comment j:doctor1.getComments()){
+                        if(j.getId().equals(i.getId())){
+                            forms.add(new CommentForm(patient,client,j));
+                        }
+                    }
+
+                    OrderListForm orderListForm=new OrderListForm(i,patient,client);
+                    if(forms.size()>0)
+                    orderListForm.setCommentForms(forms.get(0));
+                    orderListForm.setOwnServices(ownServices);
+                    orderListForms.add(orderListForm);
                 }
                 return orderListForms;
             }
@@ -1425,7 +1492,7 @@ public class DoctorController {
         }
     }
     @RequestMapping(value="/cancelOrder",method = RequestMethod.POST)
-    public @ResponseBody Object cancelOrder(@RequestHeader("token") String token,@RequestParam String orderid, HttpServletRequest request){
+    public @ResponseBody Object cancelOrder(@RequestHeader("token") String token,@RequestParam String orderid,@RequestParam String text, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){    Client client=clientRepo.findById(tok.getClientid());
@@ -1433,6 +1500,7 @@ public class DoctorController {
                 clientRepo.save(client);
                 Order order = orderRepo.findById(orderid);
                 order.setStatus("doctorcancelled");
+                order.setTextAnswer(text);
                 orderRepo.save(order);
                 return new StatusObject("ok");
             }
@@ -1560,7 +1628,7 @@ public class DoctorController {
         }
     }
     @RequestMapping(value="/finishOrder",method = RequestMethod.POST)
-    public @ResponseBody Object finishOrder(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam String diagnosis,@RequestParam  String healing, @RequestParam String comment, HttpServletRequest request){
+    public @ResponseBody Object finishOrder(@RequestHeader("token") String token, @RequestParam String orderid, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){    Client client=clientRepo.findById(tok.getClientid());
@@ -1569,10 +1637,6 @@ public class DoctorController {
                 Order order=orderRepo.findById(orderid);
                 Patient patient=patientRepo.findById(order.getPatientid());
                 order.setStatus("doctorfinished");
-                Comment comment1=new Comment(order.getDoctorid(),comment);
-                order.setDiagnosAnswer(diagnosis);
-                order.setHealingAnswer(healing);
-                order.setDoctorComment(comment1);
                 orderRepo.save(order);
                 return new StatusObject("ok");
             }

@@ -14,12 +14,18 @@ public class CommentForm {
     long time;
     String text;
     boolean impression;
+    int rate;
     public CommentForm(Patient patient, Client client, Comment comment){
         name=client.getName();
         surname=client.getSurname();
         time=comment.getCreatedTime();
         text=comment.getText();
         impression=comment.isImpression();
+        rate=comment.getRate();
+    }
+
+    public int getRate() {
+        return rate;
     }
 
     public String getSurname() {
