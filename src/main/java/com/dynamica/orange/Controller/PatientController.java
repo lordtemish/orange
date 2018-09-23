@@ -299,7 +299,12 @@ public class PatientController {
                     cityW=new City("","");
                 }
                 doctor.setServicetypeid(serviceType);
+                myPatientForm patientForm=doctor.getPatientbyId(patient.getId());
+                if(patientForm==null){
+                    patientForm=new myPatientForm(false,false,null);
+                }
                 DoctorProfileForm form=new DoctorProfileForm(doctor,client,serviceType,services, cityH,cityW);
+                form.setShowPhones(patientForm.isPhonedoctor());
                 List<Order> orders=orderRepo.findByPatientidAndDoctorid(patient.getId(),doctor.getId());
                 int home=0, work=0;
                 for(Order ii:orders){
@@ -1397,7 +1402,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoWorkplace", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfo(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam List<Object> services, @RequestParam String text, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfo(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime, @RequestParam String periodTime, @RequestParam List<String> services, @RequestParam String text, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1412,7 +1417,7 @@ public class PatientController {
                 order.setCreatedTime(new Date().getTime());
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
-                order.setServices(services);
+                order.setServicess(services);
                 order.setAtwork(true);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
@@ -1427,7 +1432,7 @@ public class PatientController {
     }
     @RequestMapping(value="/setOrderInfoHome", method=RequestMethod.POST)
     public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @RequestParam String orderid,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period,
-                                                @RequestParam List<Object> services, HttpServletRequest request){
+                                                @RequestParam List<String> services, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1442,7 +1447,7 @@ public class PatientController {
                 order.setCreatedTime(new Date().getTime());
                 order.setTextMessage(text);
                 order.setPeriodinhours(period);
-                order.setServices(services);
+                order.setServicess(services);
                 List<Object> ows=new ArrayList<>();
                 ows.add(doctor.getHomePlaceOwn());
                 order.setOwnServices(ows);
@@ -1464,8 +1469,8 @@ public class PatientController {
     //
 
     @RequestMapping(value="/setOrderInfoWorkplaceWithOwnService", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoOwnService(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime,@RequestParam List<Object> ownServices, @RequestParam String periodTime, @RequestParam String text
-            , @RequestParam List<Object> services, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfoOwnService(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime,@RequestParam List<String> ownServices, @RequestParam String periodTime, @RequestParam String text
+            , @RequestParam List<String> services, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1482,8 +1487,8 @@ public class PatientController {
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
                 order.setAtwork(true);
-                order.setServices(services);
-                order.setOwnServices(ownServices);
+                order.setServicess(services);
+                order.setOwnServicess(ownServices);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
                 return new StatusObject("ok");
@@ -1496,7 +1501,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoHomeWithOwnService", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam List<Object> ownServices,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam List<Object> services, @RequestParam double period, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam List<String> ownServices,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam List<String> services, @RequestParam double period, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1510,12 +1515,12 @@ public class PatientController {
                 order.setChoseTime(chosetime);
                 order.setCreatedTime(new Date().getTime());
                 order.setTextMessage(text);
-                ownServices.add(doctor.getHomePlaceOwn());
-                order.setOwnServices(ownServices);
+                order.setOwnServicess(ownServices);
+                order.addOwnService(doctor.getHomePlaceOwn());
                 order.setPeriodinhours(period);
                 order.setAddress(patient.getHomeAddress());
                 order.setAtwork(false);
-                order.setServices(services);
+                order.setServicess(services);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
                 return new StatusObject("ok");

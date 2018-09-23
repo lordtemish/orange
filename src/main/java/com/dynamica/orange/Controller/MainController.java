@@ -813,7 +813,34 @@ public class MainController {
         }
         return new StatusObject("noauth");
     }
-
+    @RequestMapping(value="/deleteOrderById",method=RequestMethod.POST)
+    public @ResponseBody Object deleteOrderById(@RequestHeader("token") String token,@RequestParam String id, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null) {
+            if (tok.isAdmin()) {
+                Order order=orderRepo.findById(id);
+                orderRepo.delete(order);
+                return new StatusObject("ok");
+            }
+        }
+        return new StatusObject("noauth");
+    }
+    @RequestMapping(value="/deleteOrdersWithoutServices",method=RequestMethod.POST)
+    public @ResponseBody Object deleteOrdersById(@RequestHeader("token") String token, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null) {
+            if (tok.isAdmin()) {
+                List<Order> orders=orderRepo.findAll();
+                for(Order i:orders){
+                    if(i.getServices().size()==0){
+                        orderRepo.delete(i);
+                    }
+                }
+                return new StatusObject("ok");
+            }
+        }
+        return new StatusObject("noauth");
+    }
     @RequestMapping(value = "/authClient", method = RequestMethod.POST)
     public @ResponseBody Object authDoctor(@RequestParam String email,@RequestParam String password, HttpServletRequest request) throws NoSuchAlgorithmException{
             Client client = clientRepo.findByEmail(email.toLowerCase());

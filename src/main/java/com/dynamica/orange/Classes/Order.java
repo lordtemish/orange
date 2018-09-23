@@ -197,6 +197,30 @@ public class Order {
     public void setServices(List<Object> services) {
         this.services = services;
     }
+    public void setServicess(List<String> services) {
+        List<Object> string=new ArrayList<>();
+        for(int i=0;i<services.size();i++) {
+            while(services.get(i).contains("[") || services.get(i).contains("]") || services.get(i).contains("\"") || services.get(i).contains("\'")){
+                for(int j=0;j<services.get(i).length();j++){
+                    ArrayList<String> a=new ArrayList<>();
+                    a.add("[");a.add("]");a.add("\'");a.add("\"");
+                    if(a.contains(services.get(i).substring(j,j+1))){
+                        if(j>0 && j<services.get(i).length()-1) {
+                            services.set(i,services.get(i).substring(0,j)+services.get(i).substring(j+1,services.get(i).length()));
+                        }
+                        else if(j==0){
+                            services.set(i,services.get(i).substring(j+1,services.get(i).length()));
+                        }
+                        else{
+                            services.set(i,services.get(i).substring(0,j));
+                        }
+                    }
+                }
+            }
+            string.add(services.get(i));
+        }
+        this.services = string;
+    }
     public void setServiceTypeId(String serviceTypeId) {
         this.serviceTypeId = serviceTypeId;
     }
@@ -241,6 +265,30 @@ public class Order {
     }
     public void setOwnServices(List<Object> ownServices) {
         this.ownServices = ownServices;
+    }
+    public void setOwnServicess(List<String> ownServices) {
+        List<Object> string=new ArrayList<>();
+        for(int i=0;i<ownServices.size();i++) {
+            while(ownServices.get(i).contains("[") || ownServices.get(i).contains("]") || ownServices.get(i).contains("\"") || ownServices.get(i).contains("\'")){
+                for(int j=0;j<ownServices.get(i).length();j++){
+                    ArrayList<String> a=new ArrayList<>();
+                    a.add("[");a.add("]");a.add("\'");a.add("\"");
+                    if(a.contains(ownServices.get(i).substring(j,j+1))){
+                        if(j>0 && j<ownServices.get(i).length()-1) {
+                            ownServices.set(i,ownServices.get(i).substring(0,j)+ownServices.get(i).substring(j+1,ownServices.get(i).length()));
+                        }
+                        else if(j==0){
+                            ownServices.set(i,ownServices.get(i).substring(j+1,ownServices.get(i).length()));
+                        }
+                        else{
+                            ownServices.set(i,ownServices.get(i).substring(0,j));
+                        }
+                    }
+                }
+            }
+            string.add(ownServices.get(i));
+        }
+        this.ownServices = string;
     }
 
     public List<Object> getOwnServices() {

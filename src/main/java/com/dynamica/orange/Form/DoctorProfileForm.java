@@ -10,6 +10,7 @@ import java.util.List;
  * Created by lordtemich on 1/16/18.
  */
 public class DoctorProfileForm {
+    boolean showPhones=false;
     Doctor doctor;
     Client client;
     double rate;
@@ -64,6 +65,14 @@ public class DoctorProfileForm {
         else{
             rate=-1;
         }
+    }
+
+    public boolean isShowPhones() {
+        return showPhones;
+    }
+
+    public void setShowPhones(boolean showPhones) {
+        this.showPhones = showPhones;
     }
 
     public int getCommings() {
