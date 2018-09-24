@@ -709,6 +709,18 @@ public class MainController {
         }
         return new StatusObject("noauth");
     }
+    @RequestMapping(value={"/deleteDoctor/{id}"}, method= RequestMethod.POST)
+    public @ResponseBody Object deleteDoctor(@RequestHeader("token") String token,@PathVariable("id") String id, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null) {
+            if (tok.isAdmin()) {
+                Doctor patient=doctorRepo.findById(id);
+                doctorRepo.delete(patient);
+                return new StatusObject("ok");
+            }
+        }
+        return new StatusObject("noauth");
+    }
     @RequestMapping(value={"/deleteAllPatients"}, method= RequestMethod.POST)
     public @ResponseBody Object deleteAllPatients(@RequestHeader("token") String token,HttpServletRequest request){
         Token tok= tokenRepo.findById(token);

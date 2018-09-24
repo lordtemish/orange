@@ -251,7 +251,8 @@ public class PatientController {
                  if(bloodid!=null) {
                      blood = bloodRepo.findById(patient.getBlood()).getName();
                  }
-                return new PatientProfileForm(patient,client,workC,homeC, blood);
+                 PatientProfileForm form=new PatientProfileForm(patient,client,workC,homeC, blood);
+                return form;
             }
             else{
                 return new StatusObject("noauth");
@@ -263,16 +264,18 @@ public class PatientController {
             return new StatusObject("exception");
         }
     }
+
     @RequestMapping(value = "/getDoctorProfile",method = RequestMethod.POST)
     public @ResponseBody Object getDPF(@RequestHeader("token") String token, @RequestParam String doctorid, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
+                Client client1=clientRepo.findById(tok.getClientid());
                 Doctor doctor=doctorRepo.findById(doctorid);
                 Client client=clientRepo.findById(doctor.getClientid());
-                client.onReqested();
-                clientRepo.save(client);
+                client1.onReqested();
+                clientRepo.save(client1);
                 ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                 List<Service> services=new ArrayList<>();
                 for(IDObject i:doctor.getServices()){
@@ -317,6 +320,7 @@ public class PatientController {
                 }
                 form.setCalls(home);
                 form.setCommings(work);
+                form.setMyDoctor(patient.docContains(doctorid));
                 return form;
             }
             return new StatusObject("noauth");
@@ -690,7 +694,11 @@ public class PatientController {
                     requestForm=new PatientRequestForm(doctorProfileForm,"accept","cancelled");
                 }
                 else{
-                    if(form.isPhonedoctor()){
+                    if(!form.isPhonedoctor() && form.phonefinished){
+                        requestForm=new PatientRequestForm(doctorProfileForm,"phone","cancelled");
+                        requestForms.add(requestForm);
+                    }
+                    else if(form.isPhonedoctor()){
                         requestForm=new PatientRequestForm(doctorProfileForm,"phone","accepted");
                         requestForms.add(requestForm);
                     }

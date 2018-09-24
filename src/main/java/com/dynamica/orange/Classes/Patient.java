@@ -159,6 +159,9 @@ public class Patient {
         public ArrayList<String> getMyDocs(){
             return mydocs;
         }
+        public boolean docContains(String id){
+            return mydocs.contains(id);
+        }
         public boolean deleteFav(String id){
             if(favs.contains(id)){
                 favs.remove(id);

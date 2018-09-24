@@ -45,6 +45,8 @@ public class DoctorController {
     @Autowired
     EducationTypeRepo educationTypeRepo;
     @Autowired
+    BloodRepo bloodRepo;
+    @Autowired
     OwnTimeTypeRepo ownTimeTypeRepo;
     FileUploader fileUploader=new FileUploader();
 
@@ -1251,7 +1253,7 @@ public class DoctorController {
                             if(!pForm.isAccepted()){
                                 reqs.add(listForm);
                             }
-                            else if(pForm.isPhone()){
+                            else if(pForm.isPhone() && !pForm.phonefinished){
                                 phones.add(listForm);
                             }
                         }
@@ -1312,6 +1314,7 @@ public class DoctorController {
                     myPatientForm pForm = (myPatientForm) i;
                     if(pForm.getId().equals(patientid)){
                         pForm.setPhonedoctor(answer);
+                        pForm.phonefinished=true;
                         doctor.setPatientById(patientid,pForm);
                         doctorRepo.save(doctor);
                         return new StatusObject("ok");
@@ -1676,6 +1679,80 @@ public class DoctorController {
         }
         return new StatusObject("noauth");
     }
+    @RequestMapping(value="/getPatientProfile", method = RequestMethod.POST) // need put objects
+    public @ResponseBody
+    Object getPatientProfile(@RequestHeader("token") String token,@RequestParam String patientid, HttpServletRequest request){
+        try{
+            Token tok= tokenRepo.findById(token);
+            if(tok!=null){
+                Patient patient=patientRepo.findById(patientid);
+                Client client=clientRepo.findById(patient.getClientid());
+                Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+                Client client1=clientRepo.findById(tok.getClientid());
+                client1.onReqested();
+                clientRepo.save(client1);
+                City simple=new City("","");
+                City workCity=simple; City homeCity=simple;
+
+                try {
+                    if(patient.getWorkAddress()!=null) {
+                        workCity = cityRepo.findById(patient.getWorkAddress().getCityid()+"");
+                    }
+                    if(patient.getHomeAddress()!=null) {
+                        homeCity = cityRepo.findById(patient.getHomeAddress().getCityid()+"");
+                    }
+                    if(workCity==null){
+                        workCity=simple;
+                    }
+                    if(homeCity==null){
+                        homeCity=simple;
+                    }
+                }
+                catch (NullPointerException eee){
+                }
+                String homeC;
+                String workC;
+                String l;
+                if(client!=null) {
+                    if (client.getLang() != null)
+                        l = client.getLang();
+                    else
+                        l = "R";
+                }
+                else{
+                    l="R";
+                }
+                log.info(l);
+                if(l.equals("R")) {
+                    homeC = homeCity.getNameRus();
+                    workC = workCity.getNameRus();
+                }
+                else{
+                    homeC = homeCity.getNameKaz();
+                    workC = workCity.getNameKaz();
+                }
+
+                log.info(homeC+" "+workC+" "+workCity);
+                String bloodid=patient.getBlood();
+                String blood="";
+                if(bloodid!=null) {
+                    blood = bloodRepo.findById(patient.getBlood()).getName();
+                }
+                PatientProfileForm form=new PatientProfileForm(patient,client,workC,homeC, blood);
+                form.setMyPatient(patient.docContains(doctor.getId()));
+                return form;
+            }
+            else{
+                return new StatusObject("noauth");
+            }
+        }
+        catch (Exception e){
+            log.info(e.getMessage());
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+
     @RequestMapping(value="/getDoctorProfile")
     public @ResponseBody Object getDoctorProfile(@RequestHeader("token") String token, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);

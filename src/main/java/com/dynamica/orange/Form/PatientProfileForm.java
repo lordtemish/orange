@@ -9,6 +9,7 @@ import java.util.Date;
  * Created by lordtemich on 1/15/18.
  */
 public class PatientProfileForm {
+    boolean myPatient=false;
         Patient patient;
         Client client;
         info info;
@@ -59,6 +60,14 @@ public class PatientProfileForm {
                 online=false;
             }
         }
+
+    public boolean isMyPatient() {
+        return myPatient;
+    }
+
+    public void setMyPatient(boolean myPatient) {
+        this.myPatient = myPatient;
+    }
 
     public boolean isOnline() {
         return online;
