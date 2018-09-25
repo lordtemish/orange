@@ -321,6 +321,7 @@ public class PatientController {
                 form.setCalls(home);
                 form.setCommings(work);
                 form.setMyDoctor(patient.docContains(doctorid));
+                form.setFavouriteDoctor(patient.favContains(doctorid));
                 return form;
             }
             return new StatusObject("noauth");
@@ -1478,7 +1479,7 @@ public class PatientController {
 
     @RequestMapping(value="/setOrderInfoWorkplaceWithOwnService", method=RequestMethod.POST)
     public @ResponseBody Object addOrderInfoOwnService(@RequestHeader("token") String token, @RequestParam String orderid, @RequestParam long chosetime,@RequestParam List<String> ownServices, @RequestParam String periodTime, @RequestParam String text
-            , @RequestParam List<String> services, HttpServletRequest request){
+            , HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1495,7 +1496,6 @@ public class PatientController {
                 order.setPeriodTime(periodTime);
                 order.setTextMessage(text);
                 order.setAtwork(true);
-                order.setServicess(services);
                 order.setOwnServicess(ownServices);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
@@ -1509,7 +1509,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoHomeWithOwnService", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam List<String> ownServices,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam List<String> services, @RequestParam double period, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam List<String> ownServices,  @RequestParam long chosetime,  @RequestParam String text,  @RequestParam double period, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1528,7 +1528,6 @@ public class PatientController {
                 order.setPeriodinhours(period);
                 order.setAddress(patient.getHomeAddress());
                 order.setAtwork(false);
-                order.setServicess(services);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
                 return new StatusObject("ok");

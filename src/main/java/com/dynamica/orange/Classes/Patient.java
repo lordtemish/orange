@@ -149,6 +149,10 @@ public class Patient {
                 idObjects.add(new IDObject(i));
             }
             return idObjects;}
+
+            public boolean favContains(String id){
+        return  favs.contains(id);
+            }
         public ArrayList<IDObject> getMydocs() {
             ArrayList<IDObject> idObjects=new ArrayList<>();
             for(String i:mydocs){

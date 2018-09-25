@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class DoctorProfileForm {
     boolean myDoctor=false;
+    boolean favouriteDoctor=false;
     boolean showPhones=false;
     Doctor doctor;
     Client client;
@@ -66,6 +67,14 @@ public class DoctorProfileForm {
         else{
             rate=-1;
         }
+    }
+
+    public boolean isFavouriteDoctor() {
+        return favouriteDoctor;
+    }
+
+    public void setFavouriteDoctor(boolean favouriteDoctor) {
+        this.favouriteDoctor = favouriteDoctor;
     }
 
     public boolean isMyDoctor() {
