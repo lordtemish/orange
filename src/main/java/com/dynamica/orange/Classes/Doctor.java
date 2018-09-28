@@ -62,6 +62,10 @@ public class Doctor {
         myPatients=new ArrayList<>();
     }
 
+    public void setComments(ArrayList<Comment> comments) {
+        this.comments = comments;
+    }
+
     public ArrayList<Object> getMyPatients() {
         return myPatients;
     }
@@ -140,6 +144,7 @@ public class Doctor {
     }
     public void addComment(Comment s){
         String id=s.getId();
+        String a=new String();
         try {
             if (id.isEmpty()) {
                 id = System.identityHashCode(s) + "";

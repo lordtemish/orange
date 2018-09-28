@@ -21,6 +21,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.Null;
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.nio.file.Files;
@@ -71,6 +72,8 @@ public class MainController {
     public void setProductService(OrangeService service) {
         this.service = service;
     }
+
+
 
     @RequestMapping(value="/",method = RequestMethod.GET)
     public @ResponseBody String defaults(){
@@ -589,14 +592,21 @@ public class MainController {
     }
 
     @RequestMapping(value = "/checkCode", method = RequestMethod.POST)
-    public @ResponseBody Object checkCode(@RequestParam String email, @RequestParam String code){
+    public @ResponseBody Object checkCode(@RequestParam String email, @RequestParam String code, HttpServletRequest request){
         try{
             Client client=clientRepo.findByEmail(email.toLowerCase());
             Token token=null;
+            String ip="";
+            if (request != null) {
+                ip = request.getHeader("X-FORWARDED-FOR");
+                if (ip == null || "".equals(ip)) {
+                    ip = request.getRemoteAddr();
+                }
+            }
             logger.info(client.getAccesscode());
             if(client.getAccesscode().equals(code)){
                 client.setActivated(true);
-                token=new Token(client.getId());
+                token=new Token(client.getId(), ip);
                 tokenRepo.save(token);
             }
             else{
@@ -855,29 +865,41 @@ public class MainController {
     }
     @RequestMapping(value = "/authClient", method = RequestMethod.POST)
     public @ResponseBody Object authDoctor(@RequestParam String email,@RequestParam String password, HttpServletRequest request) throws NoSuchAlgorithmException{
+        try {
             Client client = clientRepo.findByEmail(email.toLowerCase());
-            Token token=tokenRepo.findByClientid(client.getId());
+            String ip="";
+            if (request != null) {
+                ip = request.getHeader("X-FORWARDED-FOR");
+                if (ip == null || "".equals(ip)) {
+                    ip = request.getRemoteAddr();
+                }
+            }
+            Token token = new Token(client.getId(), ip);
+            tokenRepo.save(token);
             logger.info(password);
-            password=hashPass(password);
-            logger.info((client.getPassword().equals(password)&& client.isActivated())+"");
+            password = hashPass(password);
+            logger.info((client.getPassword().equals(password) && client.isActivated()) + "");
             if (client.getPassword().equals(password) && client.isActivated()) {
                 try {
                     Doctor doctor = doctorRepo.findByClientid(client.getId());
 
-                    if(doctor!=null)
-                        return new TokenStatus("doctor",token.getId());
-                    else return  new TokenStatus("patient",token.getId());
+                    if (doctor != null)
+                        return new TokenStatus("doctor", token.getId());
+                    else return new TokenStatus("patient", token.getId());
                 } catch (NullPointerException e) {
                     Patient patient = patientRepo.findByClientid(client.getId());
-                    if(patient!=null) {
+                    if (patient != null) {
                         return new TokenStatus("patient", token.getId());
                     }
                 }
-            }
-            else {
+            } else {
                 return new StatusObject("noclient");
             }
             return new StatusObject("noclient");
+        }
+        catch (NullPointerException e){
+            return new StatusObject("null");
+        }
     }
     @RequestMapping(value="/isAuth",method = RequestMethod.POST)
     public @ResponseBody Object isAuth(@RequestHeader("token") String token,HttpServletRequest request){

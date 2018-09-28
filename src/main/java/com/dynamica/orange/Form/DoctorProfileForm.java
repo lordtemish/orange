@@ -13,6 +13,7 @@ public class DoctorProfileForm {
     boolean myDoctor=false;
     boolean favouriteDoctor=false;
     boolean showPhones=false;
+    List<CommentForm> commentForms=new ArrayList<>();
     Doctor doctor;
     Client client;
     double rate;
@@ -67,6 +68,18 @@ public class DoctorProfileForm {
         else{
             rate=-1;
         }
+    }
+
+    public void setCommentForms(List<CommentForm> commentForms) {
+        this.commentForms = commentForms;
+    }
+
+    public List<CommentForm> getCommentForms() {
+        return commentForms;
+    }
+
+    public void setRate(double rate) {
+        this.rate = rate;
     }
 
     public boolean isFavouriteDoctor() {

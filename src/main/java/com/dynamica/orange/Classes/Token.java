@@ -30,6 +30,10 @@ public class Token {
         admin=false;
     }
 
+    public String getIp() {
+        return ip;
+    }
+
     public boolean isAdmin() {
         return admin;
     }

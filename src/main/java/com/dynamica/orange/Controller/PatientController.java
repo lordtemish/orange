@@ -306,8 +306,16 @@ public class PatientController {
                 if(patientForm==null){
                     patientForm=new myPatientForm(false,false,null);
                 }
+                ArrayList<CommentForm> commentForms= new ArrayList<>();
+                for(Comment j:doctor.getComments()) {
+                    Patient patient1=patientRepo.findById(j.getPatient_id());
+                    Client client2=clientRepo.findById(patient1.getClientid());
+                    CommentForm commentForm=new CommentForm(patient1,client2,j);
+                    commentForms.add(commentForm);
+                }
                 DoctorProfileForm form=new DoctorProfileForm(doctor,client,serviceType,services, cityH,cityW);
                 form.setShowPhones(patientForm.isPhonedoctor());
+                form.setCommentForms(commentForms);
                 List<Order> orders=orderRepo.findByPatientidAndDoctorid(patient.getId(),doctor.getId());
                 int home=0, work=0;
                 for(Order ii:orders){
