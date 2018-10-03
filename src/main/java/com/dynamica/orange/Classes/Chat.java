@@ -13,12 +13,21 @@ public class Chat {
     private String doctorid;
     private String patientid;
     private String status;
+    private ChatRequest chatRequest;
     private int unread;
     Stack<Message> messages;
     public Chat(String doctorid, String patientid){
         this.doctorid=doctorid;
         this.patientid=patientid;
         messages=new Stack<>();
+    }
+
+    public void setChatRequest(ChatRequest chatRequest) {
+        this.chatRequest = chatRequest;
+    }
+
+    public ChatRequest getChatRequest() {
+        return chatRequest;
     }
 
     public int getUnread() {
@@ -82,4 +91,5 @@ public class Chat {
         }
         else return new Message("");
     }
+
 }

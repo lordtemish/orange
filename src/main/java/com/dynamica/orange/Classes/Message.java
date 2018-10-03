@@ -24,6 +24,7 @@ public class Message {
     public Message(String clientid, String type, String info){this.clientid =clientid;this.type=type;this.info=info;time=new Date().getTime();}
     public Message(String clientid, String type, String info, long time){this.clientid =clientid;this.type=type;this.info=info;this.time=time;time=new Date().getTime();}
 
+
     public void setClientinfo(Object clientinfo) {
         this.clientinfo = clientinfo;
     }

@@ -20,9 +20,9 @@ public class ScheduledTask {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-    @Scheduled(fixedRate = 24*60000)
+    @Scheduled(fixedRate = 24*60*60000)
     public void reportCurrentTime() {
-        List<Token> tokens=tokenRepo.findByCurtimestartLessThan(new Date().getTime()-(7*24*60000));
+        List<Token> tokens=tokenRepo.findByCurtimestartLessThan(new Date().getTime()-(7*24*60*60000));
         for(Token i:tokens){
             log.info(""+i.getId()+" "+i.getCurtimestart()+" "+i.getIp());
             tokenRepo.delete(i);

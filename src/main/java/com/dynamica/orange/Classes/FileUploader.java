@@ -1,5 +1,6 @@
 package com.dynamica.orange.Classes;
 
+import com.dynamica.orange.Form.FileObjectForm;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,60 @@ public class FileUploader {
         }
 
 
+    }
+    public String uploadText(String s, String name){
+        try {
+            rootPath = pal;
+
+            File dir = new File(rootPath + File.separator + "filetexts");
+            if (!dir.exists()) {
+                dir.mkdir();
+            }
+            File serverf = new File(dir.getAbsolutePath() + File.separator + name + ".txt");
+            if (serverf.exists()) {
+                return "";
+            }
+            BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverf));
+            stream.write(s.getBytes());
+            stream.close();
+            logger.info(serverf.getAbsolutePath());
+            return serverf.getAbsolutePath();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return "exception";
+        }
+    }
+    public String getFileText(String url){
+        File file=new File(url);
+
+        FileInputStream fis;
+        BufferedInputStream bis;
+        DataInputStream dis;
+        String result="";
+        try {
+            fis = new FileInputStream(file);
+            bis = new BufferedInputStream(fis);
+            dis = new DataInputStream(bis);
+            while (dis.available() != 0) {
+
+                // Here's where you get the lines from your file
+
+                result += dis.readLine() + "\n";
+            }
+
+            fis.close();
+            bis.close();
+            dis.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return "";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+        return result;
     }
     public String uploadMessageFile(MultipartFile file, String name){
         try {
@@ -157,7 +212,13 @@ public class FileUploader {
             return "";
         }
     }
-
+    public FileObjectForm changeToFile(FileObjectForm fileObjectForm){
+        String url=fileObjectForm.getFile();
+        String file=getFileText(url);
+        FileObjectForm fileObjectForm1=new FileObjectForm(file);
+        fileObjectForm.setId(fileObjectForm.getId());
+        return fileObjectForm1;
+    }
     public boolean deleteMessageFile(String url){
         try {
             Files.delete(Paths.get("chat/" + url));
@@ -199,7 +260,14 @@ public class FileUploader {
 
         return encodedString;
     }
+    public byte[] decodeFileFromBase64(String fileName)
+            throws IOException {
 
+        File file = new File(fileName);
+        byte[] encoded = Base64.decodeBase64(fileName);
+
+        return encoded;
+    }
     private static byte[] loadFile(File file) throws IOException {
         InputStream is = new FileInputStream(file);
 

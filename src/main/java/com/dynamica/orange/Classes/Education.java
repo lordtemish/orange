@@ -48,6 +48,10 @@ public class Education {
         return false;
     }
 
+    public void setUrls(ArrayList<Object> urls) {
+        this.urls = urls;
+    }
+
     public String getId() {
         return id;
     }

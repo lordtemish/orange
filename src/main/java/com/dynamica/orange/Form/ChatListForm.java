@@ -12,6 +12,7 @@ public class ChatListForm {
     String status;
     int unread;
     MessageForm message;
+    ChatRequest chatRequest;
     public String serviceInfo="";
     String name;
     String surname;
@@ -22,6 +23,7 @@ public class ChatListForm {
         this.chatid=chat.getId();
         this.status=chat.getStatus();
         this.unread=chat.getUnread();
+        chatRequest=chat.getChatRequest();
         this.message=message;
         if(client.getDadname()==null){
             client.setDadname("");
@@ -42,6 +44,7 @@ public class ChatListForm {
         this.chatid=chat.getId();
         this.status=chat.getStatus();
         this.unread=chat.getUnread();
+        chatRequest=chat.getChatRequest();
         this.message=message;
         this.serviceInfo=serviceInfo;
         if((new Date().getTime())-client.getLastOnline()<=600000) {
@@ -58,6 +61,14 @@ public class ChatListForm {
         dadname=client.getDadname();
         if(client.getPhotourl().size()>0)
             photo=client.getPhotourl().get(client.getPhotourl().size()-1);
+    }
+
+    public ChatRequest getChatRequest() {
+        return chatRequest;
+    }
+
+    public void setChatRequest(ChatRequest chatRequest) {
+        this.chatRequest = chatRequest;
     }
 
     public String getServiceInfo() {

@@ -8,5 +8,6 @@ import java.util.List;
 public interface EventRepo extends MongoRepository<Event, String> {
     public Event findEventById(String id);
     public List<Event> findByDoctorid(String doctorid);
+    public List<Event> findByDoctoridAndChosenTimeBetween(String doctorid, long min, long max);
     public List<Event> findAll();
 }

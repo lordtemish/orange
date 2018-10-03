@@ -127,7 +127,6 @@ public class MainController {
     @RequestMapping(value = {"/allcity"},method = RequestMethod.POST)
     public @ResponseBody Object getCities(HttpServletRequest request){
         return cityRepo.findAll();
-
     }
 
         @RequestMapping(value = {"/cityadd"},method = RequestMethod.POST)
@@ -778,8 +777,39 @@ public class MainController {
             return null;
         }
     }
-    @RequestMapping(value = "/getFileasBase", method = RequestMethod.POST)
+    @RequestMapping(value="/addFile", method = RequestMethod.POST)
+    public @ResponseBody Object fileadd(@RequestHeader("token") String token,@RequestParam String file, @RequestParam String name, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null) {
+            if (tok.isAdmin()) {
+                int l=0;
+                while(true) {
+                    String res=fileUploader.uploadText(file, name+l);
+                    if(!res.equals("")){
+                        return new FileObjectForm(res);
+                    }
+                    else if(res.equals("exception")){
+                        break;
+                    }
+                    else{
+                        l++;
+                    }
+                }
+            }
+        }
 
+        return new StatusObject("noauth");
+    }
+    @RequestMapping(value = "/getFileEncoded", method = RequestMethod.POST)
+    public   @ResponseBody Object getFIleEncoded(@RequestParam String url,HttpServletResponse response, HttpServletRequest request) throws IOException{
+        String s = fileUploader.getFileText(url);
+        if(s.equals("")){
+            return new StatusObject("nofile");
+        }
+        FileObjectForm fileObjectForm=new FileObjectForm(s);
+        return fileObjectForm;
+    }
+    @RequestMapping(value = "/getFileasBase", method = RequestMethod.POST)
     public   @ResponseBody Object getImage(@RequestParam String url,HttpServletResponse response, HttpServletRequest request) throws IOException{
 
         return new TextObject(fileUploader.encodeFileToBase64Binary(url));
@@ -790,6 +820,8 @@ public class MainController {
         return new HttpEntity<byte[]>(image, headers);
         */
     }
+
+
     @RequestMapping(value="/getAllChats", method = RequestMethod.POST)
     public @ResponseBody Object getAllChat(@RequestHeader("token") String token,HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
@@ -847,7 +879,7 @@ public class MainController {
         }
         return new StatusObject("noauth");
     }
-    @RequestMapping(value="/deleteOrdersWithoutServices",method=RequestMethod.POST)
+    @RequestMapping(value="/deleteOrdersWithoutServices",   method=RequestMethod.POST)
     public @ResponseBody Object deleteOrdersById(@RequestHeader("token") String token, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
         if(tok!=null) {
