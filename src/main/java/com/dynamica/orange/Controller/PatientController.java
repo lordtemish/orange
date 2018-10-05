@@ -13,6 +13,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -189,11 +191,11 @@ public class PatientController {
 
                 clientRepo.save(client);
                 ArrayList<Object> photos=new ArrayList<>();
-                if(client.getPhotourl().size()>0){
+                /*if(client.getPhotourl().size()>0){
                     FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                     photos.add(fileObjectForm);
                 }
-                client.setPhotourl(photos);
+                client.setPhotourl(photos);*/
                 ClientWithPatientForm clientWithPatientForm = new ClientWithPatientForm(client, patient);
             return clientWithPatientForm;
         }
@@ -211,12 +213,12 @@ public class PatientController {
                 Client client=clientRepo.findById(tok.getClientid());
                 client.onReqested();
                 clientRepo.save(client);
-                ArrayList<Object> photos=new ArrayList<>();
+              /*  ArrayList<Object> photos=new ArrayList<>();
                 if(client.getPhotourl().size()>0){
                     FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                     photos.add(fileObjectForm);
                 }
-                client.setPhotourl(photos);
+                client.setPhotourl(photos);*/
                 City simple=new City("","");
                 City workCity=simple; City homeCity=simple;
 
@@ -290,12 +292,13 @@ public class PatientController {
                 client1.onReqested();
                 clientRepo.save(client1);
 
-                ArrayList<Object> photos=new ArrayList<>();
+               /* ArrayList<Object> photos=new ArrayList<>();
                 if(client.getPhotourl().size()>0){
                     FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                     photos.add(fileObjectForm);
                 }
-                client.setPhotourl(photos);
+                client.setPhotourl(photos);*/
+               /*
                 for(Education education:doctor.getEducations()){
                     ArrayList<Object> files=new ArrayList<>();
                     for(Object j:education.getUrls()){
@@ -307,7 +310,7 @@ public class PatientController {
                     education.setUrls(files);
                     doctor.setEducationById(education.getId(),education);
                 }
-
+*/
                 ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                 List<Service> services=new ArrayList<>();
                 for(IDObject i:doctor.getServices()){
@@ -338,6 +341,13 @@ public class PatientController {
                 if(patientForm==null){
                     patientForm=new myPatientForm(false,false,null);
                 }
+                /*ArrayList<Object> files=new ArrayList<>();
+                for (Object c:doctor.getCertificates()){
+                    FileObjectForm f=(FileObjectForm) c;
+                    FileObjectForm file=fileUploader.changeToFile(f);
+                    files.add(file);
+                }
+                doctor.setCertificates(files);*/
                 ArrayList<CommentForm> commentForms= new ArrayList<>();
                 for(Comment j:doctor.getComments()) {
                     Patient patient1=patientRepo.findById(j.getPatient_id());
@@ -445,11 +455,12 @@ public class PatientController {
                     Patient patient=patientRepo.findById(i.getPatient_id());
                     Client client1=clientRepo.findById(patient.getClientid());
                     ArrayList<Object> photos=new ArrayList<>();
+                    /*
                     if(client1.getPhotourl().size()>0){
                         FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client1.getPhotourl().get(client1.getPhotourl().size()-1));
                         photos.add(fileObjectForm);
                     }
-                    client1.setPhotourl(photos);
+                    client1.setPhotourl(photos);*/
                     CommentForm form=new CommentForm(patient,client1,i);
                     forms.add(form);
                 }
@@ -492,12 +503,13 @@ public class PatientController {
                             services.add(serviceRepo.findById(j.getId()));
                         }
                         Client client1= clientRepo.findById(i.getClientid());
+                        /*
                         ArrayList<Object> photos=new ArrayList<>();
                         if(client1.getPhotourl().size()>0){
                             FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client1.getPhotourl().get(client1.getPhotourl().size()-1));
                             photos.add(fileObjectForm);
                         }
-                        client1.setPhotourl(photos);
+                        client1.setPhotourl(photos);*/
                         doctorListForms.add(
                                 new DoctorListForm(
                                         i,
@@ -549,13 +561,13 @@ public class PatientController {
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
                         }
-                        Client client1= clientRepo.findById(i.getClientid());
+                        Client client1= clientRepo.findById(i.getClientid());/*
                         ArrayList<Object> photos=new ArrayList<>();
                         if(client1.getPhotourl().size()>0){
                             FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client1.getPhotourl().get(client1.getPhotourl().size()-1));
                             photos.add(fileObjectForm);
                         }
-                        client1.setPhotourl(photos);
+                        client1.setPhotourl(photos);*/
                         doctorListForms.add(
                                 new DoctorListForm(
                                         i,
@@ -605,13 +617,13 @@ public class PatientController {
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
                         }
-                        Client client1= clientRepo.findById(i.getClientid());
+                        Client client1= clientRepo.findById(i.getClientid());/*
                         ArrayList<Object> photos=new ArrayList<>();
                         if(client1.getPhotourl().size()>0){
                             FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client1.getPhotourl().get(client1.getPhotourl().size()-1));
                             photos.add(fileObjectForm);
                         }
-                        client1.setPhotourl(photos);
+                        client1.setPhotourl(photos);*/
                         doctorListForms.add(
                                 new DoctorListForm(
                                         i,
@@ -664,12 +676,12 @@ public class PatientController {
                                 services.add(serviceRepo.findById(j.getId()));
                             }
                             Client client1= clientRepo.findById(i.getClientid());
-                            ArrayList<Object> photos=new ArrayList<>();
+                            ArrayList<Object> photos=new ArrayList<>();/*
                             if(client1.getPhotourl().size()>0){
                                 FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client1.getPhotourl().get(client1.getPhotourl().size()-1));
                                 photos.add(fileObjectForm);
                             }
-                            client1.setPhotourl(photos);
+                            client1.setPhotourl(photos);*/
                             doctorListForms.add(
                                     new DoctorListForm(
                                             i,
@@ -729,13 +741,13 @@ public class PatientController {
                 for(IDObject i:patient.getFavs()){
                     Doctor doctor=doctorRepo.findById(i.getId());
                     Client client=clientRepo.findById(doctor.getClientid());
-                    ArrayList<Object> photos=new ArrayList<>();
+                    ArrayList<Object> photos=new ArrayList<>();/*
                     if(client.getPhotourl().size()>0){
                         FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                         fileObjectForm.setId(((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1)).getId());
                         photos.add(fileObjectForm);
                     }
-                    client.setPhotourl(photos);
+                    client.setPhotourl(photos);*/
                     ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                     ArrayList<Service> services=new ArrayList<>();
                     for(IDObject jj:doctor.getServices()){
@@ -761,14 +773,14 @@ public class PatientController {
             List<PatientRequestForm> requestForms=new ArrayList<>();
             for(IDObject i:patient.getMydocs()){
                 Doctor doctor=doctorRepo.findById(i.getId());
-                Client client=clientRepo.findById(doctor.getClientid());
+                Client client=clientRepo.findById(doctor.getClientid());/*
                 ArrayList<Object> photos=new ArrayList<>();
                 if(client.getPhotourl().size()>0){
                     FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                     fileObjectForm.setId(((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1)).getId());
                     photos.add(fileObjectForm);
                 }
-                client.setPhotourl(photos);
+                client.setPhotourl(photos);*/
                 ServiceType serviceType=serviceTypeRepo.findById(doctor.getServicetypeid()+"");
                 ArrayList<Service> services=new ArrayList<>();
                 for(String ii:doctor.getServicesList()){
@@ -825,13 +837,13 @@ public class PatientController {
                 Client client=clientRepo.findById(doctor.getClientid());
 
 
-                ArrayList<Object> photos=new ArrayList<>();
+/*                ArrayList<Object> photos=new ArrayList<>();
                 if(client.getPhotourl().size()>0){
                     FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                     fileObjectForm.setId(((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1)).getId());
                     photos.add(fileObjectForm);
                 }
-                client.setPhotourl(photos);
+                client.setPhotourl(photos);*/
                 boolean a=false;
                 myPatientForm form=doctor.getPatientbyId(patient.getId());
                 if(form==null){
@@ -882,7 +894,9 @@ public class PatientController {
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Client client = clientRepo.findById(tok.getClientid());
-            client.addEmail(mail);
+            ArrayList<String> strings=new ArrayList<>();
+            strings.add(mail);
+            client.setMails(strings);
             client.onReqested();
             clientRepo.save(client);
             return new StatusObject("ok");
@@ -908,7 +922,9 @@ public class PatientController {
             if(tok!=null){
                 Client client = clientRepo.findById(tok.getClientid());
             Patient patient = patientRepo.findByClientid(tok.getClientid());
-            client.addPhone(phone);
+            ArrayList<String> strings=new ArrayList<>();
+            strings.add(phone);
+            client.setPhones(strings);
             client.onReqested();
             clientRepo.save(client);return new StatusObject("ok");
         }
@@ -952,6 +968,7 @@ public class PatientController {
     @RequestMapping(value = {"/addAddress"}, method = RequestMethod.POST)
     public @ResponseBody Object addAddress(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
+
             if(tok!=null){
                 Client client=clientRepo.findById(tok.getClientid());
                 client.onReqested();
@@ -1015,7 +1032,7 @@ public class PatientController {
         return new StatusObject("noauth");
     }
     @RequestMapping(value = {"/addPhoto"}, method = RequestMethod.POST)
-    public @ResponseBody Object addPhoto(@RequestHeader("token") String token, @RequestParam String file, RedirectAttributes redirectAttributes, HttpServletRequest request){
+    public @ResponseBody Object addPhoto(@RequestHeader("token") String token, @RequestParam String file, RedirectAttributes redirectAttributes, HttpServletRequest request) throws IOException {
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
             if (file.isEmpty()) {
@@ -1024,9 +1041,12 @@ public class PatientController {
             } else {
                 Client client = clientRepo.findById(tok.getClientid());
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
+
+                byte[] byteFile=fileUploader.decodeFileFromBase64(file);
                 int l=0;
                 while(true) {
-                    String res=fileUploader.uploadText(file, "order"+patient.getId()+l);
+                    //String res=fileUploader.uploadText(file, "photo"+patient.getId()+l);
+                    String res=fileUploader.savePhoto(byteFile,"photo"+patient.getId()+l+".jpeg");
                     if(!res.equals("")){
                         file=res;
                         break;
@@ -1038,7 +1058,13 @@ public class PatientController {
                         l++;
                     }
                 }
-                FileObjectForm fileObjectForm=new FileObjectForm(file);
+                String file1=fileUploader.getLhost()+"?url="+file;
+                FileObjectForm fileObjectForm=new FileObjectForm(file1);
+                fileObjectForm.setUrl(file);
+                fileObjectForm.setType("photo");
+                if(client.getPhotourl().size()>0){
+                    fileUploader.deleteFile(((FileObjectForm)client.getPhotourl().get(0)).getUrl());
+                }
                 client.addPhoto(fileObjectForm);
                 clientRepo.save(client);
             }
@@ -1053,7 +1079,8 @@ public class PatientController {
 
                 Client client = clientRepo.findById(tok.getClientid());
                 boolean deleted=true;
-                fileUploader.deleteFile(client.getPhotourl().get(client.getPhotourl().size()-1)+"");
+                if(client.getPhotourl().size()>0)
+                fileUploader.deleteFile(((FileObjectForm) client.getPhotourl().get(0)).getUrl());
                 client.deletePhoto();
                 client.onReqested();
                 clientRepo.save(client);
@@ -1240,14 +1267,14 @@ public class PatientController {
             if(tok!=null){
                 Client client=clientRepo.findById(tok.getClientid());
                 client.onReqested();
-                clientRepo.save(client);
+                clientRepo.save(client);/*
                 ArrayList<Object> photos=new ArrayList<>();
                 if(client.getPhotourl().size()>0){
                     FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                     fileObjectForm.setId(((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1)).getId());
                     photos.add(fileObjectForm);
                 }
-                client.setPhotourl(photos);
+                client.setPhotourl(photos);*/
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             List<Doctor> list = new ArrayList<>();
             for (IDObject i : patient.getMydocs()) {
@@ -1300,7 +1327,7 @@ public class PatientController {
                             return new StatusObject("open");
                     }
                 }
-                return new ChatIdForm(chat.getId());
+                return new ChatIdForm(chat.getId(), null);
             }
             else return new StatusObject("noauth");
         }
@@ -1334,7 +1361,11 @@ public class PatientController {
                     chatRepo.save(chat1);
                     chat = chatRepo.findOneByDoctoridAndPatientid(doctorid, id);
                 }
-                return new ChatIdForm(chat.getId());
+                FileObjectForm fileObjectForm=null;
+              /*  if(client.getPhotourl().size()>0){
+                    fileObjectForm=fileUploader.changeToFile((FileObjectForm)client.getPhotourl().get(0));
+                }*/
+                return new ChatIdForm(chat.getId(),fileObjectForm);
             }
             else return new StatusObject("noauth");
         }
@@ -1363,9 +1394,14 @@ public class PatientController {
         try{
            Token tok= tokenRepo.findById(token);
             if(tok!=null){
+              //  ChatListWholeForm wholeForm=new ChatListWholeForm();
                 Client client11=clientRepo.findById(tok.getClientid());
                 client11.onReqested();
                 clientRepo.save(client11);
+                /*if(client11.getPhotourl().size()>0){
+                    FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm)client11.getPhotourl().get(0));
+                    wholeForm.setMyphoto(fileObjectForm);
+                }*/
                 Patient patient;
                 try {
                     patient = patientRepo.findByClientid(tok.getClientid());
@@ -1379,6 +1415,7 @@ public class PatientController {
                     Client oppClient;
                     try {
                         oppClient = clientRepo.findById(doctorRepo.findById(i.getDoctorid()).getClientid());
+                        /*
                         ArrayList<Object> photos=new ArrayList<>();
                         if(oppClient.getPhotourl().size()>0){
                             FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) oppClient.getPhotourl().get(oppClient.getPhotourl().size()-1));
@@ -1386,6 +1423,7 @@ public class PatientController {
                             photos.add(fileObjectForm);
                         }
                         oppClient.setPhotourl(photos);
+                        */
                     }
                     catch (NullPointerException e){
                         continue;
@@ -1396,11 +1434,15 @@ public class PatientController {
                     Doctor doctor = doctorRepo.findById(i.getDoctorid());
                     if(i.getMessages().size()>0) {
                         Message message = i.getLastMessage();
-                        if (message.getType().equals("photo") || message.getType().equals("audio")) ;
+
+                        if (message.getType().equals("audio") )
                         {
-                            FileObjectForm fileObjectForm = fileUploader.changeToFile((FileObjectForm) message.getInfo());
+                            FileObjectForm objectForm=(FileObjectForm) message.getInfo();
+                            FileObjectForm fileObjectForm = fileUploader.changeToFile(objectForm);
+                            fileObjectForm.setId(objectForm.getId());
                             message.setInfo(fileObjectForm);
                         }
+
                         client = clientRepo.findById(message.getClientid() + "");
 
 
@@ -1455,7 +1497,9 @@ public class PatientController {
                     }
                     forms.add(new ChatListForm(i, form, doctor, oppClient,serviceInfo));
                 }
-                return forms;
+              /*  wholeForm.setResults(forms);
+                return wholeForm;*/
+              return forms;
             }
             else return new StatusObject("noauth");
         }
@@ -1477,6 +1521,9 @@ public class PatientController {
                 if(chat.getChatRequest().equals(ChatRequest.DOCTOR_ACCEPTED)) {
                     Message message = new Message(doctor.getClientid(), "text", text);
                     chat.addMessage(message);
+                    if(chat.getStatus().equals("doctor")){
+                        chat.setUnread(0);
+                    }
                     chat.setStatus("patient");
                     chat.unreadPlus();
                     chatRepo.save(chat);
@@ -1491,6 +1538,41 @@ public class PatientController {
         catch (Exception e){
             e.printStackTrace();
             return new StatusObject("exception");
+        }
+    }
+    @RequestMapping(value="/deleteMessage", method = RequestMethod.POST)
+    public @ResponseBody Object deleteMessage(@RequestHeader("token") String token, @RequestParam String chatid,@RequestParam String messageid, HttpServletRequest request) {
+        try {
+            Token tok = tokenRepo.findById(token);
+            if(tok!=null) {
+                Client cliqqent = clientRepo.findById(tok.getClientid());
+                cliqqent.onReqested();
+                clientRepo.save(cliqqent);
+                Patient patient = patientRepo.findByClientid(tok.getClientid());
+                Chat chat = chatRepo.findById(chatid);
+                List<Message> messages=new ArrayList<>();
+                messages.addAll(chat.getMessages());
+                boolean deleted=false;
+                for(Message i:messages){
+                    if(i.getId().equals(messageid)){
+                        messages.remove(i);
+                        deleted=true;
+                        break;
+                    }
+                }
+                if(deleted){
+                    chat.setMessages(messages);
+                    chatRepo.save(chat);
+                    return new StatusObject("ok");
+                }
+                else
+                    return new StatusObject("noobject");
+            }
+            else {
+                return new StatusObject("noauth");
+            }
+        } catch (Exception e) {
+            return new StatusObject("exeption");
         }
     }
     @RequestMapping(value="/getMessages", method = RequestMethod.POST)
@@ -1510,18 +1592,20 @@ public class PatientController {
                 List<MessageForm> formList=new ArrayList<>();
                 for(Message i:list){
                     Doctor doctor=doctorRepo.findByClientid(i.getClientid()+"");
-                    Client client=clientRepo.findById(i.getClientid()+"");
+                    Client client=clientRepo.findById(i.getClientid()+"");/*
                     ArrayList<Object> photos=new ArrayList<>();
                     if(client.getPhotourl().size()>0){
                         FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                         fileObjectForm.setId(((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1)).getId());
                         photos.add(fileObjectForm);
                     }
-                    client.setPhotourl(photos);
-                    if(i.getType().equals("photo") || i.getType().equals("audio"));{
+                    client.setPhotourl(photos);*/
+
+                    if(i.getType().equals("audio")){
                         FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm)i.getInfo());
                         i.setInfo(fileObjectForm);
                     }
+
                     if(doctor!=null){
                         MessageForm form= new MessageForm(i,client,doctor);
                         form.setMymessage(false);
@@ -1557,11 +1641,27 @@ public class PatientController {
                     chat.addMessage(message);
                     message = chat.getMessages().get(chat.getMessages().size() - 1);
                     chat.getMessages().remove(message);
+                    if(chat.getStatus().equals("patient")){
+                        chat.setUnread(0);
+                    }
                     chat.setStatus("patient");
                     chat.unreadPlus();
+
                     int l = 0;
+                    byte[] byteFile=null;
+                    if(type.equals("photo")) byteFile=fileUploader.decodeFileFromBase64(file);
+                    String url="";
                     while (true) {
-                        String res = fileUploader.uploadText(file, "order" + message.getId() + l);
+                        String res="";
+                        if(type.equals("audio")) {
+                         res=fileUploader.uploadText(file, "chat" + message.getId() + l);
+                         url=res;
+                        }
+                        else {
+
+                            res = fileUploader.savePhoto(byteFile, "chat" + chat.getId() + l + ".jpeg");
+                            url=res+"";
+                        }
                         if (!res.equals("")) {
                             file = res;
                             break;
@@ -1571,7 +1671,11 @@ public class PatientController {
                             l++;
                         }
                     }
+                    if(type.equals("photo"))
+                    file=fileUploader.getLhost()+"?url="+file;
                     FileObjectForm fileObjectForm = new FileObjectForm(file);
+                    fileObjectForm.setType(type);
+                    fileObjectForm.setUrl(url);
                     message.setInfo(fileObjectForm);
                     chat.getMessages().add(message);
                     chatRepo.save(chat);
@@ -1752,9 +1856,21 @@ public class PatientController {
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 Order order = orderRepo.findById(orderid);
+
+                byte[] byteFile=null;
+                if(type.equals("photo")) byteFile=fileUploader.decodeFileFromBase64(file);
                 int l=0;
+                String url="";
                 while(true) {
-                    String res=fileUploader.uploadText(file, "order"+order.getId()+l);
+                    String res;
+                    if(type.equals("audio")) {
+                        res = fileUploader.uploadText(file, "order" + order.getId() + l);
+                        url=res;
+                    }
+                    else{
+                        res=fileUploader.savePhoto(byteFile,"order"+orderid+l+".jpeg");
+                        url=res;
+                    }
                     if(!res.equals("")){
                         file=res;
                         break;
@@ -1766,7 +1882,12 @@ public class PatientController {
                         l++;
                     }
                 }
+                if(type.equals("photo")){
+                    file=fileUploader.getLhost()+"?url="+file;
+                }
                FileObjectForm fileObjectForm=new FileObjectForm(file);
+                fileObjectForm.setUrl(url);
+                fileObjectForm.setType(type);
                 switch (type) {
                     case "audio":
                         order.setAudioMessage(fileObjectForm);
@@ -1871,13 +1992,14 @@ public class PatientController {
                 Client client=clientRepo.findById(tok.getClientid());
                 client.onReqested();
                 clientRepo.save(client);
+                /*
                 ArrayList<Object> photos=new ArrayList<>();
                 if(client.getPhotourl().size()>0){
                     FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                     fileObjectForm.setId(((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1)).getId());
                     photos.add(fileObjectForm);
                 }
-                client.setPhotourl(photos);
+                client.setPhotourl(photos);*/
                 Patient patient=patientRepo.findByClientid(tok.getClientid());
                 String id=patient.getId();
                 return orderRepo.findByPatientid(id);
@@ -1900,6 +2022,7 @@ public class PatientController {
                 Order order=orderRepo.findById(orderid);
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 Client clientd=clientRepo.findById(doctor.getClientid());
+                /*
                 ArrayList<Object> photos=new ArrayList<>();
                 if(clientd.getPhotourl().size()>0){
                     FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) clientd.getPhotourl().get(clientd.getPhotourl().size()-1));
@@ -1907,7 +2030,7 @@ public class PatientController {
                     photos.add(fileObjectForm);
                 }
                 clientd.setPhotourl(photos);
-
+*//*
                 for(Education education:doctor.getEducations()){
                     ArrayList<Object> files=new ArrayList<>();
                     for(Object j:education.getUrls()){
@@ -1918,7 +2041,7 @@ public class PatientController {
                     }
                     education.setUrls(files);
                     doctor.setEducationById(education.getId(),education);
-                }
+                }*/
 
                 Patient patient=patientRepo.findById(order.getPatientid());
                 Client clientp  =clientRepo.findById(patient.getClientid());
@@ -1928,6 +2051,13 @@ public class PatientController {
                     services1.add(serviceRepo.findById(j+""));
                 }
                 order.setServices(services1);
+
+                if(order.getAudiohealing()!=null){
+                    FileObjectForm fileObjectForm=(FileObjectForm)order.getAudiohealing();
+                    FileObjectForm ss=fileUploader.changeToFile(fileObjectForm);
+                    order.setAudiohealing(ss);
+                }
+
                 List<Object> services=new ArrayList<>();
                 for(Object i: order.getOwnServices()){
                     for (OwnService jj : doctor.getOwns()) {
@@ -1976,14 +2106,14 @@ public class PatientController {
                        continue;
                     }
                     else {
-                        Client client = clientRepo.findById(doctor.getClientid());
+                        Client client = clientRepo.findById(doctor.getClientid());/*
                         ArrayList<Object> photos=new ArrayList<>();
                         if(client.getPhotourl().size()>0){
                             FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1));
                             fileObjectForm.setId(((FileObjectForm) client.getPhotourl().get(client.getPhotourl().size()-1)).getId());
                             photos.add(fileObjectForm);
                         }
-                        client.setPhotourl(photos);
+                        client.setPhotourl(photos);*/
                     ServiceType serviceType = serviceTypeRepo.findById(doctor.getServicetypeid() + "");
                     ArrayList<Service> services = new ArrayList<>();
                     for (Object j : i.getServices()) {

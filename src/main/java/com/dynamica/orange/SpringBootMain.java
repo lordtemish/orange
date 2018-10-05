@@ -1,5 +1,6 @@
 package com.dynamica.orange;
 import com.dynamica.orange.Receiver.OrangeMessageListener;
+import com.dynamica.orange.Service.FireBaseMain;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -21,6 +22,7 @@ public class SpringBootMain extends SpringBootServletInitializer {
     public static void main(String[] args) throws Exception {
         SpringApplication.run(SpringBootMain.class, args);
     }
+
     // Override the configure method from the SpringBootServletInitializer class
    /* @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {

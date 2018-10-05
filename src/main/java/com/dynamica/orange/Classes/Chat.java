@@ -2,6 +2,7 @@ package com.dynamica.orange.Classes;
 
 import org.springframework.data.annotation.Id;
 
+import java.util.List;
 import java.util.Stack;
 
 /**
@@ -28,6 +29,11 @@ public class Chat {
 
     public ChatRequest getChatRequest() {
         return chatRequest;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages.clear();
+        this.messages.addAll(messages);
     }
 
     public int getUnread() {
@@ -89,7 +95,7 @@ public class Chat {
         if (messages.size() > 0) {
             return messages.get(messages.size() - 1);
         }
-        else return new Message("");
+        else return null;
     }
 
 }

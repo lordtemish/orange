@@ -17,8 +17,10 @@ import java.nio.file.Paths;
  */
 public class FileUploader {
     Logger logger= Logger.getLogger(FileUploader.class);
+   // private String pal="/home/lordtemich/Desktop/myTickeet_files/";
     private String pal="/home/ps/files/";
     String rootPath = System.getProperty("catalina.home");
+    String lhost="http://78.40.109.19:8080/orange/Image/";
     public FileUploader(){}
 
     public String upload(MultipartFile file, String name){
@@ -69,6 +71,11 @@ public class FileUploader {
 
 
     }
+
+    public String getPath() {
+        return pal;
+    }
+
     public String uploadText(String s, String name){
         try {
             rootPath = pal;
@@ -213,10 +220,11 @@ public class FileUploader {
         }
     }
     public FileObjectForm changeToFile(FileObjectForm fileObjectForm){
-        String url=fileObjectForm.getFile();
+        String url=fileObjectForm.getUrl();
         String file=getFileText(url);
         FileObjectForm fileObjectForm1=new FileObjectForm(file);
         fileObjectForm.setId(fileObjectForm.getId());
+        fileObjectForm1.setType(fileObjectForm.getType());
         return fileObjectForm1;
     }
     public boolean deleteMessageFile(String url){
@@ -268,6 +276,34 @@ public class FileUploader {
 
         return encoded;
     }
+    public String savePhoto(byte[] file, String name){
+        OutputStream opStream = null;
+        try {
+            byte[] byteContent = file;
+            File myFile = new File(pal+"photo/"+name);
+            // check if file exist, otherwise create the file before writing
+            if (!myFile.exists()) {
+                myFile.createNewFile();
+            }
+            else{
+                return "";
+            }
+            opStream = new FileOutputStream(myFile);
+            opStream.write(byteContent);
+            opStream.flush();
+            String url= myFile.getAbsolutePath();
+            return url;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "exception";
+        }
+
+    }
+
+    public String getLhost() {
+        return lhost;
+    }
+
     private static byte[] loadFile(File file) throws IOException {
         InputStream is = new FileInputStream(file);
 

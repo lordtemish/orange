@@ -3,7 +3,9 @@ package com.dynamica.orange.Controller;
 import com.dynamica.orange.Classes.*;
 import com.dynamica.orange.Form.FileObjectForm;
 import com.dynamica.orange.Repo.*;
+import com.dynamica.orange.Service.FireBaseMain;
 import com.dynamica.orange.Service.OrangeService;
+import com.dynamica.orange.SpringBootMain;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -39,6 +41,7 @@ import java.util.Random;
 public class MainController {
     private Logger logger = LoggerFactory.getLogger(MainController.class);
     FileUploader fileUploader=new FileUploader();
+
     private Mailing mailing=new Mailing();
     private OrangeService service;
     @Autowired
@@ -845,6 +848,12 @@ public class MainController {
         return new StatusObject("noauth");
     }
 
+    @RequestMapping(value = "/Image/", method = RequestMethod.GET)
+    public ResponseEntity<byte[]> getImage(@RequestParam String url) throws IOException {
+        File file=new File(url);
+        byte[] image =Files.readAllBytes(file.toPath());
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(image);
+    }
     @RequestMapping(value="/getAllOrders",method = RequestMethod.POST)
     public @ResponseBody Object getAllOrders(@RequestHeader("token") String token,HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
@@ -941,4 +950,9 @@ public class MainController {
         return new StatusObject("noauth");
     }
 
+    @RequestMapping(value = "/testFireBase",method = RequestMethod.POST)
+    public @ResponseBody Object testFire(@RequestHeader("token") String token){
+
+        return "";
+    }
 }

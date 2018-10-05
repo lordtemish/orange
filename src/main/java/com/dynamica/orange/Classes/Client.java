@@ -103,6 +103,15 @@ public class Client {
     public void deletePhoto(){
         photourl.clear();
     }
+
+    public void setMails(ArrayList<String> mails) {
+        this.mails = mails;
+    }
+
+    public void setPhones(ArrayList<String> phones) {
+        this.phones = phones;
+    }
+
     public boolean deletePhoto(String id){
 
         for(Object i:photourl){
@@ -152,6 +161,22 @@ public class Client {
     public String getPassword(){return password;}
     public String getGender() {return gender;}
     public ArrayList<String> getPhones(){return phones;}
+    public boolean setPhoneByIndex(int i, String s){
+        if(phones.size()>i) {
+            phones.set(i, s);
+                    return true;
+        }
+        else
+            return false;
+    }
+    public boolean setMailByIndex(int i, String s){
+        if(mails.size()>i) {
+            mails.set(i, s);
+            return true;
+        }
+        else
+            return false;
+    }
     public ArrayList<String> getMails(){return mails;}
 
     public ArrayList<Object> getPhotourl() {

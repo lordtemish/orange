@@ -4,9 +4,18 @@ public class FileObjectForm {
     String id;
     String file;
     String type;
-    public FileObjectForm(String file){
+    String url;
+    public  FileObjectForm(String file){
         id=System.identityHashCode(file)+"";
         this.file=file;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getType() {
