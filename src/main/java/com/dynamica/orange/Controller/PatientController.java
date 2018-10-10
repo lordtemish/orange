@@ -3,6 +3,10 @@ package com.dynamica.orange.Controller;
 import com.dynamica.orange.Classes.*;
 import com.dynamica.orange.Form.*;
 import com.dynamica.orange.Repo.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import javafx.concurrent.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +19,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by lordtemich on 10/27/17.
@@ -49,6 +50,8 @@ public class PatientController {
     DoctorRepo doctorRepo;
     @Autowired
     ChatRepo chatRepo;
+    @Autowired
+    AppointmentRepo appointmentRepo;
     @Autowired
     OrderRepo orderRepo;
 
@@ -156,7 +159,10 @@ public class PatientController {
        try {
            Token tok= tokenRepo.findById(token);
            if(tok!=null) {
-               Patient patient = new Patient(tok.getClientid());
+               Patient patient=patientRepo.findByClientid(tok.getClientid());
+               if(patient==null){
+                    patient= new Patient(tok.getClientid());
+               }
                Client client = clientRepo.findById(tok.getClientid());
                client.onReqested();
                patient.setGender(gender.toUpperCase());
@@ -372,6 +378,14 @@ public class PatientController {
                 form.setCommings(work);
                 form.setMyDoctor(patient.docContains(doctorid));
                 form.setFavouriteDoctor(patient.favContains(doctorid));
+
+                ArrayList<Comment> comments=doctor.getComments();
+                for(Comment i:comments){
+                    Patient patient2=patientRepo.findById(i.getPatient_id());
+                    Client clientp=clientRepo.findById(patient2.getClientid());
+                    i.setPatient(new PatientListForm(patient2,clientp));
+                }
+                doctor.setComments(comments);
                 return form;
             }
             return new StatusObject("noauth");
@@ -379,6 +393,103 @@ public class PatientController {
         catch (Exception e){
             e.printStackTrace();
             return new StatusObject("exception");
+        }
+    }
+    @RequestMapping(value={"/getScheduleByDay"},method = RequestMethod.POST)
+    public @ResponseBody Object getSchedulebyDay(@RequestHeader("token") String token,@RequestParam String doctorid, @RequestParam long time){
+        try {
+            Token tok = tokenRepo.findById(token);
+            if (tok != null) {
+                Doctor doctor=doctorRepo.findById(doctorid);
+                DoctorScheduleForm scheduleForm=new DoctorScheduleForm();
+                Schedule work=doctor.getWorkSchedule();
+                Schedule home=doctor.getHomeSchedule();
+
+                Calendar calendar=Calendar.getInstance();
+                calendar.setTime(new Date(time));
+                calendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.get(Calendar.DAY_OF_MONTH),0,0,0);
+                int dow=calendar.get(Calendar.DAY_OF_WEEK);
+                long start=calendar.getTimeInMillis();
+                long stop=start+(24*60*60*1000);
+                List<ScheduleForm> works=new ArrayList<>();
+                List<ScheduleForm> homes=new ArrayList<>();
+
+                List<Appointment> appointments=appointmentRepo.findByDoctoridAndDayBetween(doctor.getId(),start,stop);
+                List<Appointment> appointmentWorks=new ArrayList<>();
+                List<Appointment> appointmentHomes=new ArrayList<>();
+                for(Appointment aa:appointments){
+                    if(aa.isOrder()) {
+                        Order order = orderRepo.findById(aa.getOrderid());
+                        if(order.isAtwork()){
+                            appointmentWorks.add(aa);
+                        }
+                        else{
+                            appointmentHomes.add(aa);
+                        }
+                    }
+                }
+                if(work!=null){
+                    List<ScheduleForm> forms=getScheduleForms(dow,work);
+                    if(forms!=null){
+                        for(int i=0;i<forms.size();i++){
+                            ScheduleForm form=forms.get(i);
+                            for(Appointment aa:appointmentWorks){
+                                if(form.getFrom()>=aa.getStart() && (form.getTo()<=aa.getStop())){
+                                    form.setEmpty(false);
+                                    break;
+                                }
+                            }
+                            works.add(form);
+                        }
+                    }
+                }
+                if(home!=null){
+                    List<ScheduleForm> forms=getScheduleForms(dow,home);
+                    if(forms!=null){
+                        for(int i=0;i<forms.size();i++){
+                            ScheduleForm form=forms.get(i);
+                            for(Appointment aa:appointmentHomes){
+                                if(form.getFrom()>=aa.getStart() && (form.getTo()<=aa.getStop())){
+                                    form.setEmpty(false);
+                                    break;
+                                }
+                            }
+                            homes.add(form);
+                        }
+                    }
+                }
+                scheduleForm.setHome(homes);
+                scheduleForm.setWork(works);
+
+                return scheduleForm;
+            } else {
+                return new StatusObject("noauth");
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return new StatusObject("exception");
+        }
+    }
+    private List<ScheduleForm> getScheduleForms(int dow, Schedule schedule){
+        switch (dow){
+            case Calendar.SUNDAY:
+                return schedule.getSunday();
+            case Calendar.MONDAY:
+                return schedule.getMonday();
+            case Calendar.TUESDAY:
+                return schedule.getTuesday();
+            case Calendar.WEDNESDAY:
+                return schedule.getWednesday();
+            case Calendar.THURSDAY:
+                return schedule.getThursday();
+            case Calendar.FRIDAY:
+                return schedule.getFriday();
+            case Calendar.SATURDAY:
+                return schedule.getSaturday();
+                default:
+                    return null;
+
         }
     }
     @RequestMapping(value={"/getProfessionalAch"},method = RequestMethod.POST)
@@ -1729,12 +1840,22 @@ public class PatientController {
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setChoseTime(chosetime);
                 order.setCreatedTime(new Date().getTime());
-                order.setPeriodTime(periodTime);
+                JsonElement obel=new JsonParser().parse(periodTime);
+                JsonObject object=obel.getAsJsonObject();
+                ScheduleForm scheduleForm=new ScheduleForm(object.get("from").getAsInt(),object.get("to").getAsInt());
+                scheduleForm.setEmpty(false);
+                order.setPeriodTime(scheduleForm);
                 order.setTextMessage(text);
                 order.setServicess(services);
                 order.setAtwork(true);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
+
+                Appointment appointment=new Appointment(chosetime,scheduleForm.getFrom(),scheduleForm.getTo(),doctor.getId());
+                appointment.setOrder(true);
+                appointment.setOrderid(orderid);
+                appointmentRepo.save(appointment);
+
                 return new StatusObject("ok");
             }
             else return new StatusObject("noauth");
@@ -1745,7 +1866,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoHome", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @RequestParam String orderid,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam double period,
+    public @ResponseBody Object addOrderInfoHome(@RequestHeader("token") String token, @RequestParam String orderid,  @RequestParam long chosetime,  @RequestParam String text, @RequestParam String periodTime,
                                                 @RequestParam List<String> services, HttpServletRequest request){
         try{
            Token tok= tokenRepo.findById(token);
@@ -1760,7 +1881,11 @@ public class PatientController {
                 order.setChoseTime(chosetime);
                 order.setCreatedTime(new Date().getTime());
                 order.setTextMessage(text);
-                order.setPeriodinhours(period);
+                JsonElement obel=new JsonParser().parse(periodTime);
+                JsonObject object=obel.getAsJsonObject();
+                ScheduleForm scheduleForm=new ScheduleForm(object.get("from").getAsInt(),object.get("to").getAsInt());
+                scheduleForm.setEmpty(false);
+                order.setPeriodTime(scheduleForm);
                 order.setServicess(services);
                 List<Object> ows=new ArrayList<>();
                 ows.add(doctor.getHomePlaceOwn());
@@ -1769,6 +1894,10 @@ public class PatientController {
                 order.setAtwork(false);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
+                Appointment appointment=new Appointment(chosetime,scheduleForm.getFrom(),scheduleForm.getTo(),doctor.getId());
+                appointment.setOrder(true);
+                appointment.setOrderid(orderid);
+                appointmentRepo.save(appointment);
                 return new StatusObject("ok");
             }
             else return new StatusObject("noauth");
@@ -1798,12 +1927,21 @@ public class PatientController {
                 Doctor doctor=doctorRepo.findById(order.getDoctorid());
                 order.setChoseTime(chosetime);
                 order.setCreatedTime(new Date().getTime());
-                order.setPeriodTime(periodTime);
+                JsonElement obel=new JsonParser().parse(periodTime);
+                JsonObject object=obel.getAsJsonObject();
+                ScheduleForm scheduleForm=new ScheduleForm(object.get("from").getAsInt(),object.get("to").getAsInt());
+                scheduleForm.setEmpty(false);
+                order.setPeriodTime(scheduleForm);
                 order.setTextMessage(text);
                 order.setAtwork(true);
                 order.setOwnServicess(ownServices);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
+
+                Appointment appointment=new Appointment(chosetime,scheduleForm.getFrom(),scheduleForm.getTo(),doctor.getId());
+                appointment.setOrder(true);
+                appointment.setOrderid(orderid);
+                appointmentRepo.save(appointment);
                 return new StatusObject("ok");
             }
             else return new StatusObject("noauth");
@@ -1814,7 +1952,7 @@ public class PatientController {
         }
     }
     @RequestMapping(value="/setOrderInfoHomeWithOwnService", method=RequestMethod.POST)
-    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam List<String> ownServices,  @RequestParam long chosetime,  @RequestParam String text,  @RequestParam double period, HttpServletRequest request){
+    public @ResponseBody Object addOrderInfoHomewithOwn(@RequestHeader("token") String token, @RequestParam String orderid,@RequestParam List<String> ownServices,  @RequestParam long chosetime,  @RequestParam String text,  @RequestParam String periodTime, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -1830,11 +1968,19 @@ public class PatientController {
                 order.setTextMessage(text);
                 order.setOwnServicess(ownServices);
                 order.addOwnService(doctor.getHomePlaceOwn());
-                order.setPeriodinhours(period);
+                JsonElement obel=new JsonParser().parse(periodTime);
+                JsonObject object=obel.getAsJsonObject();
+                ScheduleForm scheduleForm=new ScheduleForm(object.get("from").getAsInt(),object.get("to").getAsInt());
+                scheduleForm.setEmpty(false);
+                order.setPeriodTime(scheduleForm);
                 order.setAddress(patient.getHomeAddress());
                 order.setAtwork(false);
                 order.setStatus("patientcreated");
                 orderRepo.save(order);
+                Appointment appointment=new Appointment(chosetime,scheduleForm.getFrom(),scheduleForm.getTo(),doctor.getId());
+                appointment.setOrder(true);
+                appointment.setOrderid(orderid);
+                appointmentRepo.save(appointment);
                 return new StatusObject("ok");
             }
             else return new StatusObject("noauth");
@@ -1945,6 +2091,10 @@ public class PatientController {
                 Order order = orderRepo.findById(orderid);
                 order.setStatus("patientcancelled");
                 orderRepo.save(order);
+                Appointment appointment=appointmentRepo.findByOrderid(orderid);
+                if(appointment!=null){
+                    appointmentRepo.delete(appointment);
+                }
                 return new StatusObject("ok");
             }
             else return new StatusObject("noauth");
@@ -1975,6 +2125,10 @@ public class PatientController {
                 doctor.setRate(new Rate(order.getPatientid(),num));
                 doctorRepo.save(doctor);
                 orderRepo.save(order);
+                Appointment appointment=appointmentRepo.findByOrderid(orderid);
+                if(appointment!=null){
+                    appointmentRepo.delete(appointment);
+                }
                 return new StatusObject("ok");
             }
             return new StatusObject("noauth");
@@ -2057,6 +2211,11 @@ public class PatientController {
                     FileObjectForm ss=fileUploader.changeToFile(fileObjectForm);
                     order.setAudiohealing(ss);
                 }
+                if(order.getAudioMessage()!=null){
+                    FileObjectForm fileObjectForm=(FileObjectForm)order.getAudioMessage();
+                    FileObjectForm ss=fileUploader.changeToFile(fileObjectForm);
+                    order.setAudioMessage(ss);
+                }
 
                 List<Object> services=new ArrayList<>();
                 for(Object i: order.getOwnServices()){
@@ -2117,7 +2276,7 @@ public class PatientController {
                     ServiceType serviceType = serviceTypeRepo.findById(doctor.getServicetypeid() + "");
                     ArrayList<Service> services = new ArrayList<>();
                     for (Object j : i.getServices()) {
-                        services.add(serviceRepo.findById(j+""));
+                            services.add(serviceRepo.findById(j+""));
                     }
                     ArrayList<EducationForm> educationForms = new ArrayList<>();
                     for (Education j : doctor.getEducations()) {

@@ -1,5 +1,6 @@
 package com.dynamica.orange.Classes;
 
+import com.dynamica.orange.Form.ScheduleForm;
 import org.springframework.data.annotation.Id;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class Order {
     private String patientid;
     private long createdTime;
     private long choseTime;
-    private String periodTime;
+    private ScheduleForm periodTime;
     List<Object> services;
 
     List<Object> ownServices;
@@ -102,7 +103,7 @@ public class Order {
         return address;
     }
 
-    public String getPeriodTime() {
+    public ScheduleForm getPeriodTime() {
         return periodTime;
     }
 
@@ -151,7 +152,7 @@ public class Order {
         this.atwork = atwork;
     }
 
-    public void setPeriodTime(String periodTime) {
+    public void setPeriodTime(ScheduleForm periodTime) {
         this.periodTime = periodTime;
     }
 
@@ -217,7 +218,12 @@ public class Order {
                     }
                 }
             }
-            string.add(services.get(i));
+            String a="";
+            a=services.get(i);
+            if(!a.equals("")){
+                string.add(a);
+            }
+
         }
         this.services = string;
     }

@@ -8,7 +8,7 @@ import java.util.Date;
 /**
  * Created by lordtemich on 1/16/18.
  */
-public class    DoctorListForm {
+public class DoctorListForm {
     public String doctorid;
     public String name;
     public String surname;

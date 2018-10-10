@@ -32,8 +32,8 @@ public class Doctor {
     private ArrayList<String> extrainfo;
     private ArrayList<Comment> comments;
     private ArrayList<Object> myPatients;
-    private Schedule workSchedule;
-    private Schedule homeSchedule;
+    private Schedule workSchedule=null;
+    private Schedule homeSchedule=null;
     public Doctor(){
         educations=new ArrayList<>();
         services=new ArrayList<>();

@@ -7,6 +7,7 @@ import com.dynamica.orange.Repo.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.*;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,8 @@ import java.util.Map;
 @RequestMapping(value = {"/doctor"})
 public class DoctorController {
     Logger log=Logger.getLogger(DoctorController.class);
+    @Autowired
+    AppointmentRepo appointmentRepo;
     @Autowired
     CityRepo cityRepo;
     @Autowired
@@ -563,7 +566,7 @@ public class DoctorController {
                             l++;
                         }
                     }
-                    i=fileUploader.getLhost()+"Image/?url="+url;
+                    i=fileUploader.getLhost()+"?url="+url;
                     FileObjectForm fileObjectForm = new FileObjectForm(i);
                     fileObjectForm.setUrl(url);
                     fileObjectForm.setType("photo");
@@ -634,7 +637,7 @@ public class DoctorController {
                     int l=0;
                     while(true) {
                         byte[] bytePhoto=fileUploader.decodeFileFromBase64(i);
-                        String res=fileUploader.savePhoto(bytePhoto, "certificate"+doctor.getId()+l);
+                        String res=fileUploader.savePhoto(bytePhoto, "certificate"+doctor.getId()+l+".jpeg");
                         if(!res.equals("")){
                             i=res;
                             break;
@@ -647,7 +650,7 @@ public class DoctorController {
                         }
                     }
                     String url=i;
-                    i=fileUploader.getLhost()+"Image/?="+i;
+                    i=fileUploader.getLhost()+"?url="+i;
                     FileObjectForm fileObjectForm = new FileObjectForm(i);
                     fileObjectForm.setType("photo");
                     fileObjectForm.setUrl(url);
@@ -719,7 +722,7 @@ public class DoctorController {
                     int l=0;
                     while(true) {
                         byte[] bytePhoto=fileUploader.decodeFileFromBase64(i);
-                        String res=fileUploader.savePhoto(bytePhoto, "certificate"+doctor.getId()+l);
+                        String res=fileUploader.savePhoto(bytePhoto, "certificate"+doctor.getId()+l+".jpeg");
                         if(!res.equals("")){
                             i=res;
                             break;
@@ -732,7 +735,7 @@ public class DoctorController {
                         }
                     }
                     String url=i;
-                    i=fileUploader.getLhost()+"Image/?="+i;
+                    i=fileUploader.getLhost()+"?url="+i;
                     FileObjectForm fileObjectForm = new FileObjectForm(i);
                     fileObjectForm.setUrl(url);
                     fileObjectForm.setType("photo");
@@ -1116,6 +1119,30 @@ public class DoctorController {
             return new StatusObject("exception");
         }
     }
+    public List<ScheduleForm> getScheduleForms(JsonArray array){
+        List<ScheduleForm> scheduleForms=new ArrayList<>();
+        for(int i=0;i<array.size();i++){
+            JsonObject element=array.get(i).getAsJsonObject();
+            int from=element.get("from").getAsInt();
+            int to=element.get("to").getAsInt();
+            for(int j=from; j<to;j++){
+                scheduleForms.add(new ScheduleForm(j,j+1));
+            }
+        }
+        return scheduleForms;
+    }
+    @RequestMapping(value = "/removeSchedule", method = RequestMethod.POST)
+    public @ResponseBody Object remSch(@RequestHeader("token") String token) {
+        Token tok = tokenRepo.findById(token);
+        if (tok != null) {
+            Doctor doctor = doctorRepo.findByClientid(tok.getClientid());
+            doctor.setHomeSchedule(new Schedule());
+            doctor.setWorkSchedule(new Schedule());
+            return new StatusObject("ok");
+        } else {
+            return new StatusObject("noauth");
+        }
+    }
     @RequestMapping(value = "/setSchedule", method = RequestMethod.POST)
     public @ResponseBody Object addSchedule(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String sch, HttpServletRequest request){
         try{
@@ -1131,25 +1158,28 @@ public class DoctorController {
                 for (Map.Entry<String, JsonElement> i : set) {
                     switch (i.getKey()) {
                         case "sunday":
-                            schedule.setSunday(i.getValue().getAsString());
+                            JsonArray array=i.getValue().getAsJsonArray();
+                            List<ScheduleForm> scheduleForms=getScheduleForms(array);
+                            schedule.setSunday(scheduleForms);
                             break;
                         case "monday":
-                            schedule.setMonday(i.getValue().getAsString());
+                            List<Object> list=new ArrayList<>();
+                            schedule.setMonday(getScheduleForms(i.getValue().getAsJsonArray()));
                             break;
                         case "tuesday":
-                            schedule.setTuesday(i.getValue().getAsString());
+                            schedule.setTuesday(getScheduleForms(i.getValue().getAsJsonArray()));
                             break;
                         case "wednesday":
-                            schedule.setWednesday(i.getValue().getAsString());
+                            schedule.setWednesday(getScheduleForms(i.getValue().getAsJsonArray()));
                             break;
                         case "thursday":
-                            schedule.setThursday(i.getValue().getAsString());
+                            schedule.setThursday(getScheduleForms(i.getValue().getAsJsonArray()));
                             break;
                         case "friday":
-                            schedule.setFriday(i.getValue().getAsString());
+                            schedule.setFriday(getScheduleForms(i.getValue().getAsJsonArray()));
                             break;
                         case "saturday":
-                            schedule.setSaturday(i.getValue().getAsString());
+                            schedule.setSaturday(getScheduleForms(i.getValue().getAsJsonArray()));
                             break;
                     }
                 }
@@ -1376,7 +1406,7 @@ public class DoctorController {
 
                         res = fileUploader.savePhoto(byteFile, "chat" + chat.getId() + l + ".jpeg");
                         url=res+"";
-                        res=fileUploader.getLhost()+"Image/?url="+url;
+                        res=fileUploader.getLhost()+"?url="+url;
                     }
                     if(!res.equals("")){
                         file=res;
@@ -1641,6 +1671,8 @@ public class DoctorController {
                         FileObjectForm fileObjectForm=fileUploader.changeToFile((FileObjectForm) PClient.getPhotourl().get(PClient.getPhotourl().size()-1));
                         listForm.setPhoto(fileObjectForm);
                     }*/
+                    if(client.getPhotourl().size()>0)
+                        listForm.setPhoto((FileObjectForm)client.getPhotourl().get(0));
                     if((new Date().getTime())-PClient.getLastOnline()<=600000) {
                         listForm.setOnline(true);
                     }
@@ -1716,6 +1748,12 @@ public class DoctorController {
                     FileObjectForm ss=fileUploader.changeToFile(fileObjectForm);
                     order.setAudiohealing(ss);
                 }
+                if(order.getAudioMessage()!=null){
+                    FileObjectForm fileObjectForm=(FileObjectForm)order.getAudioMessage();
+                    FileObjectForm ss=fileUploader.changeToFile(fileObjectForm);
+                    order.setAudioMessage(ss);
+                }
+
                 order.setServices(services1);
                 List<Object> services=new ArrayList<>();
                 for(Object i: order.getOwnServices()){
@@ -1835,6 +1873,10 @@ public class DoctorController {
                 Order order = orderRepo.findById(orderid);
                 order.setStatus("doctorcancelled");
                 order.setTextAnswer(text);
+                Appointment appointment=appointmentRepo.findByOrderid(orderid);
+                if(appointment!=null){
+                    appointmentRepo.delete(appointment);
+                }
                 orderRepo.save(order);
                 return new StatusObject("ok");
             }
@@ -1855,6 +1897,10 @@ public class DoctorController {
                 Order order = orderRepo.findById(orderid);
                 order.setStatus("doctoraccepted");
                 orderRepo.save(order);
+
+                Appointment appointment=appointmentRepo.findByOrderid(orderid);
+                appointment.setAccepted(true);
+                appointmentRepo.save(appointment);
                 return new StatusObject("ok");
             }
             else{
@@ -1915,6 +1961,7 @@ public class DoctorController {
                 }
               FileObjectForm fileObjectForm=new FileObjectForm(file);
                 fileObjectForm.setType("audio");
+                fileObjectForm.setUrl(file);
                 order.setAudiohealing(fileObjectForm);
                 orderRepo.save(order);
                 return new StatusObject("ok");
@@ -1947,7 +1994,7 @@ public class DoctorController {
 
                         res = fileUploader.savePhoto(byteFile, "order" + order.getId() + l + ".jpeg");
                         url=res+"";
-                        res=fileUploader.getLhost()+"Image/?url="+res;
+                        res=fileUploader.getLhost()+"?url="+res;
                     }
                     if(!res.equals("")){
                         file=res;
@@ -2164,6 +2211,14 @@ public class DoctorController {
             catch (NullPointerException e){
                 HCity=null;
             }
+
+            ArrayList<Comment> comments=doctor.getComments();
+            for(Comment i:comments){
+                Patient patient=patientRepo.findById(i.getPatient_id());
+                Client clientp=clientRepo.findById(patient.getClientid());
+                i.setPatient(new PatientListForm(patient,clientp));
+            }
+            doctor.setComments(comments);
             return new DoctorProfileForm(doctor,client,serviceType,services, WCity, HCity);
         }
         return new StatusObject("noauth");

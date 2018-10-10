@@ -45,6 +45,8 @@ public class MainController {
     private Mailing mailing=new Mailing();
     private OrangeService service;
     @Autowired
+    AppointmentRepo appointmentRepo;
+    @Autowired
     TokenRepo tokenRepo;
     @Autowired
     CityRepo cityRepo;
@@ -436,6 +438,11 @@ public class MainController {
 
         return serviceRepo.findAll();
     }
+    @RequestMapping(value = {"/allApps"}, method = RequestMethod.POST)
+    public @ResponseBody List<Appointment> allApps(HttpServletRequest request){
+
+        return appointmentRepo.findAll();
+    }
     @RequestMapping(value={"/allServicesById"}, method=RequestMethod.POST)
     public @ResponseBody Object allServicesById(@RequestParam String id, HttpServletRequest request){
 
@@ -661,6 +668,7 @@ public class MainController {
                 clientRepo.deleteAll();
                 patientRepo.deleteAll();
                 doctorRepo.deleteAll();
+                tokenRepo.deleteAll();
                 return new StatusObject("ok");
             }
         }

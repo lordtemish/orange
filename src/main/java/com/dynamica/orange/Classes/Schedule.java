@@ -1,73 +1,77 @@
 package com.dynamica.orange.Classes;
 
 
+import com.dynamica.orange.Form.ScheduleForm;
+
+import java.util.List;
+
 /**
  * Created by lordtemich on 1/3/18.
  */
 public class Schedule {
-    private String monday;
-    private String tuesday;
-    private String wednesday;
-    private String thursday;
-    private String friday;
-    private String saturday;
-    private String sunday;
+
+    private List<ScheduleForm> monday;
+    private List<ScheduleForm> tuesday;
+    private List<ScheduleForm> wednesday;
+    private List<ScheduleForm> thursday;
+    private List<ScheduleForm> friday;
+    private List<ScheduleForm> saturday;
+    private List<ScheduleForm> sunday;
     public Schedule(){
     }
-
-    public void setFriday(String friday) {
+    public void setFriday(List<ScheduleForm> friday) {
         this.friday = friday;
     }
 
-    public void setMonday(String monday) {
+    public void setMonday(List<ScheduleForm> monday) {
         this.monday = monday;
     }
 
-    public void setSaturday(String saturday) {
+    public void setSaturday(List<ScheduleForm> saturday) {
         this.saturday = saturday;
     }
 
-    public void setThursday(String thursday) {
+    public void setThursday(List<ScheduleForm> thursday) {
         this.thursday = thursday;
     }
 
-    public void setSunday(String sunday) {
+    public void setSunday(List<ScheduleForm> sunday) {
         this.sunday = sunday;
     }
 
-    public void setTuesday(String tuesday) {
+    public void setTuesday(List<ScheduleForm> tuesday) {
         this.tuesday = tuesday;
     }
 
-    public void setWednesday(String wednesday) {
+    public void setWednesday(List<ScheduleForm> wednesday) {
         this.wednesday = wednesday;
     }
 
-    public String getFriday() {
+    public List<ScheduleForm> getFriday() {
         return friday;
     }
 
-    public String getMonday() {
+    public List<ScheduleForm> getMonday() {
         return monday;
     }
 
-    public String getSaturday() {
+    public List<ScheduleForm> getSaturday() {
         return saturday;
     }
 
-    public String getSunday() {
+    public List<ScheduleForm> getSunday() {
         return sunday;
     }
 
-    public String getThursday() {
+    public List<ScheduleForm> getThursday() {
         return thursday;
     }
 
-    public String getTuesday() {
+    public List<ScheduleForm> getTuesday() {
         return tuesday;
     }
 
-    public String getWednesday() {
+    public List<ScheduleForm> getWednesday() {
         return wednesday;
     }
 }

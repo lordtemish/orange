@@ -13,6 +13,7 @@ public class Comment {
     @Id
     private String id;
     private String patient_id;
+    private Object patient;
     private String text;
     private String date;
     private String time;
@@ -27,6 +28,14 @@ public class Comment {
        /* this.date=sdf.format(date);
         this.time=sdh.format(date);*/
         createdTime=date.getTime();
+    }
+
+    public void setPatient(Object patient) {
+        this.patient = patient;
+    }
+
+    public Object getPatient() {
+        return patient;
     }
 
     public void setRate(int rate) {
