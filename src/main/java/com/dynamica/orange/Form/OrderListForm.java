@@ -2,6 +2,7 @@ package com.dynamica.orange.Form;
 
 import com.dynamica.orange.Classes.*;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,10 +10,11 @@ import java.util.List;
 /**
  * Created by lordtemich on 1/16/18.
  */
-public class OrderListForm {
+public class OrderListForm implements Comparable<OrderListForm> {
     String id;
     ArrayList<Service> services;
     ArrayList<OwnService> ownServices;
+    Appointment appointment;
     long createdTime, choseTime;
     String status;
     double period;
@@ -70,6 +72,26 @@ public class OrderListForm {
     public void setServices(ArrayList<Service> services) {
         this.services = services;
     }
+
+    public void setAppointment(Appointment appointment) {
+        this.appointment = appointment;
+    }
+
+    public Appointment getAppointment() {
+        return appointment;
+    }
+
+    @Override
+    public int compareTo(@NotNull OrderListForm comparestu) {
+        long chosen=comparestu.choseTime;
+        /* For Ascending order*/
+        return Integer.parseInt((this.choseTime-chosen)+"");
+
+        /* For Descending order do like this */
+        //return compareage-this.studentage;
+    }
+
+
 
     public CommentForm getCommentForms() {
         return commentForms;

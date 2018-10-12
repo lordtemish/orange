@@ -300,5 +300,4 @@ public class Order {
     public List<Object> getOwnServices() {
         return ownServices;
     }
-
 }

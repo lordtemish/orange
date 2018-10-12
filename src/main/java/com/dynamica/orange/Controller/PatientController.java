@@ -1,6 +1,7 @@
 package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.*;
+import com.dynamica.orange.Classes.Map;
 import com.dynamica.orange.Form.*;
 import com.dynamica.orange.Repo.*;
 import com.google.gson.JsonElement;
@@ -449,7 +450,7 @@ public class PatientController {
                         for(int i=0;i<forms.size();i++){
                             ScheduleForm form=forms.get(i);
                             for(Appointment aa:appointmentHomes){
-                                if(form.getFrom()>=aa.getStart() && (form.getTo()<=aa.getStop())){
+                                if(form.getFrom()>=aa.getStart() && (form.getTo()<=aa.getStop()) && aa.isAccepted()){
                                     form.setEmpty(false);
                                     break;
                                 }
@@ -1076,8 +1077,8 @@ public class PatientController {
         }
         return new StatusObject("noauth");
     }
-    @RequestMapping(value = {"/addAddress"}, method = RequestMethod.POST)
-    public @ResponseBody Object addAddress(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
+  /*  @RequestMapping(value = {"/addAddress"}, method = RequestMethod.POST)
+    public @ResponseBody Object addAddress(@RequestHeader("token") String token, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
 
             if(tok!=null){
@@ -1085,21 +1086,72 @@ public class PatientController {
                 client.onReqested();
                 clientRepo.save(client);
             Patient patient = patientRepo.findByClientid(tok.getClientid());
-            switch (name) {
-                case "work":
-                    patient.setWorkAddress(new Address(cityId,address));
-                    break;
-                case "home":
-                    patient.setHomeAddress(new Address(cityId,address));
-                    break;
+            patient.addAddress(new Address(cityId,address));
+            patientRepo.save(patient);
+            return new StatusObject("ok");
+        }
+        return new StatusObject("noauth");
+    }*/
+  /*  @RequestMapping(value = {"/changeAddress"}, method = RequestMethod.POST)
+    public @ResponseBody Object changeAddress(@RequestHeader("token") String token,@RequestParam String addressid, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+
+        if(tok!=null){
+            Client client=clientRepo.findById(tok.getClientid());
+            client.onReqested();
+            clientRepo.save(client);
+            Patient patient = patientRepo.findByClientid(tok.getClientid());
+            Address add=new Address(cityId,address);
+            boolean changed=patient.changeAddressById(addressid,add);
+            if(changed) {
+                patientRepo.save(patient);
+                return new StatusObject("ok");
             }
+            else
+                return new StatusObject("noaddressid");
+        }
+        return new StatusObject("noauth");
+    }*/
+    @RequestMapping(value = {"/changeAddress"}, method = RequestMethod.POST)
+    public @ResponseBody Object changeAddressWithLocation(@RequestHeader("token") String token,@RequestParam String addressid, @RequestParam String cityId, @RequestParam String address,@RequestParam double longitude, @RequestParam double latitude, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);g
+
+        if(tok!=null){
+            Client client=clientRepo.findById(tok.getClientid());
+            client.onReqested();
+            clientRepo.save(client);
+            Patient patient = patientRepo.findByClientid(tok.getClientid());
+            Address add=new Address(cityId,address);
+            add.setLocation(new Map(latitude,longitude));
+            boolean changed=patient.changeAddressById(addressid,add);
+            if(changed) {
+                patientRepo.save(patient);
+                return new StatusObject("ok");
+            }
+            else
+                return new StatusObject("noaddressid");
+        }
+        return new StatusObject("noauth");
+    }
+    @RequestMapping(value = {"/addAddress"}, method = RequestMethod.POST)
+    public @ResponseBody Object addAddressWithLocation(@RequestHeader("token") String token, @RequestParam String cityId, @RequestParam String address,@RequestParam double longitude, @RequestParam double latitude, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+
+        if(tok!=null){
+            Client client=clientRepo.findById(tok.getClientid());
+            client.onReqested();
+            clientRepo.save(client);
+            Patient patient = patientRepo.findByClientid(tok.getClientid());
+            Address addr=new Address(cityId,address);
+            addr.setLocation(new Map(latitude,longitude));
+            patient.addAddress(addr);
             patientRepo.save(patient);
             return new StatusObject("ok");
         }
         return new StatusObject("noauth");
     }
     @RequestMapping(value = {"/addAddressWithCompany"}, method = RequestMethod.POST)
-    public @ResponseBody Object addAddressWC(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address,@RequestParam String company, HttpServletRequest request){
+    public @ResponseBody Object addAddressWC(@RequestHeader("token") String token, @RequestParam String cityId, @RequestParam String address,@RequestParam String company, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
         if(tok!=null){
             Client client=clientRepo.findById(tok.getClientid());
@@ -1108,37 +1160,28 @@ public class PatientController {
             Patient patient = patientRepo.findByClientid(tok.getClientid());
             Address ad=new Address(cityId,address);
             ad.setName(company);
-            switch (name) {
-                case "work":
-                    patient.setWorkAddress(ad);
-                    break;
-                case "home":
-                    patient.setHomeAddress(ad);
-                    break;
-            }
+            patient.addAddress(ad);
             patientRepo.save(patient);
             return new StatusObject("ok");
         }
         return new StatusObject("noauth");
     }
     @RequestMapping(value = {"/deleteAddress"}, method = RequestMethod.POST)
-    public @ResponseBody Object deleteAdress(@RequestHeader("token") String token, @RequestParam String name, HttpServletRequest request){
+    public @ResponseBody Object deleteAdress(@RequestHeader("token") String token, @RequestParam String id, HttpServletRequest request){
        Token tok= tokenRepo.findById(token);
             if(tok!=null){
                 Client client=clientRepo.findById(tok.getClientid());
                 client.onReqested();
                 clientRepo.save(client);
             Patient patient = patientRepo.findByClientid(tok.getClientid());
-            switch (name) {
-                case "work":
-                    patient.deleteWorkAddress();
-                    break;
-                case "home":
-                    patient.deleteWorkAddress();
-                    break;
+            boolean deleted=patient.deleteAddressById(id);
+            if(deleted) {
+                patientRepo.save(patient);
+                return new StatusObject("ok");
             }
-            patientRepo.save(patient);
-            return new StatusObject("ok");
+            else{
+                return new StatusObject("noaddressid");
+            }
         }
         return new StatusObject("noauth");
     }

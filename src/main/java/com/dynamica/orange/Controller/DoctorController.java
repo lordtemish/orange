@@ -69,6 +69,7 @@ public class DoctorController {
                 Event event=new Event(doctor.getId(),events.size(),chosenTime,atwork,notifyPeriod,info,name);
                 event.setPatientidsString(patients);
                 eventRepo.save(event);
+
                 return new StatusObject("ok");
             }
             else return new StatusObject("noauth");
@@ -92,10 +93,13 @@ public class DoctorController {
                 long maximum=minimum+(24*60*60*1000);
                 List<Event> events=eventRepo.findByDoctoridAndChosenTimeBetween(doctor.getId(), minimum, maximum);
                 List<Order> orders=orderRepo.findByDoctoridAndChoseTimeBetween(doctor.getId(),minimum,maximum);
+
+
                 List<Object> orders2=new ArrayList<>();
                 List<Object> events2=new ArrayList<>();
                 List<Integer> days=new ArrayList<>();
 
+                List<EventListForm> eventListForms=new ArrayList<>();
                 for(Event i:events){
                     List<Object> listForms=new ArrayList<>();
                     for(Object j:i.getPatientids()){
@@ -108,14 +112,22 @@ public class DoctorController {
                         }
                     }
                     i.setPatientids(listForms);
-                    events2.add(i);
+                    eventListForms.add(new EventListForm(i,i.getChosenTime()));
                 }
+                Collections.sort(eventListForms);
+                events2.addAll(eventListForms);
+                List<OrderListForm> orderListForms=new ArrayList<>();
                 for(Order i:orders){
                     Patient patient=patientRepo.findById(i.getPatientid());
                     Client client2=clientRepo.findById(patient.getClientid());
                     OrderListForm listForm=new OrderListForm(i,patient,client2);
-                    orders2.add(listForm);
+                    Appointment appointment=appointmentRepo.findByOrderid(i.getId());
+                    if(appointment!=null)
+                        listForm.setAppointment(appointment);
+                    orderListForms.add(listForm);
                 }
+                Collections.sort(orderListForms);
+                orders2.addAll(orderListForms);
 
 
                 calendar.set(calendar.get(Calendar.YEAR),calendar.get(Calendar.MONTH),calendar.getMinimum(Calendar.DAY_OF_MONTH),calendar.getMinimum(Calendar.HOUR_OF_DAY),0);
@@ -152,7 +164,10 @@ public class DoctorController {
         try {
             Token tok1=tokenRepo.findById(token);
             if(tok1!=null) {
-                Doctor doctor = new Doctor(tok1.getClientid(), position, info);
+                Doctor doctor=doctorRepo.findByClientid(tok1.getClientid());
+                if(doctor==null) {
+                    doctor = new Doctor(tok1.getClientid(), position, info);
+                }
                 Client client = clientRepo.findById(tok1.getClientid());
                 client.setName(name);
                 client.setSurname(surname);
@@ -194,7 +209,7 @@ public class DoctorController {
             return new StatusObject("noauth");
         }
     }
-    @RequestMapping(value = {"/setAddress"}, method = RequestMethod.POST)
+ /*   @RequestMapping(value = {"/setAddress"}, method = RequestMethod.POST)
     public  @ResponseBody Object addAddress(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -213,9 +228,51 @@ public class DoctorController {
             doctorRepo.save(doctor);
             return new StatusObject("ok");}
             return new StatusObject("noauth");
+    }*/
+    @RequestMapping(value = {"/setAddress"}, method = RequestMethod.POST)
+    public  @ResponseBody Object addAddressWithLocation(@RequestHeader("token") String token,  @RequestParam String cityId, @RequestParam String address,@RequestParam double longitude, @RequestParam double latitude,@RequestParam String company, HttpServletRequest request){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null){
+            Client client=clientRepo.findById(tok.getClientid());
+            client.onReqested();
+            clientRepo.save(client);
+            Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+            String name="work";
+            switch (name) {
+                case "work":
+                    Address address1=new Address(cityId,address);
+                    address1.setLocation(new com.dynamica.orange.Classes.Map(latitude,longitude));
+                    address1.setName(company);
+                    doctor.setWorkAddress(address1);
+                    break;
+                case "home":
+                    Address address2=new Address(cityId,address);
+                    address2.setLocation(new com.dynamica.orange.Classes.Map(latitude,longitude));
+                    doctor.setHomeAddress(address2);
+                    break;
+            }
+            doctorRepo.save(doctor);
+            return new StatusObject("ok");}
+        return new StatusObject("noauth");
     }
-    @RequestMapping(value = {"/setAddressWithCompany"}, method = RequestMethod.POST)
-    public  @ResponseBody Object addAddressWC(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String cityId, @RequestParam String address,@RequestParam String company, HttpServletRequest request){
+    @RequestMapping(value = {"/deleteAddress"}, method = RequestMethod.POST)
+    public  @ResponseBody Object deleteAddress(@RequestHeader("token") String token){
+        Token tok= tokenRepo.findById(token);
+        if(tok!=null) {
+            Client client = clientRepo.findById(tok.getClientid());
+            client.onReqested();
+            clientRepo.save(client);
+            Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
+            doctor.setWorkSchedule(null);
+            doctorRepo.save(doctor);
+            return new StatusObject("ok");
+        }
+        else {
+            return new StatusObject("noauth");
+        }
+        }
+        @RequestMapping(value = {"/setAddressWithCompany"}, method = RequestMethod.POST)
+    public  @ResponseBody Object addAddressWC(@RequestHeader("token") String token, @RequestParam String cityId, @RequestParam String address,@RequestParam String company,@RequestParam double longitude, @RequestParam double latitude, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
         if(tok!=null){
             Client client=clientRepo.findById(tok.getClientid());
@@ -224,6 +281,8 @@ public class DoctorController {
             Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             Address address1=new Address(cityId,address);
             address1.setName(company);
+            address1.setLocation(new com.dynamica.orange.Classes.Map(latitude,longitude));
+            String name="work";
             switch (name) {
                 case "work":
                     doctor.setWorkAddress(address1);

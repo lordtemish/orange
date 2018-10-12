@@ -74,6 +74,17 @@ public class Patient {
             }
             return false;
         }
+        public boolean changeAddressById(String id, Address ad){
+            for(Address i : addresses){
+                if(i.getId().equals(id)){
+                    int ind=addresses.indexOf(i);
+                    ad.setId(i.getId());
+                    addresses.set(ind,ad);
+                    return true;
+                }
+            }
+            return false;
+        }
         public void setHomeAddress(Address s) {
             String id=s.getId();
             try {
