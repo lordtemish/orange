@@ -1,3 +1,4 @@
+
 package com.dynamica.orange.Classes;
 
 import org.springframework.data.annotation.Id;
@@ -11,18 +12,19 @@ public class OwnService {
     private String name;
     private Object own_time_type_id;
     private String info;
-    private int price;
+    private int price, callPrice;
     private Boolean homeplace;
     public OwnService(){
         homeplace=false;
     }
-    public OwnService(String name, int price){
+    public OwnService(String name, int price, int callPrice){
+        this.callPrice=callPrice;
         homeplace=true;
         this.name=name;
         this.price=price;
     }
-    public OwnService(String name, String own_time_type_id, String info, int price){
-        this.name=name;this.own_time_type_id=own_time_type_id;this.info=info;this.price=price;
+    public OwnService(String name, String own_time_type_id, String info, int price, int call){
+        this.name=name;this.own_time_type_id=own_time_type_id;this.info=info;this.price=price;callPrice=call;
     }
     public String getId() {
         return id;
@@ -42,6 +44,14 @@ public class OwnService {
 
     public String getName() {
         return name;
+    }
+
+    public void setCallPrice(int callPrice) {
+        this.callPrice = callPrice;
+    }
+
+    public int getCallPrice() {
+        return callPrice;
     }
 
     public Object getOwn_time_type_id() {

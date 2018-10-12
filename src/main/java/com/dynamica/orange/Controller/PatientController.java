@@ -1114,7 +1114,7 @@ public class PatientController {
     }*/
     @RequestMapping(value = {"/changeAddress"}, method = RequestMethod.POST)
     public @ResponseBody Object changeAddressWithLocation(@RequestHeader("token") String token,@RequestParam String addressid, @RequestParam String cityId, @RequestParam String address,@RequestParam double longitude, @RequestParam double latitude, HttpServletRequest request){
-        Token tok= tokenRepo.findById(token);g
+        Token tok= tokenRepo.findById(token);
 
         if(tok!=null){
             Client client=clientRepo.findById(tok.getClientid());

@@ -14,6 +14,7 @@ public class OrderListForm implements Comparable<OrderListForm> {
     String id;
     ArrayList<Service> services;
     ArrayList<OwnService> ownServices;
+    int price;
     Appointment appointment;
     long createdTime, choseTime;
     String status;
@@ -24,6 +25,15 @@ public class OrderListForm implements Comparable<OrderListForm> {
     DoctorListForm doctor;
     PatientListForm patient;
     ArrayList<EducationForm> educationForms;
+
+    public int getPrice() {
+        return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
+    }
+
     boolean online;
     public OrderListForm(){}
 
@@ -40,6 +50,14 @@ public class OrderListForm implements Comparable<OrderListForm> {
             this.doctor=new DoctorListForm(doctor,client,serviceType,services);
             this.educationForms=educationForms;
             this.ownServices=ownServices;
+        if(ownServices.size()>0){
+            if(order.isAtwork()){
+                price=ownServices.get(0).getPrice();
+            }
+            else {
+                price=ownServices.get(0).getCallPrice();
+            }
+        }
         if(client.getLastOnline()-(new Date().getTime())<=600000){
             online=true;
         }
@@ -54,6 +72,14 @@ public class OrderListForm implements Comparable<OrderListForm> {
         this.services=services;
         this.doctor=new DoctorListForm(doctor,client,serviceType,services);
         this.ownServices=ownServices;
+        if(ownServices.size()>0){
+            if(order.isAtwork()){
+                price=ownServices.get(0).getPrice();
+            }
+            else {
+                price=ownServices.get(0).getCallPrice();
+            }
+        }
         if(client.getLastOnline()-(new Date().getTime())<=600000)
             online=true;
         else online=false;
@@ -69,6 +95,16 @@ public class OrderListForm implements Comparable<OrderListForm> {
         else online=false;
     }
 
+    public void setPriceBy(){
+        if(ownServices.size()>0){
+            if(isAtwork()){
+                price=ownServices.get(0).getPrice();
+            }
+            else {
+                price=ownServices.get(0).getCallPrice();
+            }
+        }
+    }
     public void setServices(ArrayList<Service> services) {
         this.services = services;
     }

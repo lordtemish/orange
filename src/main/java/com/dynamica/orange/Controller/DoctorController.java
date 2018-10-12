@@ -124,6 +124,18 @@ public class DoctorController {
                     Appointment appointment=appointmentRepo.findByOrderid(i.getId());
                     if(appointment!=null)
                         listForm.setAppointment(appointment);
+                    ArrayList<OwnService> ownServices = new ArrayList<>();
+                    for (Object j : i.getOwnServices()) {
+                        for (OwnService jj : doctor.getOwns()) {
+                            log.info(jj.getId().length() + " " + (j + "").length() + "   " + (j + "").equals(jj.getId() + ""));
+                            if ((j + "").equals(jj.getId())) {
+                                ownServices.add(jj);
+                                break;
+                            }
+                        }
+                    }
+                    listForm.setOwnServices(ownServices);
+                    listForm.setPriceBy();
                     orderListForms.add(listForm);
                 }
                 Collections.sort(orderListForms);
@@ -263,7 +275,7 @@ public class DoctorController {
             client.onReqested();
             clientRepo.save(client);
             Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-            doctor.setWorkSchedule(null);
+            doctor.setWorkAddress(new Address());
             doctorRepo.save(doctor);
             return new StatusObject("ok");
         }
@@ -344,7 +356,7 @@ public class DoctorController {
                         break;
                     }
                 }
-                doctor.addOwnService(new OwnService(name,price));
+                doctor.addOwnService(new OwnService(name,price, 0));
                 doctorRepo.save(doctor);
                 return new StatusObject("ok");}
             else return new StatusObject("noauth");
@@ -356,7 +368,7 @@ public class DoctorController {
     }
     //addTimeSchedule
     @RequestMapping(value = "/addOwnService",method = RequestMethod.POST) //ottid change
-    public @ResponseBody Object addOwnService(@RequestHeader("token") String token, @RequestParam String name, @RequestParam String ottid, @RequestParam String info, @RequestParam int price, HttpServletRequest request){
+    public @ResponseBody Object addOwnService(@RequestHeader("token") String token,@RequestParam int callPrice, @RequestParam String name, @RequestParam String ottid, @RequestParam String info, @RequestParam int price, HttpServletRequest request){
         try{
             Token tok= tokenRepo.findById(token);
             if(tok!=null){
@@ -364,7 +376,7 @@ public class DoctorController {
                 client.onReqested();
                 clientRepo.save(client);
                 Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-                doctor.addOwnService(new OwnService(name, ottid, info, price));
+                doctor.addOwnService(new OwnService(name, ottid, info, price,callPrice));
                 doctorRepo.save(doctor);
                 return new StatusObject("ok");}
             else return new StatusObject("noauth");
@@ -1894,6 +1906,7 @@ public class DoctorController {
                     orderListForm.setCommentForms(forms.get(0));
                     orderListForm.setOwnServices(ownServices);
                     orderListForm.setServices(services);
+                    orderListForm.setPriceBy();
                     orderListForms.add(orderListForm);
                 }
                 return orderListForms;
