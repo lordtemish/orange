@@ -16,6 +16,16 @@ public class  DoctorListForm {
     public double rate;
     public Object photo;
     boolean online;
+    boolean publ=false;
+
+    public void setPubl(boolean publ) {
+        this.publ = publ;
+    }
+
+    public boolean isPubl() {
+        return publ;
+    }
+
     public DoctorListForm(Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services){
         if(doctor!=null) {
             doctorid = doctor.getId();
@@ -29,6 +39,7 @@ public class  DoctorListForm {
                 online=true;
             }
             else online=false;
+            publ=client.isPubl();
             name = client.getName();
             surname = client.getSurname();
             if(client.getLang()==null){

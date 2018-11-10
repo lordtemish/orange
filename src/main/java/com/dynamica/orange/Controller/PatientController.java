@@ -622,12 +622,13 @@ public class PatientController {
                             photos.add(fileObjectForm);
                         }
                         client1.setPhotourl(photos);*/
+                        DoctorListForm ff= new DoctorListForm(
+                                i,
+                                client1,
+                                serviceTypeRepo.findById(i.getServicetypeid()+""),
+                                services);
                         doctorListForms.add(
-                                new DoctorListForm(
-                                        i,
-                                       client1,
-                                        serviceTypeRepo.findById(i.getServicetypeid()+""),
-                                        services)
+                               ff
                         );
                     }
 
