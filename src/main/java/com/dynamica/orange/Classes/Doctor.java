@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.annotation.Id;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by lordtemich on 10/27/17.
@@ -18,8 +19,7 @@ public class Doctor {
     private String clientid;
         private String position;
         private String info;
-    private Address homeAddress;
-    private Address workAddress;
+    List<Address> addresses;
     private Object servicetypeid;
     private ArrayList<Education> educations;
     private String serv_type;
@@ -45,6 +45,7 @@ public class Doctor {
         comments=new ArrayList<>();
         certificates=new ArrayList<>();
         myPatients=new ArrayList<>();
+        addresses=new ArrayList<>();
     }
     public Doctor(String client_id, String position, String info){
         this.clientid=client_id;
@@ -60,6 +61,7 @@ public class Doctor {
         comments=new ArrayList<>();
         certificates=new ArrayList<>();
         myPatients=new ArrayList<>();
+        addresses=new ArrayList<>();
     }
 
     public void setComments(ArrayList<Comment> comments) {
@@ -459,41 +461,25 @@ public class Doctor {
         return serv_type;
     }
 
-
-    public Address getHomeAddress() {
-        return homeAddress;
+    public List<Address> getAddresses() {
+        return addresses;
     }
-
-    public Address getWorkAddress() {
-        return workAddress;
+    public boolean addAddress(Address address){
+        if(addresses.size()<2){
+            addresses.add(address);
+            return true;
+        }
+        else{
+            return false;
+        }
     }
-
-    public void setHomeAddress(Address s) {
-        String id=s.getId();
-        try {
-            if (id.isEmpty()) {
-                id = System.identityHashCode(s) + "";
-            }
+    public boolean deleteAddress(int index){
+        if(addresses.size()>index){
+            addresses.remove(index);
+            return true;
         }
-        catch (NullPointerException e){
-            id = System.identityHashCode(s) + "";
-        }
-        s.setId(id);
-        this.homeAddress = s;
-    }
-
-    public void setWorkAddress(Address s) {
-        String id=s.getId();
-        try {
-            if (id.isEmpty()) {
-                id = System.identityHashCode(s) + "";
-            }
-        }
-        catch (NullPointerException e){
-            id = System.identityHashCode(s) + "";
-        }
-        s.setId(id);
-        this.workAddress = s;
+        else
+            return false;
     }
 
     public void setServ_type(String serv_type) {

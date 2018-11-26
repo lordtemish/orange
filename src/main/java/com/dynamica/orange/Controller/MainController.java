@@ -2,36 +2,35 @@ package com.dynamica.orange.Controller;
 
 import com.dynamica.orange.Classes.*;
 import com.dynamica.orange.Form.FileObjectForm;
+import com.dynamica.orange.Form.FireBaseForm;
+import com.dynamica.orange.Form.NotificationForm;
 import com.dynamica.orange.Repo.*;
-import com.dynamica.orange.Service.FireBaseMain;
 import com.dynamica.orange.Service.OrangeService;
-import com.dynamica.orange.SpringBootMain;
+import com.google.gson.Gson;
+import com.mashape.unirest.http.Headers;
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.JsonNode;
+import com.mashape.unirest.http.Unirest;
+import com.mashape.unirest.http.async.Callback;
+import com.mashape.unirest.http.exceptions.UnirestException;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.tomcat.util.codec.binary.Base64;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.Null;
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.nio.file.Files;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Future;
 
 /**
  * Created by lordtemich on 10/27/17.
@@ -420,7 +419,24 @@ public class MainController {
         return new StatusObject("noauth");
     }
 
+    @RequestMapping(value = {"/firebaseNote"},method = RequestMethod.POST)
+    public @ResponseBody Object fireBaseNote(@RequestParam String token, @RequestParam String info)
+    {
+        final String uri = "https://fcm.googleapis.com/fcm/send";
+        try {
+            String key="key=AAAAnSAD-bA:APA91bELzDMD46mf5OeGTl4uGenkxW2XoRFayqkoW5Sg23uWcef6D3nM24OIQnaxGeUyvL1pTQPpcW-rMI0lrbVHpoJwbSFiteU_d0UQdNPw_2UEfpbANphaCsZOBfn4FxaP3DcDwsOM";
+           HttpResponse<JsonNode> future = Unirest.post(uri)
+                    .header("Authorization", key)
+                    .header("Content-Type", "application/json")
+                    .body(info)
+                    .asJson();
+           return future.getBody();
+        }
+        catch (Exception e){
 
+        }
+        return "";
+    }
 
     @RequestMapping(value = {"/addService/{id}"},method = RequestMethod.POST)
     public @ResponseBody Object addService(@RequestHeader("token") String token,@PathVariable("id") String id,@RequestParam String rus, @RequestParam String kaz, HttpServletRequest request){
@@ -913,7 +929,7 @@ public class MainController {
         return new StatusObject("noauth");
     }
     @RequestMapping(value = "/authClient", method = RequestMethod.POST)
-    public @ResponseBody Object authDoctor(@RequestParam String email,@RequestParam String password, HttpServletRequest request) throws NoSuchAlgorithmException{
+    public @ResponseBody Object authDoctor(@RequestParam String email,@RequestParam String password,@RequestParam String deviceToken, HttpServletRequest request) throws NoSuchAlgorithmException{
         try {
             Client client = clientRepo.findByEmail(email.toLowerCase());
             String ip="";
@@ -924,10 +940,16 @@ public class MainController {
                 }
             }
             Token token = new Token(client.getId(), ip);
+            token.setIosToken(deviceToken);
             tokenRepo.save(token);
             logger.info(password);
             password = hashPass(password);
             logger.info((client.getPassword().equals(password) && client.isActivated()) + "");
+            for(Token token1:tokenRepo.findByClientid(client.getId())){
+                if(!token1.getId().equals(token.getId())){
+                    tokenRepo.delete(token1);
+                }
+            }
             if (client.getPassword().equals(password) && client.isActivated()) {
                 try {
                     Doctor doctor = doctorRepo.findByClientid(client.getId());
@@ -960,7 +982,40 @@ public class MainController {
 
     @RequestMapping(value = "/testFireBase",method = RequestMethod.POST)
     public @ResponseBody Object testFire(@RequestHeader("token") String token){
+        final String uri = "http://localhost:8050/firebaseNote";
+        Token tok=tokenRepo.findById(token);
+        String to=tok.getIosToken();
+        FireBaseForm fireBaseForm=new FireBaseForm(to,new Doctor(),new NotificationForm("Welcome to ORANGE","ТЕстим сам фаирбэйз на работу","default"));
+        Future<HttpResponse<JsonNode>> future = Unirest.post(uri)
+                .header("accept", "application/json")
+                .field("token", token)
+                .field("info", new Gson().toJson(fireBaseForm))
+                .asJsonAsync(new Callback<JsonNode>() {
 
-        return "";
+                    public void failed(UnirestException e) {
+                        System.out.println("The request has failed");
+                    }
+
+                    public void completed(HttpResponse<JsonNode> response) {
+                        int code = response.getStatus();
+                       Headers headers = response.getHeaders();
+                        JsonNode body = response.getBody();
+                        InputStream rawBody = response.getRawBody();
+                    }
+
+                    public void cancelled() {
+                        System.out.println("The request has been cancelled");
+                    }
+
+                });
+        try{
+            HttpResponse<JsonNode> nodes=future.get();
+            return nodes.getBody().toString();
+        }
+        catch (Exception e){
+
+
+        }
+        return new StatusObject("ok");
     }
 }

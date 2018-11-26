@@ -15,7 +15,16 @@ public class  DoctorListForm {
     public String serviceInfo="";
     public double rate;
     public Object photo;
-    boolean online;
+    boolean online,publ=false;
+
+    public boolean isPubl() {
+        return publ;
+    }
+
+    public void setPubl(boolean publ) {
+        this.publ = publ;
+    }
+
     public DoctorListForm(Doctor doctor, Client client, ServiceType serviceType, ArrayList<Service> services){
         if(doctor!=null) {
             doctorid = doctor.getId();
@@ -43,6 +52,7 @@ public class  DoctorListForm {
             client=new Client(null);
             client.setLang("R");
         }
+        publ=client.isPubl();
         if(serviceType==null){
             serviceType=new ServiceType("null","null");
         }

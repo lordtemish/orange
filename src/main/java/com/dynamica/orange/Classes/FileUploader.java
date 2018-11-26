@@ -111,9 +111,6 @@ public class FileUploader {
             bis = new BufferedInputStream(fis);
             dis = new DataInputStream(bis);
             while (dis.available() != 0) {
-
-                // Here's where you get the lines from your file
-
                 result += dis.readLine() + "\n";
             }
 

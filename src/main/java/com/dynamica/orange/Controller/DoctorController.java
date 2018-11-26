@@ -241,49 +241,50 @@ public class DoctorController {
             return new StatusObject("ok");}
             return new StatusObject("noauth");
     }*/
-    @RequestMapping(value = {"/setAddress"}, method = RequestMethod.POST)
-    public  @ResponseBody Object addAddressWithLocation(@RequestHeader("token") String token,  @RequestParam String cityId, @RequestParam String address,@RequestParam double longitude, @RequestParam double latitude,@RequestParam String company, HttpServletRequest request){
+    @RequestMapping(value = {"/addAddress"}, method = RequestMethod.POST)
+    public  @ResponseBody Object addAddressWithLocation(@RequestHeader("token") String token,  @RequestParam String cityId, @RequestParam String address,@RequestParam double longitude, @RequestParam double latitude,HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
         if(tok!=null){
             Client client=clientRepo.findById(tok.getClientid());
             client.onReqested();
             clientRepo.save(client);
             Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-            String name="work";
-            switch (name) {
-                case "work":
                     Address address1=new Address(cityId,address);
                     address1.setLocation(new com.dynamica.orange.Classes.Map(latitude,longitude));
-                    address1.setName(company);
-                    doctor.setWorkAddress(address1);
-                    break;
-                case "home":
-                    Address address2=new Address(cityId,address);
-                    address2.setLocation(new com.dynamica.orange.Classes.Map(latitude,longitude));
-                    doctor.setHomeAddress(address2);
-                    break;
-            }
-            doctorRepo.save(doctor);
-            return new StatusObject("ok");}
+
+             boolean added =doctor.addAddress(address1);
+             if(added) {
+                 doctorRepo.save(doctor);
+                 return new StatusObject("ok");
+             }
+             else{
+                 return new StatusObject("addresslimit");
+             }
+        }
         return new StatusObject("noauth");
     }
     @RequestMapping(value = {"/deleteAddress"}, method = RequestMethod.POST)
-    public  @ResponseBody Object deleteAddress(@RequestHeader("token") String token){
+    public  @ResponseBody Object deleteAddress(@RequestHeader("token") String token, @RequestParam int index){
         Token tok= tokenRepo.findById(token);
         if(tok!=null) {
             Client client = clientRepo.findById(tok.getClientid());
             client.onReqested();
             clientRepo.save(client);
             Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
-            doctor.setWorkAddress(new Address());
-            doctorRepo.save(doctor);
-            return new StatusObject("ok");
+            boolean deleted=doctor.deleteAddress(index);
+            if(deleted) {
+                doctorRepo.save(doctor);
+                return new StatusObject("ok");
+            }
+            else{
+                return new StatusObject("indexoutofrange");
+            }
         }
         else {
             return new StatusObject("noauth");
         }
         }
-        @RequestMapping(value = {"/setAddressWithCompany"}, method = RequestMethod.POST)
+        @RequestMapping(value = {"/addAddressWithCompany"}, method = RequestMethod.POST)
     public  @ResponseBody Object addAddressWC(@RequestHeader("token") String token, @RequestParam String cityId, @RequestParam String address,@RequestParam String company,@RequestParam double longitude, @RequestParam double latitude, HttpServletRequest request){
         Token tok= tokenRepo.findById(token);
         if(tok!=null){
@@ -292,19 +293,17 @@ public class DoctorController {
             clientRepo.save(client);
             Doctor doctor=doctorRepo.findByClientid(tok.getClientid());
             Address address1=new Address(cityId,address);
-            address1.setName(company);
             address1.setLocation(new com.dynamica.orange.Classes.Map(latitude,longitude));
-            String name="work";
-            switch (name) {
-                case "work":
-                    doctor.setWorkAddress(address1);
-                    break;
-                case "home":
-                    doctor.setHomeAddress(address1);
-                    break;
+            address1.setName(company);
+            boolean added =doctor.addAddress(address1);
+            if(added) {
+                doctorRepo.save(doctor);
+                return new StatusObject("ok");
             }
-            doctorRepo.save(doctor);
-            return new StatusObject("ok");}
+            else{
+                return new StatusObject("addresslimit");
+            }
+        }
         return new StatusObject("noauth");
     }
     @RequestMapping(value = {"/setLang"}, method = RequestMethod.POST)
@@ -2265,23 +2264,17 @@ public class DoctorController {
             List<Service> services=new ArrayList<>();
             for(IDObject i:doctor.getServices())
                 services.add(serviceRepo.findById(i.getId()));
-            Address workAd=doctor.getWorkAddress();
-            City WCity;
-            Address homeAd=doctor.getHomeAddress();
-            City HCity;
-            try{
-                WCity=cityRepo.findById(workAd.getCityid()+"");
-                WCity.getNameRus();
-            }
-            catch (NullPointerException e){
-                WCity=null;
-            }
-            try{
-                HCity=cityRepo.findById(homeAd.getCityid()+"");
-                HCity.getNameRus();
-            }
-            catch (NullPointerException e){
-                HCity=null;
+            List<City> cities=new ArrayList<>();
+            for(Address ii:doctor.getAddresses()) {
+                Address workAd = ii;
+                City WCity;
+                try {
+                    WCity = cityRepo.findById(workAd.getCityid() + "");
+                    WCity.getNameRus();
+                } catch (NullPointerException e) {
+                    WCity = null;
+                }
+                cities.add(WCity);
             }
 
             ArrayList<Comment> comments=doctor.getComments();
@@ -2291,7 +2284,9 @@ public class DoctorController {
                 i.setPatient(new PatientListForm(patient,clientp));
             }
             doctor.setComments(comments);
-            return new DoctorProfileForm(doctor,client,serviceType,services, WCity, HCity);
+            DoctorProfileForm profileForm=new DoctorProfileForm(doctor,client,serviceType,services);
+            profileForm.setCities(cities);
+            return profileForm;
         }
         return new StatusObject("noauth");
     }

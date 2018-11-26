@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface TokenRepo extends MongoRepository<Token,String>{
     Token findById(String id);
-    Token findByClientid(String clientid);
+    List<Token> findByClientid(String clientid);
     List<Token> findByCurtimestartLessThan(long curtimestart);
     List<Token> findAll();
 }

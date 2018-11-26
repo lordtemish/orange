@@ -28,7 +28,7 @@ public class Client {
     ArrayList<String> phones;
     ArrayList<String> mails;
     ArrayList<Object> photourl;
-    private long lastOnline;
+    private long lastOnline=0;
 
     public long getLastOnline() {
         return lastOnline;

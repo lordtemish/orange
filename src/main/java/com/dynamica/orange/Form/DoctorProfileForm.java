@@ -19,17 +19,16 @@ public class DoctorProfileForm {
     double rate;
     ServiceType serviceType;
     List<Service> services;
-    City workCity;
-    City homeCity;
+    List<City> cities;
     boolean online;
     int calls, commings;
-    public DoctorProfileForm(Doctor doctor, Client client, ServiceType serviceType, List<Service> services, City workCity, City homeCity){
-          this.doctor=doctor;
-          this.client=client;
-          this.serviceType=serviceType;
-          this.services=services;
-          this.workCity=workCity;
-          this.homeCity=homeCity;
+
+    public DoctorProfileForm(Doctor doctor, Client client, ServiceType serviceType, List<Service> services){
+        this.doctor=doctor;
+        this.client=client;
+        this.serviceType=serviceType;
+        this.services=services;
+        cities=new ArrayList<>();
         if((new Date().getTime())-client.getLastOnline()<=600000) {
             online=true;
         }
@@ -47,27 +46,13 @@ public class DoctorProfileForm {
             rate=-1;
         }
     }
-    public DoctorProfileForm(Doctor doctor, Client client, ServiceType serviceType, List<Service> services){
-        this.doctor=doctor;
-        this.client=client;
-        this.serviceType=serviceType;
-        this.services=services;
-        if((new Date().getTime())-client.getLastOnline()<=600000) {
-            online=true;
-        }
-        else{
-            online=false;
-        }
-        double j=0;
-        for(Rate i:doctor.getRates()){
-            j+=i.getNum();
-        }
-        if(doctor.getRates().size()>0) {
-            rate = j / doctor.getRates().size();
-        }
-        else{
-            rate=-1;
-        }
+
+    public void setCities(List<City> cities) {
+        this.cities = cities;
+    }
+
+    public List<City> getCities() {
+        return cities;
     }
 
     public void setCommentForms(List<CommentForm> commentForms) {
@@ -138,13 +123,6 @@ public class DoctorProfileForm {
         return serviceType;
     }
 
-    public City getHomeCity() {
-        return homeCity;
-    }
-
-    public City getWorkCity() {
-        return workCity;
-    }
 
     public boolean isOnline() {
         return online;

@@ -12,6 +12,7 @@ public class Token {
     @Id
     private String id;
     private String clientid;
+    private String iosToken, androidToken;
     private long curtimestart;
     private String ip;
     private boolean admin;
@@ -28,6 +29,26 @@ public class Token {
         this.clientid=clientid;
         this.ip=ip;
         admin=false;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setAndroidToken(String androidToken) {
+        this.androidToken = androidToken;
+    }
+
+    public void setIosToken(String iosToken) {
+        this.iosToken = iosToken;
+    }
+
+    public String getAndroidToken() {
+        return androidToken;
+    }
+
+    public String getIosToken() {
+        return iosToken;
     }
 
     public String getIp() {

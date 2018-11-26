@@ -323,25 +323,17 @@ public class PatientController {
                 for(IDObject i:doctor.getServices()){
                     services.add(serviceRepo.findById(i.getId()));
                 }
-                City cityH;
-                City cityW;
-                if(doctor.getHomeAddress()==null) {
-                    cityH=new City("","");
-                }
-                else {
-                    cityH = cityRepo.findById(doctor.getHomeAddress().getCityid()+"");
-                }
-                if(doctor.getWorkAddress()==null) {
-                    cityW=new City("","");
-                }
-                else{
-                    cityW = cityRepo.findById(doctor.getWorkAddress().getCityid()+"");
-                }
-                if(cityH==null){
-                    cityH=new City("","");
-                }
-                if(cityW==null){
-                    cityW=new City("","");
+                List<City> cities=new ArrayList<>();
+                for(Address ii:doctor.getAddresses()) {
+                    Address workAd = ii;
+                    City WCity;
+                    try {
+                        WCity = cityRepo.findById(workAd.getCityid() + "");
+                        WCity.getNameRus();
+                    } catch (NullPointerException e) {
+                        WCity = null;
+                    }
+                    cities.add(WCity);
                 }
                 doctor.setServicetypeid(serviceType);
                 myPatientForm patientForm=doctor.getPatientbyId(patient.getId());
@@ -362,7 +354,8 @@ public class PatientController {
                     CommentForm commentForm=new CommentForm(patient1,client2,j);
                     commentForms.add(commentForm);
                 }
-                DoctorProfileForm form=new DoctorProfileForm(doctor,client,serviceType,services, cityH,cityW);
+                DoctorProfileForm form=new DoctorProfileForm(doctor,client,serviceType,services);
+                form.setCities(cities);
                 form.setShowPhones(patientForm.isPhonedoctor());
                 form.setCommentForms(commentForms);
                 List<Order> orders=orderRepo.findByPatientidAndDoctorid(patient.getId(),doctor.getId());
@@ -599,17 +592,16 @@ public class PatientController {
                 logger.info(doctors.size()+" "+service.getServtypeid());
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
-                    if(i.getWorkAddress()==null){
-                        Address s=new Address();
-                        s.setCityid("");
-                        i.setWorkAddress(s);
+                    boolean contains=false;
+                    for(Address j:i.getAddresses()){
+                        if(j!=null){
+                            if(j.getCityid().equals(cityId)){
+                                contains=true;
+                                break;
+                            }
+                        }
                     }
-                    if(i.getHomeAddress()==null){
-                        Address s=new Address();
-                        s.setCityid("");
-                        i.setHomeAddress(s);
-                    }
-                    if(i.getServicesList().contains(serviceid) && (i.getHomeAddress().getCityid().equals(cityId) || i.getWorkAddress().getCityid().equals(cityId))){
+                    if(i.getServicesList().contains(serviceid) && contains){
                         ArrayList<Service> services=new ArrayList<>();
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
@@ -658,17 +650,16 @@ public class PatientController {
                 logger.info(doctors.size()+" "+servicetypeid);
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
-                    if(i.getWorkAddress()==null){
-                        Address s=new Address();
-                        s.setCityid("");
-                        i.setWorkAddress(s);
+                    boolean contains=false;
+                    for(Address j:i.getAddresses()){
+                        if(j!=null){
+                            if(j.getCityid().equals(cityId)){
+                                contains=true;
+                                break;
+                            }
+                        }
                     }
-                    if(i.getHomeAddress()==null){
-                        Address s=new Address();
-                        s.setCityid("");
-                        i.setHomeAddress(s);
-                    }
-                    if(i.getWorkAddress().getCityid().equals(cityId) || i.getHomeAddress().getCityid().equals(cityId)){
+                    if(contains){
                         ArrayList<Service> services=new ArrayList<>();
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
@@ -713,18 +704,17 @@ public class PatientController {
                 logger.info(doctors.size()+" "+servicetypeid);
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
-                    if(i.getWorkAddress()==null){
-                        Address s=new Address();
-                        s.setCityid("");
-                        i.setWorkAddress(s);
-                    }
-                    if(i.getHomeAddress()==null){
-                        Address s=new Address();
-                        s.setCityid("");
-                        i.setHomeAddress(s);
+                    boolean contains=false;
+                    for(Address j:i.getAddresses()){
+                        if(j!=null){
+                            if(j.getCityid().equals(cityId)){
+                                contains=true;
+                                break;
+                            }
+                        }
                     }
                     Client client=clientRepo.findById(i.getClientid());
-                    if(((client.getName()!=null && client.getName().toLowerCase().contains(text.toLowerCase())) || (client.getSurname()!=null && client.getSurname().toLowerCase().contains(text.toLowerCase()))) && (i.getHomeAddress().getCityid().equals(cityId) || i.getWorkAddress().getCityid().equals(cityId))){
+                    if((client.getName()!=null && client.getName().toLowerCase().contains(text.toLowerCase())) || (contains) ){
                         ArrayList<Service> services=new ArrayList<>();
                         for(IDObject j:i.getServices()){
                             services.add(serviceRepo.findById(j.getId()));
@@ -770,17 +760,16 @@ public class PatientController {
                 logger.info(doctors.size()+" "+service.getServtypeid());
                 ArrayList<DoctorListForm> doctorListForms=new ArrayList<>();
                 for(Doctor i:doctors){
-                    if(i.getWorkAddress()==null){
-                        Address s=new Address();
-                        s.setCityid("");
-                        i.setWorkAddress(s);
+                    boolean contains=false;
+                    for(Address j:i.getAddresses()){
+                        if(j!=null){
+                            if(j.getCityid().equals(cityId)){
+                                contains=true;
+                                break;
+                            }
+                        }
                     }
-                    if(i.getHomeAddress()==null){
-                        Address s=new Address();
-                        s.setCityid("");
-                        i.setHomeAddress(s);
-                    }
-                    if(i.getServicesList().contains(serviceid) && (i.getWorkAddress().getCityid().equals(cityId) || i.getHomeAddress().getCityid().equals(cityId))) {
+                    if(i.getServicesList().contains(serviceid) && (contains)) {
                         Client client = clientRepo.findById(i.getClientid());
                         if ((client.getName()!=null && client.getName().toLowerCase().contains(text.toLowerCase())) || (client.getSurname()!=null && client.getSurname().toLowerCase().contains(text.toLowerCase()))) {
                             ArrayList<Service> services = new ArrayList<>();
