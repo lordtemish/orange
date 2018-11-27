@@ -7,7 +7,7 @@
       <p>MainController: Основные запросы</p>
  
 <h5> Регистрация делается через MainController: </h5>
-         <p>   1)addCLient(email, password) после чего на email придет код</p>
+         <p>   1)addClient(email, password) после чего на email придет код</p>
 <p>            2)checkCode(email, code) придет Объект со String token</p>
 <p>            3)resend(email, password) на email переотправит код</p>
 <h5>Авторизация : надо вставить в header параметр "token" c токеном внутри  </h5>         
